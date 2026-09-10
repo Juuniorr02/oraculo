@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://c1hb7dnwmeqn0"]
+
+[ext_resource type="Script" uid="uid://bc526qa7v6ke4" path="res://scripts/editor/shell/SettingsDialog.cs" id="1_qo0d4"]
+
+[node name="SettingsDialog" type="Window" unique_id=407007297]
+oversampling_override = 1.0
+position = Vector2i(0, 36)
+size = Vector2i(300, 150)
+script = ExtResource("1_qo0d4")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=934126171]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1375619538]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="MarginContainer/VBoxContainer" unique_id=2136854699]
+layout_mode = 2
+
+[node name="DisplayLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1584414384]
+layout_mode = 2
+
+[node name="FullscreenCheckButton" type="CheckButton" parent="MarginContainer/VBoxContainer" unique_id=1624909357]
+layout_mode = 2
+text = "Pantalla completa"
+
+[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1948440871]
+layout_mode = 2
+text = "Cerrar"

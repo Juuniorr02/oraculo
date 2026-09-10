@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/conditions/ConditionListEditor.cs" id="1_conditionlisteditor"]
+
+[node name="ConditionListEditor" type="VBoxContainer"]
+layout_mode = 2
+script = ExtResource("1_conditionlisteditor")
+theme_override_constants/separation = 6
+
+[node name="ConditionsHeader" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="ConditionsTitle" type="Label" parent="ConditionsHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Condiciones"
+vertical_alignment = 1
+
+[node name="AddConditionButton" type="Button" parent="ConditionsHeader"]
+custom_minimum_size = Vector2(170, 35)
+layout_mode = 2
+text = "+ Añadir condición"
+
+[node name="ConditionsList" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6

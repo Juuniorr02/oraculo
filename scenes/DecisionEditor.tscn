@@ -1,0 +1,53 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/decisions/DecisionEditor.cs" id="1_decisioneditor"]
+[ext_resource type="PackedScene" path="res://scenes/ConditionListEditor.tscn" id="2_conditionlisteditor"]
+[ext_resource type="PackedScene" path="res://scenes/EffectListEditor.tscn" id="3_effectlisteditor"]
+
+[node name="DecisionEditor" type="VBoxContainer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+script = ExtResource("1_decisioneditor")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DecisionTextLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Texto de la opción"
+
+[node name="DecisionTextEdit" type="TextEdit" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "Escribe el texto de la opción..."
+
+[node name="DescriptionLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Descripción"
+
+[node name="DescriptionTextEdit" type="TextEdit" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "Escribe una descripción para esta opción..."
+
+[node name="NextPageLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Próxima página"
+
+[node name="NextPageOption" type="OptionButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="ConditionListEditor" parent="VBoxContainer" instance=ExtResource("2_conditionlisteditor")]
+layout_mode = 2
+
+[node name="EffectListEditor" parent="VBoxContainer" instance=ExtResource("3_effectlisteditor")]
+layout_mode = 2

@@ -1,0 +1,96 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/shell/OptionsEditor.cs" id="1_optionseditor"]
+[ext_resource type="PackedScene" path="res://scenes/DecisionEditor.tscn" id="2_decisioneditor"]
+
+[node name="OptionsEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_optionseditor")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="OptionsPanel" type="PanelContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer/OptionsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/OptionsPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Opciones"
+
+[node name="PageLabel" type="Label" parent="HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Página de decisión"
+
+[node name="PageOption" type="OptionButton" parent="HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="Separator" type="HSeparator" parent="HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="OptionList" type="VBoxContainer" parent="HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="Buttons" type="HBoxContainer" parent="HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AddOptionButton" type="Button" parent="HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+ Añadir"
+
+[node name="DeleteOptionButton" type="Button" parent="HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Eliminar"
+
+[node name="EditorPanel" type="PanelContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/EditorPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer/EditorPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="DecisionEditor" parent="HBoxContainer/EditorPanel/ScrollContainer/MarginContainer" instance=ExtResource("2_decisioneditor")]
+layout_mode = 2

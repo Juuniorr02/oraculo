@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://cu5xgm2x6s8hb"]
+
+[ext_resource type="Script" uid="uid://dftut55d23qn7" path="res://scripts/editor/conditions/ConditionEditor.cs" id="1_conditioneditor"]
+
+[node name="ConditionEditor" type="PanelContainer" unique_id=1064672235]
+script = ExtResource("1_conditioneditor")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1140418149]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=187995626]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1496045247]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="TypeLabel" type="Label" parent="MarginContainer/VBoxContainer/Header" unique_id=2107699487]
+layout_mode = 2
+text = "Tipo"
+
+[node name="TypeOption" type="OptionButton" parent="MarginContainer/VBoxContainer/Header" unique_id=2128523788]
+custom_minimum_size = Vector2(220, 35)
+layout_mode = 2
+
+[node name="FieldsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=41235975]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8

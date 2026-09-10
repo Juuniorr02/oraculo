@@ -1,0 +1,104 @@
+[gd_scene format=3 uid="uid://cp5xg7ern84t0"]
+
+[ext_resource type="Script" uid="uid://qly3mc4lug6u" path="res://scripts/editor/events/EventListView.cs" id="1_5qwtj"]
+
+[node name="EventListView" type="Control" unique_id=113280455]
+
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_5qwtj")
+
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=262312512]
+
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+
+[node name="Header" type="HBoxContainer" parent="VBoxContainer" unique_id=619028932]
+
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+
+[node name="Title" type="Label" parent="VBoxContainer/Header" unique_id=242125576]
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+text = "Eventos"
+vertical_alignment = 1
+
+
+[node name="NewEventButton" type="Button" parent="VBoxContainer/Header" unique_id=1149023440]
+
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+text = "+ Nuevo evento"
+
+
+[node name="SearchBar" type="LineEdit" parent="VBoxContainer" unique_id=332859988]
+
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+placeholder_text = "Buscar por ID o título..."
+
+
+[node name="ColumnHeader" type="HBoxContainer" parent="VBoxContainer" unique_id=367417925]
+
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+
+[node name="IdLabel" type="Label" parent="VBoxContainer/ColumnHeader" unique_id=181132218]
+
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ID"
+
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer/ColumnHeader" unique_id=487122705]
+
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Título"
+
+
+[node name="ChapterLabel" type="Label" parent="VBoxContainer/ColumnHeader" unique_id=324982681]
+
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Capítulo"
+horizontal_alignment = 1
+
+
+[node name="EventList" type="VBoxContainer" parent="VBoxContainer" unique_id=1557121495]
+
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+
+[node name="Footer" type="HBoxContainer" parent="VBoxContainer" unique_id=736421845]
+
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+
+[node name="EventCountLabel" type="Label" parent="VBoxContainer/Footer" unique_id=442117632]
+
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0 eventos"
+vertical_alignment = 1

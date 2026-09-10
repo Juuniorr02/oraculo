@@ -1,0 +1,109 @@
+[gd_scene format=3 uid="uid://b1ovo7hb4xm1y"]
+
+[ext_resource type="Script" uid="uid://bj6gsc4ug4q3r" path="res://scripts/editor/characters/CharacterEditor.cs" id="1_character_editor"]
+
+[node name="CharacterEditor" type="Control" unique_id=989872831]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_character_editor")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=356132338]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=546667523]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1976396893]
+layout_mode = 2
+text = "Editor de personaje"
+horizontal_alignment = 1
+
+[node name="IdSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1305455678]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/IdSection" unique_id=1567311982]
+layout_mode = 2
+text = "ID interno"
+
+[node name="IdValueLabel" type="Label" parent="MarginContainer/VBoxContainer/IdSection" unique_id=1637029256]
+layout_mode = 2
+text = "Se generará automáticamente"
+
+[node name="NameSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1341529487]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/NameSection" unique_id=1111985854]
+layout_mode = 2
+text = "Nombre"
+
+[node name="NameLineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/NameSection" unique_id=79072762]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+placeholder_text = "Nombre del personaje"
+
+[node name="AgeSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=2048810023]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/AgeSection" unique_id=1613632330]
+layout_mode = 2
+text = "Edad"
+
+[node name="AgeSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/AgeSection" unique_id=1528161639]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+max_value = 200.0
+
+[node name="GenderSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1582599512]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GenderSection" unique_id=711267597]
+layout_mode = 2
+text = "Género"
+
+[node name="GenderOption" type="OptionButton" parent="MarginContainer/VBoxContainer/GenderSection" unique_id=938938721]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="AliveSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1896806488]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AliveCheckButton" type="CheckButton" parent="MarginContainer/VBoxContainer/AliveSection" unique_id=1903743214]
+custom_minimum_size = Vector2(0, 40)
+custom_maximum_size = Vector2(150, -1)
+layout_mode = 2
+button_pressed = true
+text = "Está vivo"
+
+[node name="Buttons" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1191192020]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="CancelButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons" unique_id=977747066]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+text = "Cancelar"
+
+[node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons" unique_id=196488366]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+text = "Guardar"

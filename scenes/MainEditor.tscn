@@ -1,0 +1,152 @@
+[gd_scene format=3 uid="uid://8d0yw1jnamw3"]
+
+[ext_resource type="Script" uid="uid://djyo2jgjkhwj1" path="res://scripts/editor/shell/MainEditor.cs" id="1_68nbw"]
+[ext_resource type="Theme" uid="uid://bpomku5jaxovl" path="res://resources/OraculoTheme.tres" id="1_n7hwu"]
+
+[node name="MainEditor" type="Control" unique_id=1166175185]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_n7hwu")
+script = ExtResource("1_68nbw")
+
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=350967716]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="PanelContainer" parent="MainLayout" unique_id=285200518]
+custom_minimum_size = Vector2(0, 50)
+custom_maximum_size = Vector2(-1, 50)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="MainLayout/TopBar" unique_id=1099232073]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/TopBar/MarginContainer" unique_id=1553880374]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="MainLayout/TopBar/MarginContainer/HBoxContainer" unique_id=2142991041]
+custom_maximum_size = Vector2(300, -1)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ORÁCULO"
+
+[node name="ProjectName" type="Label" parent="MainLayout/TopBar/MarginContainer/HBoxContainer" unique_id=408091046]
+layout_mode = 2
+text = "Proyecto: Dynasty"
+
+[node name="Spacer" type="Control" parent="MainLayout/TopBar/MarginContainer/HBoxContainer" unique_id=1667239484]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SaveButton" type="Button" parent="MainLayout/TopBar/MarginContainer/HBoxContainer" unique_id=1931592500]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Guardar"
+
+[node name="SettingsButton" type="Button" parent="MainLayout/TopBar/MarginContainer/HBoxContainer" unique_id=688638786]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+tooltip_text = "Configuración"
+text = "⚙"
+
+[node name="MainArea" type="HBoxContainer" parent="MainLayout" unique_id=934591002]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 10.0
+
+[node name="SideBar" type="PanelContainer" parent="MainLayout/MainArea" unique_id=622176363]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MainLayout/MainArea/SideBar" unique_id=259387048]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainLayout/MainArea/SideBar/MarginContainer" unique_id=287740475]
+layout_mode = 2
+
+[node name="ProjectLabel" type="Label" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer" unique_id=1506012108]
+layout_mode = 2
+text = "PROYECTO"
+horizontal_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer" unique_id=315735844]
+layout_mode = 2
+
+[node name="Navigation" type="VBoxContainer" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer" unique_id=1103561070]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EventsButton" type="Button" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation" unique_id=2087780208]
+layout_mode = 2
+text = "📖 Eventos"
+alignment = 0
+
+[node name="InterludesButton" type="Button" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation" unique_id=311441583]
+layout_mode = 2
+text = "📜 Interludios"
+alignment = 0
+
+[node name="ChaptersButton" type="Button" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation" unique_id=542108482]
+layout_mode = 2
+text = "📚 Capítulos"
+alignment = 0
+
+[node name="CharactersButton" type="Button" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation" unique_id=1118865994]
+layout_mode = 2
+text = "👤 Personajes"
+alignment = 0
+
+[node name="AttributesButton" type="Button" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation" unique_id=294348445]
+layout_mode = 2
+text = "🧠 Atributos"
+alignment = 0
+
+[node name="RelationshipsButton" type="Button" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation" unique_id=1198303700]
+layout_mode = 2
+text = "🤝 Relaciones"
+alignment = 0
+
+[node name="LocalizationButton" type="Button" parent="MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation" unique_id=1311919749]
+layout_mode = 2
+text = "🌐 Localización"
+alignment = 0
+
+[node name="WorkSpace" type="PanelContainer" parent="MainLayout/MainArea" unique_id=223958769]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="MainLayout/MainArea/WorkSpace" unique_id=1783191075]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainLayout/MainArea/WorkSpace/MarginContainer" unique_id=799755656]
+layout_mode = 2
+
+[node name="WorkSpaceTitle" type="Label" parent="MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer" unique_id=487630390]
+layout_mode = 2
+text = "WORKSPACE"
+horizontal_alignment = 1
+
+[node name="WorkspaceContent" type="Control" parent="MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer" unique_id=161384400]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatusBar" type="PanelContainer" parent="MainLayout" unique_id=120688316]
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 2

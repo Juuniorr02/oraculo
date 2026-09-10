@@ -1,0 +1,114 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/relationships/RelationshipEditor.cs" id="1_relationship_editor"]
+
+[node name="RelationshipEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_relationship_editor")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Editor de relación"
+horizontal_alignment = 1
+
+[node name="CharacterSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CharacterSection"]
+layout_mode = 2
+text = "Personaje"
+
+[node name="CharacterOption" type="OptionButton" parent="MarginContainer/VBoxContainer/CharacterSection"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Seleccionar personaje"
+
+[node name="InitialValueSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/InitialValueSection"]
+layout_mode = 2
+text = "Valor inicial"
+
+[node name="InitialValueSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/InitialValueSection"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -10.0
+max_value = 10.0
+step = 1.0
+value = 0.0
+
+[node name="TitlesSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TitlesSection"]
+layout_mode = 2
+text = "Títulos disponibles"
+
+[node name="TitlesList" type="ItemList" parent="MarginContainer/VBoxContainer/TitlesSection"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="AddTitleContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TitlesSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/TitlesSection/AddTitleContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Escribir título..."
+
+[node name="AddTitleButton" type="Button" parent="MarginContainer/VBoxContainer/TitlesSection/AddTitleContainer"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "Añadir título"
+
+[node name="RemoveTitleButton" type="Button" parent="MarginContainer/VBoxContainer/TitlesSection"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "Eliminar título"
+
+[node name="Buttons" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+text = "Cancelar"
+
+[node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+text = "Guardar"

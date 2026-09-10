@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://b716f3gvih36v"]
+
+[ext_resource type="Script" uid="uid://demi4itjrimkf" path="res://scripts/core/Main.cs" id="1_rvslj"]
+[ext_resource type="Script" uid="uid://cas13siceslr4" path="res://scripts/core/ProjectManager.cs" id="2_0bbpv"]
+[ext_resource type="Script" uid="uid://dtrfsqoapp0sx" path="res://scripts/editor/shell/StartScreen.cs" id="3_0bbpv"]
+
+[node name="Main" type="Control" unique_id=932143342]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_rvslj")
+
+[node name="ProjectManager" type="Node" parent="." unique_id=847557539]
+script = ExtResource("2_0bbpv")
+
+[node name="StartScreen" type="Control" parent="." unique_id=920669465]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_0bbpv")
+
+[node name="CenterContainer" type="CenterContainer" parent="StartScreen" unique_id=1101980121]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="StartScreen/CenterContainer" unique_id=548694089]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="StartScreen/CenterContainer/VBoxContainer" unique_id=1323792146]
+layout_mode = 2
+text = "ORÁCULO"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="StartScreen/CenterContainer/VBoxContainer" unique_id=1767561290]
+layout_mode = 2
+text = "Editor de Project Dynasty"
+
+[node name="Spacer" type="Control" parent="StartScreen/CenterContainer/VBoxContainer" unique_id=527658924]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NewProjectButton" type="Button" parent="StartScreen/CenterContainer/VBoxContainer" unique_id=1187188600]
+layout_mode = 2
+text = "+ NUEVO PROYECTO"
+
+[node name="OpenProjectButton" type="Button" parent="StartScreen/CenterContainer/VBoxContainer" unique_id=1494925153]
+layout_mode = 2
+text = "ABRIR PROYECTO"
