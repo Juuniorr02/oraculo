@@ -1,0 +1,109 @@
+[gd_scene format=3 uid="uid://y6ls0f7yclrt"]
+
+[ext_resource type="Script" uid="uid://b2co0nc18witk" path="res://scripts/validation/ValidationPanel.cs" id="1_validation"]
+
+[node name="ValidationPanel" type="Control" unique_id=2116975626]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_validation")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1445420987]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="VBoxContainer" unique_id=204876941]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBoxContainer/Header" unique_id=1962978792]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "VALIDACIÓN DEL PROYECTO"
+vertical_alignment = 1
+
+[node name="ValidateButton" type="Button" parent="VBoxContainer/Header" unique_id=1028668428]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "⟳ Validar"
+
+[node name="CloseButton" type="Button" parent="VBoxContainer/Header" unique_id=1406856445]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Cerrar"
+
+[node name="Summary" type="HBoxContainer" parent="VBoxContainer" unique_id=1398511934]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ErrorsPanel" type="PanelContainer" parent="VBoxContainer/Summary" unique_id=426432709]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/Summary/ErrorsPanel" unique_id=108503446]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+
+[node name="ErrorsLabel" type="Label" parent="VBoxContainer/Summary/ErrorsPanel/MarginContainer" unique_id=1761244938]
+layout_mode = 2
+text = "✕ 0 ERRORES"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WarningsPanel" type="PanelContainer" parent="VBoxContainer/Summary" unique_id=727832718]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/Summary/WarningsPanel" unique_id=1568717533]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+
+[node name="WarningsLabel" type="Label" parent="VBoxContainer/Summary/WarningsPanel/MarginContainer" unique_id=687235019]
+layout_mode = 2
+text = "⚠ 0 ADVERTENCIAS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FilterBar" type="HBoxContainer" parent="VBoxContainer" unique_id=878724144]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AllButton" type="Button" parent="VBoxContainer/FilterBar" unique_id=807244413]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Todos"
+
+[node name="ErrorsButton" type="Button" parent="VBoxContainer/FilterBar" unique_id=1024238139]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Errores"
+
+[node name="WarningsButton" type="Button" parent="VBoxContainer/FilterBar" unique_id=442930399]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Advertencias"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer" unique_id=1180565485]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="IssueList" type="VBoxContainer" parent="VBoxContainer/ScrollContainer" unique_id=1242435913]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6

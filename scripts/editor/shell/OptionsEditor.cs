@@ -171,6 +171,78 @@ public partial class OptionsEditor : Control
     }
 
 
+    public bool SelectPageById(
+        string pageId)
+    {
+        if (string.IsNullOrWhiteSpace(
+            pageId))
+        {
+            return false;
+        }
+
+
+        SaveCurrentPageDecisions();
+
+
+        for (
+            int i = 0;
+            i < pageOption.ItemCount;
+            i++)
+        {
+            Variant metadata =
+                pageOption.GetItemMetadata(
+                    i
+                );
+
+
+            string optionPageId =
+                metadata.AsString();
+
+
+            if (optionPageId != pageId)
+            {
+                continue;
+            }
+
+
+            pageOption.Select(
+                i
+            );
+
+
+            LoadPageFromOption(
+                i
+            );
+
+
+            return true;
+        }
+
+
+        return false;
+    }
+
+
+    public bool SelectDecisionByIndex(
+        int index)
+    {
+        if (
+            index < 0 ||
+            index >= decisions.Count)
+        {
+            return false;
+        }
+
+
+        SelectDecision(
+            index
+        );
+
+
+        return true;
+    }
+
+
     public void LoadPage(
         EditorPageData page)
     {
@@ -418,6 +490,13 @@ public partial class OptionsEditor : Control
 
 
         SaveCurrentDecision();
+
+
+        if (selectedPage.Decisions == null)
+        {
+            selectedPage.Decisions =
+                new List<EditorDecisionData>();
+        }
 
 
         selectedPage.Decisions.Clear();

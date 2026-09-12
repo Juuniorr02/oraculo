@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://ows1ciw1l41v" path="res://scripts/editor/events/EventListItem.cs" id="1_0tlri"]
 
 [node name="EventListItem" type="PanelContainer" unique_id=1773939974]
+
 custom_minimum_size = Vector2(0, 40)
 offset_right = 40.0
 offset_bottom = 40.0
@@ -10,28 +11,39 @@ size_flags_horizontal = 3
 script = ExtResource("1_0tlri")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1997251451]
+
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_right = 10
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=1944130445]
+
 layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="IdLabel" type="Label" parent="MarginContainer/HBoxContainer" unique_id=691094987]
+
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "king_audience"
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1740478361]
+
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Audiencia con el rey"
 
 [node name="ChapterLabel" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1853954687]
+
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Capítulo I"
 horizontal_alignment = 1
+
+[node name="DeleteButton" type="Button" parent="MarginContainer/HBoxContainer"]
+
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Eliminar"

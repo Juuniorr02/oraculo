@@ -40,10 +40,15 @@ public class EventValidator
         EditorEventData eventData,
         ValidationResult result)
     {
+        string eventId =
+            eventData.Id ?? "";
+
+
         if (string.IsNullOrWhiteSpace(eventData.Id))
         {
             result.AddError(
-                "El evento no tiene ID."
+                "El evento no tiene ID.",
+                eventId
             );
         }
 
@@ -51,7 +56,8 @@ public class EventValidator
         if (string.IsNullOrWhiteSpace(eventData.Title))
         {
             result.AddWarning(
-                "El evento no tiene título."
+                "El evento no tiene título.",
+                eventId
             );
         }
 
@@ -59,7 +65,8 @@ public class EventValidator
         if (eventData.Chapter < 1)
         {
             result.AddError(
-                $"El capítulo del evento no es válido: {eventData.Chapter}."
+                $"El capítulo del evento no es válido: {eventData.Chapter}.",
+                eventId
             );
         }
 
@@ -67,7 +74,8 @@ public class EventValidator
         if (eventData.Year < 1)
         {
             result.AddError(
-                $"El año del evento no es válido: {eventData.Year}."
+                $"El año del evento no es válido: {eventData.Year}.",
+                eventId
             );
         }
 
@@ -75,7 +83,8 @@ public class EventValidator
         if (eventData.WorldYear < 1)
         {
             result.AddError(
-                $"El año mundial del evento no es válido: {eventData.WorldYear}."
+                $"El año mundial del evento no es válido: {eventData.WorldYear}.",
+                eventId
             );
         }
 
@@ -83,13 +92,15 @@ public class EventValidator
         if (eventData.Pages == null)
         {
             result.AddError(
-                "El evento no tiene una lista de páginas."
+                "El evento no tiene una lista de páginas.",
+                eventId
             );
         }
         else if (eventData.Pages.Count == 0)
         {
             result.AddError(
-                "El evento no tiene ninguna página."
+                "El evento no tiene ninguna página.",
+                eventId
             );
         }
     }
@@ -103,6 +114,10 @@ public class EventValidator
         {
             return;
         }
+
+
+        string eventId =
+            eventData.Id ?? "";
 
 
         HashSet<string> pageIds =
@@ -127,7 +142,9 @@ public class EventValidator
             if (page == null)
             {
                 result.AddError(
-                    $"{pageLocation}: la página es nula."
+                    $"{pageLocation}: la página es nula.",
+                    eventId,
+                    pageIndex
                 );
 
                 continue;
@@ -137,6 +154,7 @@ public class EventValidator
             ValidatePageId(
                 page,
                 pageIndex,
+                eventId,
                 pageIds,
                 result
             );
@@ -145,6 +163,7 @@ public class EventValidator
             ValidatePageText(
                 page,
                 pageIndex,
+                eventId,
                 result
             );
 
@@ -152,6 +171,7 @@ public class EventValidator
             ValidatePageType(
                 page,
                 pageIndex,
+                eventId,
                 result
             );
         }
@@ -159,6 +179,7 @@ public class EventValidator
 
         ValidateDecisionTargets(
             eventData.Pages,
+            eventId,
             pageIds,
             result
         );
@@ -168,13 +189,21 @@ public class EventValidator
     private void ValidatePageId(
         EditorPageData page,
         int pageIndex,
+        string eventId,
         HashSet<string> pageIds,
         ValidationResult result)
     {
+        string pageId =
+            page.Id ?? "";
+
+
         if (string.IsNullOrWhiteSpace(page.Id))
         {
             result.AddError(
-                $"Página {pageIndex + 1}: la página no tiene ID."
+                $"Página {pageIndex + 1}: la página no tiene ID.",
+                eventId,
+                pageIndex,
+                pageId
             );
 
             return;
@@ -184,7 +213,10 @@ public class EventValidator
         if (!pageIds.Add(page.Id))
         {
             result.AddError(
-                $"Página {pageIndex + 1}: el ID '{page.Id}' está duplicado."
+                $"Página {pageIndex + 1}: el ID '{page.Id}' está duplicado.",
+                eventId,
+                pageIndex,
+                pageId
             );
         }
     }
@@ -193,12 +225,16 @@ public class EventValidator
     private void ValidatePageText(
         EditorPageData page,
         int pageIndex,
+        string eventId,
         ValidationResult result)
     {
         if (string.IsNullOrWhiteSpace(page.Text))
         {
             result.AddWarning(
-                $"Página {pageIndex + 1}: la página no tiene texto."
+                $"Página {pageIndex + 1}: la página no tiene texto.",
+                eventId,
+                pageIndex,
+                page.Id ?? ""
             );
         }
     }
@@ -207,6 +243,7 @@ public class EventValidator
     private void ValidatePageType(
         EditorPageData page,
         int pageIndex,
+        string eventId,
         ValidationResult result)
     {
         switch (page.Type)
@@ -218,7 +255,10 @@ public class EventValidator
                     page.Decisions.Count > 0)
                 {
                     result.AddError(
-                        $"Página {pageIndex + 1}: una página Normal no puede contener decisiones."
+                        $"Página {pageIndex + 1}: una página Normal no puede contener decisiones.",
+                        eventId,
+                        pageIndex,
+                        page.Id ?? ""
                     );
                 }
 
@@ -230,6 +270,7 @@ public class EventValidator
                 ValidateDecisions(
                     page,
                     pageIndex,
+                    eventId,
                     result
                 );
 
@@ -239,7 +280,10 @@ public class EventValidator
             default:
 
                 result.AddError(
-                    $"Página {pageIndex + 1}: tipo de página desconocido."
+                    $"Página {pageIndex + 1}: tipo de página desconocido.",
+                    eventId,
+                    pageIndex,
+                    page.Id ?? ""
                 );
 
                 break;
@@ -250,6 +294,7 @@ public class EventValidator
     private void ValidateDecisions(
         EditorPageData page,
         int pageIndex,
+        string eventId,
         ValidationResult result)
     {
         if (
@@ -257,7 +302,10 @@ public class EventValidator
             page.Decisions.Count == 0)
         {
             result.AddWarning(
-                $"Página {pageIndex + 1}: es una página de decisión pero no tiene opciones."
+                $"Página {pageIndex + 1}: es una página de decisión pero no tiene opciones.",
+                eventId,
+                pageIndex,
+                page.Id ?? ""
             );
 
             return;
@@ -280,17 +328,30 @@ public class EventValidator
             if (decision == null)
             {
                 result.AddError(
-                    $"{location}: la decisión es nula."
+                    $"{location}: la decisión es nula.",
+                    eventId,
+                    pageIndex,
+                    page.Id ?? "",
+                    decisionIndex
                 );
 
                 continue;
             }
 
 
+            string decisionId =
+                decision.Id ?? "";
+
+
             if (string.IsNullOrWhiteSpace(decision.Id))
             {
                 result.AddError(
-                    $"{location}: la decisión no tiene ID."
+                    $"{location}: la decisión no tiene ID.",
+                    eventId,
+                    pageIndex,
+                    page.Id ?? "",
+                    decisionIndex,
+                    decisionId
                 );
             }
 
@@ -298,7 +359,12 @@ public class EventValidator
             if (string.IsNullOrWhiteSpace(decision.Text))
             {
                 result.AddError(
-                    $"{location}: la opción no tiene texto."
+                    $"{location}: la opción no tiene texto.",
+                    eventId,
+                    pageIndex,
+                    page.Id ?? "",
+                    decisionIndex,
+                    decisionId
                 );
             }
 
@@ -306,7 +372,12 @@ public class EventValidator
             if (string.IsNullOrWhiteSpace(decision.NextPageId))
             {
                 result.AddWarning(
-                    $"{location}: no tiene próxima página. La decisión terminará el evento."
+                    $"{location}: no tiene próxima página. La decisión terminará el evento.",
+                    eventId,
+                    pageIndex,
+                    page.Id ?? "",
+                    decisionIndex,
+                    decisionId
                 );
             }
 
@@ -314,6 +385,11 @@ public class EventValidator
             ValidateConditions(
                 decision.Conditions,
                 location,
+                eventId,
+                pageIndex,
+                page.Id ?? "",
+                decisionIndex,
+                decisionId,
                 result
             );
 
@@ -321,6 +397,11 @@ public class EventValidator
             ValidateEffects(
                 decision.Effects,
                 location,
+                eventId,
+                pageIndex,
+                page.Id ?? "",
+                decisionIndex,
+                decisionId,
                 result
             );
         }
@@ -329,6 +410,7 @@ public class EventValidator
 
     private void ValidateDecisionTargets(
         List<EditorPageData> pages,
+        string eventId,
         HashSet<string> pageIds,
         ValidationResult result)
     {
@@ -378,7 +460,12 @@ public class EventValidator
                         decision.NextPageId))
                 {
                     result.AddError(
-                        $"Página {pageIndex + 1}, opción {decisionIndex + 1}: la próxima página '{decision.NextPageId}' no existe."
+                        $"Página {pageIndex + 1}, opción {decisionIndex + 1}: la próxima página '{decision.NextPageId}' no existe.",
+                        eventId,
+                        pageIndex,
+                        page.Id ?? "",
+                        decisionIndex,
+                        decision.Id ?? ""
                     );
                 }
             }
@@ -389,6 +476,11 @@ public class EventValidator
     private void ValidateConditions(
         List<EditorConditionData> conditions,
         string location,
+        string eventId,
+        int pageIndex,
+        string pageId,
+        int decisionIndex,
+        string decisionId,
         ValidationResult result)
     {
         if (conditions == null)
@@ -413,7 +505,12 @@ public class EventValidator
             if (condition == null)
             {
                 result.AddError(
-                    $"{conditionLocation}: la condición es nula."
+                    $"{conditionLocation}: la condición es nula.",
+                    eventId,
+                    pageIndex,
+                    pageId,
+                    decisionIndex,
+                    decisionId
                 );
 
                 continue;
@@ -424,7 +521,12 @@ public class EventValidator
                 condition.TypeId))
             {
                 result.AddError(
-                    $"{conditionLocation}: no tiene tipo."
+                    $"{conditionLocation}: no tiene tipo.",
+                    eventId,
+                    pageIndex,
+                    pageId,
+                    decisionIndex,
+                    decisionId
                 );
 
                 continue;
@@ -436,7 +538,12 @@ public class EventValidator
                 condition.MaximumValue)
             {
                 result.AddError(
-                    $"{conditionLocation}: tiene un rango inválido."
+                    $"{conditionLocation}: tiene un rango inválido.",
+                    eventId,
+                    pageIndex,
+                    pageId,
+                    decisionIndex,
+                    decisionId
                 );
             }
 
@@ -449,6 +556,11 @@ public class EventValidator
                         condition.AttributeId,
                         "AttributeId",
                         conditionLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -471,6 +583,11 @@ public class EventValidator
                         condition.DecisionId,
                         "DecisionId",
                         conditionLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -483,6 +600,11 @@ public class EventValidator
                         condition.AttributeId,
                         "AttributeId",
                         conditionLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -495,6 +617,11 @@ public class EventValidator
                         condition.RelationshipCharacterId,
                         "RelationshipCharacterId",
                         conditionLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -507,13 +634,24 @@ public class EventValidator
                         condition.RelationshipCharacterId,
                         "RelationshipCharacterId",
                         conditionLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
+
 
                     ValidateRequiredField(
                         condition.RelationshipTitle,
                         "RelationshipTitle",
                         conditionLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -523,7 +661,12 @@ public class EventValidator
                 default:
 
                     result.AddError(
-                        $"{conditionLocation}: tipo de condición desconocido '{condition.TypeId}'."
+                        $"{conditionLocation}: tipo de condición desconocido '{condition.TypeId}'.",
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId
                     );
 
                     break;
@@ -535,6 +678,11 @@ public class EventValidator
     private void ValidateEffects(
         List<EditorEffectData> effects,
         string location,
+        string eventId,
+        int pageIndex,
+        string pageId,
+        int decisionIndex,
+        string decisionId,
         ValidationResult result)
     {
         if (effects == null)
@@ -559,7 +707,12 @@ public class EventValidator
             if (effect == null)
             {
                 result.AddError(
-                    $"{effectLocation}: el efecto es nulo."
+                    $"{effectLocation}: el efecto es nulo.",
+                    eventId,
+                    pageIndex,
+                    pageId,
+                    decisionIndex,
+                    decisionId
                 );
 
                 continue;
@@ -570,7 +723,12 @@ public class EventValidator
                 effect.TypeId))
             {
                 result.AddError(
-                    $"{effectLocation}: no tiene tipo."
+                    $"{effectLocation}: no tiene tipo.",
+                    eventId,
+                    pageIndex,
+                    pageId,
+                    decisionIndex,
+                    decisionId
                 );
 
                 continue;
@@ -585,6 +743,11 @@ public class EventValidator
                         effect.AttributeId,
                         "AttributeId",
                         effectLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -602,6 +765,11 @@ public class EventValidator
                         effect.DecisionId,
                         "DecisionId",
                         effectLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -614,6 +782,11 @@ public class EventValidator
                         effect.AttributeId,
                         "AttributeId",
                         effectLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -626,6 +799,11 @@ public class EventValidator
                         effect.RelationshipCharacterId,
                         "RelationshipCharacterId",
                         effectLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -638,13 +816,24 @@ public class EventValidator
                         effect.RelationshipCharacterId,
                         "RelationshipCharacterId",
                         effectLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
+
 
                     ValidateRequiredField(
                         effect.RelationshipTitle,
                         "RelationshipTitle",
                         effectLocation,
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId,
                         result
                     );
 
@@ -654,7 +843,12 @@ public class EventValidator
                 default:
 
                     result.AddError(
-                        $"{effectLocation}: tipo de efecto desconocido '{effect.TypeId}'."
+                        $"{effectLocation}: tipo de efecto desconocido '{effect.TypeId}'.",
+                        eventId,
+                        pageIndex,
+                        pageId,
+                        decisionIndex,
+                        decisionId
                     );
 
                     break;
@@ -667,12 +861,22 @@ public class EventValidator
         string value,
         string fieldName,
         string location,
+        string eventId,
+        int pageIndex,
+        string pageId,
+        int decisionIndex,
+        string decisionId,
         ValidationResult result)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
             result.AddError(
-                $"{location}: el campo '{fieldName}' es obligatorio."
+                $"{location}: el campo '{fieldName}' es obligatorio.",
+                eventId,
+                pageIndex,
+                pageId,
+                decisionIndex,
+                decisionId
             );
         }
     }

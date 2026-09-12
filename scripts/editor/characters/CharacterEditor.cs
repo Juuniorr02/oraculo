@@ -27,6 +27,8 @@ public partial class CharacterEditor : Control
 
     private EditorCharacterData characterData;
 
+    private UnsavedChangesGuard<EditorCharacterData> unsavedChangesGuard;
+
 
     public override void _Ready()
     {
@@ -79,6 +81,14 @@ public partial class CharacterEditor : Control
 
         cancelButton.Pressed +=
             OnCancelPressed;
+
+
+        unsavedChangesGuard =
+            new UnsavedChangesGuard<EditorCharacterData>(
+                this,
+                GetCurrentCharacterState,
+                CloseEditor
+            );
 
 
         GD.Print(
@@ -149,6 +159,9 @@ public partial class CharacterEditor : Control
         aliveCheckButton.ButtonPressed = true;
 
 
+        SaveOriginalState();
+
+
         nameLineEdit.GrabFocus();
     }
 
@@ -216,6 +229,9 @@ public partial class CharacterEditor : Control
 
         aliveCheckButton.ButtonPressed =
             characterData.IsAlive;
+
+
+        SaveOriginalState();
     }
 
 
@@ -269,6 +285,58 @@ public partial class CharacterEditor : Control
 
         return genderOption.GetItemText(
             selectedIndex
+        );
+    }
+
+
+    private EditorCharacterData GetCurrentCharacterState()
+    {
+        if (characterData == null)
+        {
+            characterData =
+                new EditorCharacterData();
+        }
+
+
+        characterData.Name =
+            nameLineEdit.Text.Trim();
+
+        characterData.Age =
+            Mathf.Clamp(
+                (int)ageSpinBox.Value,
+                0,
+                200
+            );
+
+        characterData.Gender =
+            GetSelectedGender();
+
+        characterData.IsAlive =
+            aliveCheckButton.ButtonPressed;
+
+
+        if (!string.IsNullOrWhiteSpace(
+            editingCharacterId))
+        {
+            characterData.Id =
+                editingCharacterId;
+        }
+
+
+        return characterData;
+    }
+
+
+    private void SaveOriginalState()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            return;
+        }
+
+
+        unsavedChangesGuard.SaveOriginalState(
+            characterData
         );
     }
 
@@ -360,6 +428,13 @@ public partial class CharacterEditor : Control
         }
 
 
+        editingCharacterId =
+            characterData.Id;
+
+
+        SaveOriginalState();
+
+
         EmitSignal(
             SignalName.CharacterSaved
         );
@@ -367,6 +442,25 @@ public partial class CharacterEditor : Control
 
 
     private void OnCancelPressed()
+    {
+        RequestClose();
+    }
+
+
+    private void RequestClose()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            CloseEditor();
+            return;
+        }
+
+
+        unsavedChangesGuard.RequestClose();
+    }
+
+
+    private void CloseEditor()
     {
         EmitSignal(
             SignalName.CharacterCancelled

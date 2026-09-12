@@ -31,6 +31,8 @@ public partial class RelationshipEditor : Control
 
     private EditorRelationshipDefinitionData relationshipData;
 
+    private UnsavedChangesGuard<EditorRelationshipDefinitionData> unsavedChangesGuard;
+
 
     public override void _Ready()
     {
@@ -94,6 +96,14 @@ public partial class RelationshipEditor : Control
 
         cancelButton.Pressed +=
             OnCancelPressed;
+
+
+        unsavedChangesGuard =
+            new UnsavedChangesGuard<EditorRelationshipDefinitionData>(
+                this,
+                GetCurrentRelationshipState,
+                CloseEditor
+            );
 
 
         GD.Print(
@@ -213,6 +223,9 @@ public partial class RelationshipEditor : Control
 
 
         ClearTitles();
+
+
+        SaveOriginalState();
     }
 
 
@@ -276,6 +289,9 @@ public partial class RelationshipEditor : Control
 
 
         PopulateTitles();
+
+
+        SaveOriginalState();
     }
 
 
@@ -473,33 +489,12 @@ public partial class RelationshipEditor : Control
     }
 
 
-    private void OnSavePressed()
+    private EditorRelationshipDefinitionData GetCurrentRelationshipState()
     {
-        if (relationshipDatabase == null)
-        {
-            GD.PrintErr(
-                "RelationshipEditor: RelationshipDatabase no está disponible."
-            );
-
-            return;
-        }
-
-
         if (relationshipData == null)
         {
             relationshipData =
                 new EditorRelationshipDefinitionData();
-        }
-
-
-        if (string.IsNullOrWhiteSpace(
-            relationshipData.CharacterId))
-        {
-            ShowError(
-                "Debes seleccionar un personaje."
-            );
-
-            return;
         }
 
 
@@ -515,6 +510,50 @@ public partial class RelationshipEditor : Control
         {
             relationshipData.Titles =
                 new List<string>();
+        }
+
+
+        return relationshipData;
+    }
+
+
+    private void SaveOriginalState()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            return;
+        }
+
+
+        unsavedChangesGuard.SaveOriginalState(
+            relationshipData
+        );
+    }
+
+
+    private void OnSavePressed()
+    {
+        if (relationshipDatabase == null)
+        {
+            ShowError(
+                "RelationshipDatabase no está disponible."
+            );
+
+            return;
+        }
+
+
+        GetCurrentRelationshipState();
+
+
+        if (string.IsNullOrWhiteSpace(
+            relationshipData.CharacterId))
+        {
+            ShowError(
+                "Debes seleccionar un personaje."
+            );
+
+            return;
         }
 
 
@@ -552,6 +591,13 @@ public partial class RelationshipEditor : Control
         }
 
 
+        editingCharacterId =
+            relationshipData.CharacterId;
+
+
+        SaveOriginalState();
+
+
         EmitSignal(
             SignalName.RelationshipSaved
         );
@@ -559,6 +605,25 @@ public partial class RelationshipEditor : Control
 
 
     private void OnCancelPressed()
+    {
+        RequestClose();
+    }
+
+
+    private void RequestClose()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            CloseEditor();
+            return;
+        }
+
+
+        unsavedChangesGuard.RequestClose();
+    }
+
+
+    private void CloseEditor()
     {
         EmitSignal(
             SignalName.RelationshipCancelled

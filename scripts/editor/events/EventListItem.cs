@@ -7,10 +7,16 @@ public partial class EventListItem : PanelContainer
         string eventId
     );
 
+    [Signal]
+    public delegate void EventDeleteRequestedEventHandler(
+        string eventId
+    );
+
 
     private Label idLabel;
     private Label titleLabel;
     private Label chapterLabel;
+    private Button deleteButton;
 
     private string eventId = "";
 
@@ -32,9 +38,17 @@ public partial class EventListItem : PanelContainer
                 "MarginContainer/HBoxContainer/ChapterLabel"
             );
 
+        deleteButton =
+            GetNode<Button>(
+                "MarginContainer/HBoxContainer/DeleteButton"
+            );
+
 
         GuiInput +=
             OnGuiInput;
+
+        deleteButton.Pressed +=
+            OnDeleteButtonPressed;
     }
 
 
@@ -72,5 +86,19 @@ public partial class EventListItem : PanelContainer
                 );
             }
         }
+    }
+
+
+    private void OnDeleteButtonPressed()
+    {
+        GD.Print(
+            "EventListItem: eliminación solicitada para: ",
+            eventId
+        );
+
+        EmitSignal(
+            SignalName.EventDeleteRequested,
+            eventId
+        );
     }
 }

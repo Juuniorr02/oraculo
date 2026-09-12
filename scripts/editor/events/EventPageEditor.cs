@@ -213,6 +213,44 @@ public partial class EventPageEditor : Control
 
         return pages;
     }
+public bool SelectPageById(
+    string pageId)
+{
+    if (string.IsNullOrWhiteSpace(pageId))
+    {
+        return false;
+    }
+
+
+    for (
+        int i = 0;
+        i < pages.Count;
+        i++)
+    {
+        EditorPageData page =
+            pages[i];
+
+
+        if (
+            page == null ||
+            page.Id != pageId)
+        {
+            continue;
+        }
+
+
+        SelectPage(
+            i
+        );
+
+
+        return true;
+    }
+
+
+    return false;
+}
+
 
 
     private void CreateInitialPage()

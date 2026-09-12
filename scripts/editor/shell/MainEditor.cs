@@ -6,6 +6,7 @@ public partial class MainEditor : Control
     private Button charactersButton;
     private Button relationshipsButton;
     private Button settingsButton;
+    private Button exitButton;
 
     private Control workspaceContent;
 
@@ -16,6 +17,7 @@ public partial class MainEditor : Control
     private PackedScene characterEditorScene;
     private PackedScene relationshipListViewScene;
     private PackedScene relationshipEditorScene;
+    private PackedScene validationPanelScene;
 
     private SettingsDialog settingsDialog;
 
@@ -26,6 +28,10 @@ public partial class MainEditor : Control
     private CharacterEditor characterEditor;
     private RelationshipListView relationshipListView;
     private RelationshipEditor relationshipEditor;
+    private ValidationPanel validationPanel;
+
+    private Button validationDetailsButton;
+    private Label validationStatusLabel;
 
     private ProjectManager projectManager;
     private EventRepository eventRepository;
@@ -75,9 +81,27 @@ public partial class MainEditor : Control
             );
 
 
+        exitButton =
+            GetNode<Button>(
+                "MainLayout/TopBar/MarginContainer/HBoxContainer/ExitButton"
+            );
+
+
         workspaceContent =
             GetNode<Control>(
                 "MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer/WorkspaceContent"
+            );
+
+
+        validationStatusLabel =
+            GetNode<Label>(
+                "MainLayout/StatusBar/MarginContainer/HBoxContainer/StatusLabel"
+            );
+
+
+        validationDetailsButton =
+            GetNode<Button>(
+                "MainLayout/StatusBar/MarginContainer/HBoxContainer/DetailsButton"
             );
 
 
@@ -123,6 +147,12 @@ public partial class MainEditor : Control
             );
 
 
+        validationPanelScene =
+            GD.Load<PackedScene>(
+                "res://scenes/ValidationPanel.tscn"
+            );
+
+
         eventsButton.Pressed +=
             OnEventsPressed;
 
@@ -139,6 +169,17 @@ public partial class MainEditor : Control
             OnSettingsPressed;
 
 
+        exitButton.Pressed +=
+            OnExitPressed;
+
+
+        validationDetailsButton.Pressed +=
+            OnValidationDetailsPressed;
+
+
+        UpdateValidationStatus();
+
+
         GD.Print(
             "MainEditor iniciado."
         );
@@ -150,7 +191,69 @@ public partial class MainEditor : Control
         Theme theme =
             OraculoThemeBuilder.CreateTheme();
 
-        Theme = theme;
+        Theme =
+            theme;
+    }
+
+
+    private void UpdateValidationStatus()
+    {
+        if (validationStatusLabel == null)
+        {
+            return;
+        }
+
+
+        if (eventRepository == null)
+        {
+            validationStatusLabel.Text =
+                "✕ No hay proyecto cargado";
+
+            return;
+        }
+
+
+        ProjectValidator projectValidator =
+            new ProjectValidator(
+                eventRepository
+            );
+
+
+        ValidationResult result =
+            projectValidator.ValidateProject();
+
+
+        int errorCount =
+            result.Errors.Count;
+
+
+        int warningCount =
+            result.Warnings.Count;
+
+
+        if (errorCount > 0)
+        {
+            validationStatusLabel.Text =
+                $"✕ Proyecto con errores · " +
+                $"{errorCount} errores · " +
+                $"{warningCount} advertencias";
+
+            return;
+        }
+
+
+        if (warningCount > 0)
+        {
+            validationStatusLabel.Text =
+                $"⚠ Proyecto válido con advertencias · " +
+                $"{warningCount} advertencias";
+
+            return;
+        }
+
+
+        validationStatusLabel.Text =
+            "✓ Proyecto válido · 0 errores · 0 advertencias";
     }
 
 
@@ -166,7 +269,8 @@ public partial class MainEditor : Control
             eventListViewScene.Instantiate<EventListView>();
 
 
-        eventListView = view;
+        eventListView =
+            view;
 
 
         eventListView.EventSelected +=
@@ -178,7 +282,8 @@ public partial class MainEditor : Control
         );
 
 
-        if (projectManager == null ||
+        if (
+            projectManager == null ||
             !projectManager.HasProject())
         {
             GD.PrintErr(
@@ -192,6 +297,9 @@ public partial class MainEditor : Control
         view.SetRepository(
             eventRepository
         );
+
+
+        UpdateValidationStatus();
     }
 
 
@@ -217,7 +325,8 @@ public partial class MainEditor : Control
             characterListViewScene.Instantiate<CharacterListView>();
 
 
-        characterListView = view;
+        characterListView =
+            view;
 
 
         characterListView.CharacterSelected +=
@@ -229,7 +338,8 @@ public partial class MainEditor : Control
         );
 
 
-        if (projectManager == null ||
+        if (
+            projectManager == null ||
             !projectManager.HasProject())
         {
             GD.PrintErr(
@@ -272,7 +382,8 @@ public partial class MainEditor : Control
             characterEditorScene.Instantiate<CharacterEditor>();
 
 
-        characterEditor = editor;
+        characterEditor =
+            editor;
 
 
         editor.CharacterSaved +=
@@ -288,7 +399,8 @@ public partial class MainEditor : Control
         );
 
 
-        if (projectManager == null ||
+        if (
+            projectManager == null ||
             !projectManager.HasProject())
         {
             GD.PrintErr(
@@ -352,7 +464,8 @@ public partial class MainEditor : Control
             relationshipListViewScene.Instantiate<RelationshipListView>();
 
 
-        relationshipListView = view;
+        relationshipListView =
+            view;
 
 
         relationshipListView.RelationshipSelected +=
@@ -364,7 +477,8 @@ public partial class MainEditor : Control
         );
 
 
-        if (projectManager == null ||
+        if (
+            projectManager == null ||
             !projectManager.HasProject())
         {
             GD.PrintErr(
@@ -407,7 +521,8 @@ public partial class MainEditor : Control
             relationshipEditorScene.Instantiate<RelationshipEditor>();
 
 
-        relationshipEditor = editor;
+        relationshipEditor =
+            editor;
 
 
         editor.RelationshipSaved +=
@@ -423,7 +538,8 @@ public partial class MainEditor : Control
         );
 
 
-        if (projectManager == null ||
+        if (
+            projectManager == null ||
             !projectManager.HasProject())
         {
             GD.PrintErr(
@@ -465,37 +581,133 @@ public partial class MainEditor : Control
     }
 
 
-    private void ShowView(
-        Control view)
+    private void OnValidationDetailsPressed()
     {
-        if (view == null)
+        if (validationPanelScene == null)
         {
             GD.PrintErr(
-                "MainEditor: la vista es nula."
+                "MainEditor: ValidationPanel.tscn no está disponible."
             );
 
             return;
         }
 
 
-        if (currentView != null)
+        if (
+            projectManager == null ||
+            !projectManager.HasProject())
         {
-            currentView.QueueFree();
-            currentView = null;
+            GD.PrintErr(
+                "MainEditor: no hay ningún proyecto cargado."
+            );
+
+            return;
         }
 
 
-        currentView = view;
+        ValidationPanel panel =
+            validationPanelScene.Instantiate<ValidationPanel>();
 
 
-        workspaceContent.AddChild(
-            currentView
+        validationPanel =
+            panel;
+
+
+        validationPanel.Closed +=
+            OnValidationPanelClosed;
+
+
+        validationPanel.IssueSelected +=
+            OnValidationIssueSelected;
+
+
+        ShowView(
+            panel
         );
 
 
-        currentView.SetAnchorsAndOffsetsPreset(
-            LayoutPreset.FullRect
+        panel.SetRepository(
+            eventRepository
         );
+
+
+        panel.Validate();
+    }
+
+
+    private void OnValidationIssueSelected(
+        string eventId,
+        string pageId,
+        int decisionIndex)
+    {
+        if (string.IsNullOrWhiteSpace(
+            eventId))
+        {
+            GD.PrintErr(
+                "MainEditor: la incidencia no tiene un evento asociado."
+            );
+
+            return;
+        }
+
+
+        GD.Print(
+            "MainEditor: incidencia seleccionada. Abriendo evento: ",
+            eventId
+        );
+
+
+        EventEditor eventEditor =
+            eventEditorScene.Instantiate<EventEditor>();
+
+
+        eventEditor.EventSaved +=
+            OnEventEditorSaved;
+
+
+        eventEditor.EventCancelled +=
+            OnEventEditorCancelled;
+
+
+        eventEditor.ApplicationCloseConfirmed +=
+            OnApplicationCloseConfirmed;
+
+
+        ShowView(
+            eventEditor
+        );
+
+
+        eventEditor.SetRepository(
+            eventRepository
+        );
+
+
+        eventEditor.SetProjectPath(
+            projectManager.GetProjectPath()
+        );
+
+
+        eventEditor.SetValidationTarget(
+            pageId,
+            decisionIndex
+        );
+
+
+        eventEditor.LoadEvent(
+            eventId
+        );
+    }
+
+
+    private void OnValidationPanelClosed()
+    {
+        validationPanel =
+            null;
+
+        UpdateValidationStatus();
+
+        ShowEventList();
     }
 
 
@@ -530,6 +742,10 @@ public partial class MainEditor : Control
 
         eventEditor.EventCancelled +=
             OnEventEditorCancelled;
+
+
+        eventEditor.ApplicationCloseConfirmed +=
+            OnApplicationCloseConfirmed;
 
 
         ShowView(
@@ -568,6 +784,9 @@ public partial class MainEditor : Control
         );
 
 
+        UpdateValidationStatus();
+
+
         ShowEventList();
     }
 
@@ -598,5 +817,83 @@ public partial class MainEditor : Control
 
 
         settingsDialog.PopupCentered();
+    }
+
+
+    private void OnExitPressed()
+    {
+        RequestApplicationClose();
+    }
+
+
+    public void RequestApplicationClose()
+    {
+        EventEditor eventEditor =
+            currentView as EventEditor;
+
+
+        if (eventEditor != null)
+        {
+            eventEditor.RequestApplicationClose();
+            return;
+        }
+
+
+        OnApplicationCloseConfirmed();
+    }
+
+
+    private void OnApplicationCloseConfirmed()
+    {
+        Main main =
+            GetParent<Main>();
+
+
+        if (main == null)
+        {
+            GD.PrintErr(
+                "MainEditor: no se encontró el nodo Main."
+            );
+
+            return;
+        }
+
+
+        main.ConfirmApplicationClose();
+    }
+
+
+    private void ShowView(
+        Control view)
+    {
+        if (view == null)
+        {
+            GD.PrintErr(
+                "MainEditor: la vista es nula."
+            );
+
+            return;
+        }
+
+
+        if (currentView != null)
+        {
+            currentView.QueueFree();
+            currentView = null;
+        }
+
+
+        currentView =
+            view;
+
+
+        workspaceContent.AddChild(
+            currentView
+        );
+
+
+        currentView.SetAnchorsAndOffsetsPreset(
+            LayoutPreset.FullRect
+        );
     }
 }

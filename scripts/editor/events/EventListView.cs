@@ -21,6 +21,10 @@ public partial class EventListView : Control
     private List<EditorEventData> allEvents =
         new List<EditorEventData>();
 
+    private ConfirmationDialog deleteConfirmationDialog;
+
+    private string pendingDeleteEventId = "";
+
 
     public override void _Ready()
     {
@@ -57,6 +61,9 @@ public partial class EventListView : Control
             OnNewEventPressed;
 
 
+        CreateDeleteConfirmationDialog();
+
+
         GD.Print(
             "EventListView iniciado."
         );
@@ -79,6 +86,29 @@ public partial class EventListView : Control
         {
             LoadEvents();
         }
+    }
+
+
+    private void CreateDeleteConfirmationDialog()
+    {
+        deleteConfirmationDialog =
+            new ConfirmationDialog();
+
+        deleteConfirmationDialog.Title =
+            "Eliminar evento";
+
+        deleteConfirmationDialog.OkButtonText =
+            "Eliminar";
+
+        deleteConfirmationDialog.CancelButtonText =
+            "Cancelar";
+
+        deleteConfirmationDialog.Confirmed +=
+            OnDeleteConfirmed;
+
+        AddChild(
+            deleteConfirmationDialog
+        );
     }
 
 
@@ -221,6 +251,9 @@ public partial class EventListView : Control
 
         item.EventSelected +=
             OnEventSelected;
+
+        item.EventDeleteRequested +=
+            OnEventDeleteRequested;
     }
 
 
@@ -271,5 +304,127 @@ public partial class EventListView : Control
             SignalName.EventSelected,
             eventId
         );
+    }
+
+
+    private void OnEventDeleteRequested(
+        string eventId)
+    {
+        if (string.IsNullOrWhiteSpace(eventId))
+        {
+            GD.PrintErr(
+                "EventListView: no se puede eliminar un evento sin ID."
+            );
+
+            return;
+        }
+
+
+        if (eventRepository == null)
+        {
+            GD.PrintErr(
+                "EventListView: no hay EventRepository disponible."
+            );
+
+            return;
+        }
+
+
+        EditorEventData eventData =
+            eventRepository.Load(
+                eventId
+            );
+
+
+        if (eventData == null)
+        {
+            GD.PrintErr(
+                "EventListView: no se encontró el evento '",
+                eventId,
+                "'."
+            );
+
+            LoadEvents();
+
+            return;
+        }
+
+
+        pendingDeleteEventId =
+            eventId;
+
+
+        string eventTitle =
+            string.IsNullOrWhiteSpace(
+                eventData.Title)
+                ? "(sin título)"
+                : eventData.Title;
+
+
+        deleteConfirmationDialog.DialogText =
+            $"¿Seguro que quieres eliminar el evento?\n\n" +
+            $"ID: {eventData.Id}\n" +
+            $"Título: {eventTitle}\n\n" +
+            "Esta acción no se puede deshacer.";
+
+
+        deleteConfirmationDialog.PopupCentered();
+    }
+
+
+    private void OnDeleteConfirmed()
+    {
+        if (string.IsNullOrWhiteSpace(
+            pendingDeleteEventId))
+        {
+            return;
+        }
+
+
+        if (eventRepository == null)
+        {
+            GD.PrintErr(
+                "EventListView: no hay EventRepository disponible."
+            );
+
+            pendingDeleteEventId = "";
+
+            return;
+        }
+
+
+        string eventId =
+            pendingDeleteEventId;
+
+
+        pendingDeleteEventId =
+            "";
+
+
+        bool deleted =
+            eventRepository.Delete(
+                eventId
+            );
+
+
+        if (!deleted)
+        {
+            GD.PrintErr(
+                "EventListView: no se pudo eliminar el evento '",
+                eventId,
+                "'."
+            );
+
+            return;
+        }
+
+
+        GD.Print(
+            "EventListView: evento eliminado correctamente: ",
+            eventId
+        );
+
+
+        LoadEvents();
     }
 }

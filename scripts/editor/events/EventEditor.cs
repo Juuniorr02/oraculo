@@ -9,6 +9,8 @@ public partial class EventEditor : Control
     [Signal]
     public delegate void EventCancelledEventHandler();
 
+    [Signal]
+    public delegate void ApplicationCloseConfirmedEventHandler();
 
     private Label titleLabel;
 
@@ -38,8 +40,15 @@ public partial class EventEditor : Control
     private bool updatingYears = false;
     private bool creatingNewEvent = false;
 
+    private UnsavedChangesGuard<EditorEventData> unsavedChangesGuard;
+
     private const int BaseWorldYear = 1134;
     private const int BaseYear = 1;
+
+    private string pendingPageId = "";
+    private int pendingDecisionIndex = -1;
+
+    private bool applicationCloseRequested = false;
 
 
     public override void _Ready()
@@ -104,7 +113,6 @@ public partial class EventEditor : Control
                 "VBoxContainer/Buttons/SaveButton"
             );
 
-
         closeButton.Pressed +=
             OnClosePressed;
 
@@ -123,13 +131,18 @@ public partial class EventEditor : Control
         tabBar.TabChanged +=
             OnTabChanged;
 
+        unsavedChangesGuard =
+            new UnsavedChangesGuard<EditorEventData>(
+                this,
+                GetCurrentEventState,
+                CloseEditor
+            );
 
         InitializeYears();
 
         OnTabChanged(
             tabBar.CurrentTab
         );
-
 
         GD.Print(
             "EventEditor iniciado."
@@ -172,6 +185,18 @@ public partial class EventEditor : Control
     }
 
 
+    public void SetValidationTarget(
+        string pageId,
+        int decisionIndex)
+    {
+        pendingPageId =
+            pageId ?? "";
+
+        pendingDecisionIndex =
+            decisionIndex;
+    }
+
+
     public void CreateNewEvent()
     {
         creatingNewEvent = true;
@@ -188,9 +213,9 @@ public partial class EventEditor : Control
                 Pages = new List<EditorPageData>()
             };
 
-
         LoadEventIntoEditor();
 
+        SaveOriginalState();
 
         GD.Print(
             "EventEditor: creando evento nuevo."
@@ -267,6 +292,8 @@ public partial class EventEditor : Control
         }
 
         LoadEventIntoEditor();
+
+        SaveOriginalState();
     }
 
 
@@ -312,7 +339,6 @@ public partial class EventEditor : Control
 
         updatingYears = false;
 
-
         pageEditor.SetPages(
             eventData.Pages
         );
@@ -333,16 +359,84 @@ public partial class EventEditor : Control
             eventData.Chapter
         );
 
+        SelectValidationTarget();
 
         GD.Print(
             "EventEditor: datos cargados en la interfaz."
         );
 
-
         if (!creatingNewEvent)
         {
             TestValidator();
         }
+    }
+
+
+    private EditorEventData GetCurrentEventState()
+    {
+        UpdateEventDataFromEditor();
+
+        return eventData;
+    }
+
+
+    private void SaveOriginalState()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            return;
+        }
+
+        unsavedChangesGuard.SaveOriginalState(
+            eventData
+        );
+    }
+
+
+    public bool HasUnsavedChanges()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            return false;
+        }
+
+        return unsavedChangesGuard.HasUnsavedChanges();
+    }
+
+
+    public void RequestApplicationClose()
+    {
+        applicationCloseRequested = true;
+
+        if (unsavedChangesGuard == null)
+        {
+            EmitSignal(
+                SignalName.ApplicationCloseConfirmed
+            );
+
+            return;
+        }
+
+        unsavedChangesGuard.RequestClose();
+    }
+
+
+    private void CloseEditor()
+    {
+        if (applicationCloseRequested)
+        {
+            applicationCloseRequested = false;
+
+            EmitSignal(
+                SignalName.ApplicationCloseConfirmed
+            );
+
+            return;
+        }
+
+        EmitSignal(
+            SignalName.EventCancelled
+        );
     }
 
 
@@ -491,6 +585,69 @@ public partial class EventEditor : Control
     }
 
 
+    private void SelectValidationTarget()
+    {
+        if (string.IsNullOrWhiteSpace(
+            pendingPageId))
+        {
+            return;
+        }
+
+        bool pageSelected =
+            pageEditor.SelectPageById(
+                pendingPageId
+            );
+
+        bool optionsPageSelected =
+            optionsEditor.SelectPageById(
+                pendingPageId
+            );
+
+        if (!pageSelected &&
+            !optionsPageSelected)
+        {
+            GD.PrintErr(
+                "EventEditor: no se encontró la página de validación: ",
+                pendingPageId
+            );
+
+            return;
+        }
+
+        if (pendingDecisionIndex >= 0)
+        {
+            bool decisionSelected =
+                optionsEditor.SelectDecisionByIndex(
+                    pendingDecisionIndex
+                );
+
+            if (!decisionSelected)
+            {
+                GD.PrintErr(
+                    "EventEditor: no se encontró la opción de validación: ",
+                    pendingDecisionIndex + 1
+                );
+
+                return;
+            }
+
+            tabBar.CurrentTab =
+                1;
+        }
+        else
+        {
+            tabBar.CurrentTab =
+                0;
+        }
+
+        pendingPageId =
+            "";
+
+        pendingDecisionIndex =
+            -1;
+    }
+
+
     private void UpdateEventDataFromEditor()
     {
         if (eventData == null)
@@ -518,13 +675,11 @@ public partial class EventEditor : Control
                 (float)worldYearSpinBox.Value
             );
 
-
         List<EditorPageData> narrativePages =
             pageEditor.GetPages();
 
         List<EditorPageData> optionPages =
             optionsEditor.GetPages();
-
 
         if (narrativePages == null)
         {
@@ -537,7 +692,6 @@ public partial class EventEditor : Control
             optionPages =
                 new List<EditorPageData>();
         }
-
 
         foreach (
             EditorPageData optionPage
@@ -566,10 +720,8 @@ public partial class EventEditor : Control
             }
         }
 
-
         eventData.Pages =
             narrativePages;
-
 
         GD.Print(
             "EventEditor: modelo actualizado desde la interfaz."
@@ -604,7 +756,6 @@ public partial class EventEditor : Control
             "  Páginas: ",
             eventData.Pages.Count
         );
-
 
         foreach (
             EditorPageData page
@@ -657,9 +808,7 @@ public partial class EventEditor : Control
             return;
         }
 
-
         UpdateEventDataFromEditor();
-
 
         if (string.IsNullOrWhiteSpace(
             eventData.Id))
@@ -670,7 +819,6 @@ public partial class EventEditor : Control
 
             return;
         }
-
 
         if (creatingNewEvent &&
             eventRepository.Exists(
@@ -685,12 +833,10 @@ public partial class EventEditor : Control
             return;
         }
 
-
         bool saved =
             eventRepository.Save(
                 eventData
             );
-
 
         if (!saved)
         {
@@ -701,22 +847,20 @@ public partial class EventEditor : Control
             return;
         }
 
-
         eventId =
             eventData.Id;
 
         creatingNewEvent = false;
 
-
         titleLabel.Text =
             "Editor de evento: " +
             eventData.Id;
 
+        SaveOriginalState();
 
         GD.Print(
             "EventEditor: evento guardado correctamente."
         );
-
 
         EmitSignal(
             SignalName.EventSaved
@@ -726,17 +870,25 @@ public partial class EventEditor : Control
 
     private void OnClosePressed()
     {
-        EmitSignal(
-            SignalName.EventCancelled
-        );
+        RequestClose();
     }
 
 
     private void OnCancelPressed()
     {
-        EmitSignal(
-            SignalName.EventCancelled
-        );
+        RequestClose();
+    }
+
+
+    private void RequestClose()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            CloseEditor();
+            return;
+        }
+
+        unsavedChangesGuard.RequestClose();
     }
 
 
