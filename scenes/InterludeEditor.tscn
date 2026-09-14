@@ -1,0 +1,125 @@
+[gd_scene format=3 uid="uid://bco5s6j2ymtvb"]
+
+[ext_resource type="Script" uid="uid://crf6okowhqmsi" path="res://scripts/editor/interludes/InterludeEditor.cs" id="1_interludeeditor"]
+
+[node name="InterludeEditor" type="Control" unique_id=902345130]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_interludeeditor")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1439173788]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="VBoxContainer" unique_id=99858073]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBoxContainer/Header" unique_id=1205279599]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Editor de interludio"
+vertical_alignment = 1
+
+[node name="CloseButton" type="Button" parent="VBoxContainer/Header" unique_id=690726578]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+text = "×"
+
+[node name="Separator" type="HSeparator" parent="VBoxContainer" unique_id=1858304195]
+layout_mode = 2
+
+[node name="InterludeInfo" type="VBoxContainer" parent="VBoxContainer" unique_id=422894897]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="IdContainer" type="VBoxContainer" parent="VBoxContainer/InterludeInfo" unique_id=777013032]
+layout_mode = 2
+
+[node name="IdLabel" type="Label" parent="VBoxContainer/InterludeInfo/IdContainer" unique_id=2086332762]
+layout_mode = 2
+text = "ID"
+
+[node name="IdEdit" type="LineEdit" parent="VBoxContainer/InterludeInfo/IdContainer" unique_id=757913333]
+custom_minimum_size = Vector2(0, 35)
+custom_maximum_size = Vector2(350, 55)
+layout_mode = 2
+placeholder_text = "Identificador del interludio"
+
+[node name="TitleContainer" type="VBoxContainer" parent="VBoxContainer/InterludeInfo" unique_id=1277638892]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer/InterludeInfo/TitleContainer" unique_id=2048154853]
+layout_mode = 2
+text = "Título"
+
+[node name="TitleEdit" type="LineEdit" parent="VBoxContainer/InterludeInfo/TitleContainer" unique_id=554942972]
+custom_minimum_size = Vector2(0, 35)
+custom_maximum_size = Vector2(-1, 55)
+layout_mode = 2
+placeholder_text = "Título del interludio"
+
+[node name="StyleContainer" type="VBoxContainer" parent="VBoxContainer/InterludeInfo" unique_id=1543937600]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="StyleLabel" type="Label" parent="VBoxContainer/InterludeInfo/StyleContainer" unique_id=577591217]
+layout_mode = 2
+text = "Estilo"
+
+[node name="StyleOption" type="OptionButton" parent="VBoxContainer/InterludeInfo/StyleContainer" unique_id=209400786]
+custom_minimum_size = Vector2(200, 35)
+layout_mode = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "Carta"
+popup/item_0/id = 0
+popup/item_1/text = "Periódico"
+popup/item_1/id = 1
+
+[node name="TabBar" type="TabBar" parent="VBoxContainer" unique_id=99706517]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+current_tab = 0
+tab_count = 4
+tab_0/title = "Narrativa"
+tab_1/title = "Condiciones"
+tab_2/title = "Consecuencias"
+tab_3/title = "Continuación"
+
+[node name="Content" type="PanelContainer" parent="VBoxContainer" unique_id=786728586]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Placeholder" type="Label" parent="VBoxContainer/Content" unique_id=236341112]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Editor de páginas"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="VBoxContainer" unique_id=758821641]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+alignment = 2
+
+[node name="CancelButton" type="Button" parent="VBoxContainer/Buttons" unique_id=1435207300]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Cancelar"
+
+[node name="SaveButton" type="Button" parent="VBoxContainer/Buttons" unique_id=1464103609]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Guardar"

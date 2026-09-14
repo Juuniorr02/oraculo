@@ -1,0 +1,51 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/interludes/InterludeListItem.cs" id="1"]
+
+[node name="InterludeListItem" type="PanelContainer"]
+
+custom_minimum_size = Vector2(0, 40)
+offset_right = 40.0
+offset_bottom = 40.0
+size_flags_horizontal = 3
+script = ExtResource("1")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+
+layout_mode = 2
+
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_right = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 10
+
+[node name="IdLabel" type="Label" parent="MarginContainer/HBoxContainer"]
+
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "letter_alistair"
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/HBoxContainer"]
+
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Una carta del Viejo León"
+
+[node name="StyleLabel" type="Label" parent="MarginContainer/HBoxContainer"]
+
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Carta"
+horizontal_alignment = 1
+
+[node name="DeleteButton" type="Button" parent="MarginContainer/HBoxContainer"]
+
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Eliminar"

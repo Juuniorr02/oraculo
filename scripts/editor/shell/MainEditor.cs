@@ -3,6 +3,7 @@ using Godot;
 public partial class MainEditor : Control
 {
     private Button eventsButton;
+    private Button interludesButton;
     private Button charactersButton;
     private Button relationshipsButton;
     private Button settingsButton;
@@ -13,6 +14,7 @@ public partial class MainEditor : Control
     private PackedScene settingsDialogScene;
     private PackedScene eventListViewScene;
     private PackedScene eventEditorScene;
+    private PackedScene interludeListViewScene;
     private PackedScene characterListViewScene;
     private PackedScene characterEditorScene;
     private PackedScene relationshipListViewScene;
@@ -24,6 +26,7 @@ public partial class MainEditor : Control
     private Control currentView;
 
     private EventListView eventListView;
+    private InterludeListView interludeListView;
     private CharacterListView characterListView;
     private CharacterEditor characterEditor;
     private RelationshipListView relationshipListView;
@@ -35,6 +38,7 @@ public partial class MainEditor : Control
 
     private ProjectManager projectManager;
     private EventRepository eventRepository;
+    private InterludeRepository interludeRepository;
 
 
     public override void _Ready()
@@ -50,9 +54,19 @@ public partial class MainEditor : Control
 
         if (projectManager.HasProject())
         {
+            string projectPath =
+                projectManager.GetProjectPath();
+
+
             eventRepository =
                 new EventRepository(
-                    projectManager.GetProjectPath()
+                    projectPath
+                );
+
+
+            interludeRepository =
+                new InterludeRepository(
+                    projectPath
                 );
         }
 
@@ -60,6 +74,12 @@ public partial class MainEditor : Control
         eventsButton =
             GetNode<Button>(
                 "MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation/EventsButton"
+            );
+
+
+        interludesButton =
+            GetNode<Button>(
+                "MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation/InterludesButton"
             );
 
 
@@ -123,6 +143,12 @@ public partial class MainEditor : Control
             );
 
 
+        interludeListViewScene =
+            GD.Load<PackedScene>(
+                "res://scenes/InterludeListView.tscn"
+            );
+
+
         characterListViewScene =
             GD.Load<PackedScene>(
                 "res://scenes/CharacterListView.tscn"
@@ -155,6 +181,10 @@ public partial class MainEditor : Control
 
         eventsButton.Pressed +=
             OnEventsPressed;
+
+
+        interludesButton.Pressed +=
+            OnInterludesPressed;
 
 
         charactersButton.Pressed +=
@@ -301,6 +331,159 @@ public partial class MainEditor : Control
 
         UpdateValidationStatus();
     }
+
+
+    private void OnInterludesPressed()
+{
+    ShowInterludeList();
+}
+
+
+private void ShowInterludeList()
+{
+    if (interludeListViewScene == null)
+    {
+        GD.PrintErr(
+            "MainEditor: InterludeListView.tscn no está disponible."
+        );
+
+        return;
+    }
+
+
+    InterludeListView view =
+        interludeListViewScene.Instantiate<InterludeListView>();
+
+
+    interludeListView =
+        view;
+
+
+    interludeListView.InterludeSelected +=
+        OnInterludeSelected;
+
+
+    ShowView(
+        view
+    );
+
+
+    if (
+        projectManager == null ||
+        !projectManager.HasProject())
+    {
+        GD.PrintErr(
+            "MainEditor: no hay ningún proyecto cargado."
+        );
+
+        return;
+    }
+
+
+    view.SetRepository(
+        interludeRepository
+    );
+}
+
+
+private void OnInterludeSelected(
+    string interludeId)
+{
+    if (interludeRepository == null)
+    {
+        GD.PrintErr(
+            "MainEditor: InterludeRepository no está disponible."
+        );
+
+        return;
+    }
+
+
+    if (interludeListViewScene == null)
+    {
+        GD.PrintErr(
+            "MainEditor: InterludeListView.tscn no está disponible."
+        );
+
+        return;
+    }
+
+
+    InterludeEditor editor;
+
+
+    PackedScene interludeEditorScene =
+        GD.Load<PackedScene>(
+            "res://scenes/InterludeEditor.tscn"
+        );
+
+
+    if (interludeEditorScene == null)
+    {
+        GD.PrintErr(
+            "MainEditor: InterludeEditor.tscn no está disponible."
+        );
+
+        return;
+    }
+
+
+    editor =
+        interludeEditorScene.Instantiate<InterludeEditor>();
+
+
+    editor.InterludeSaved +=
+        OnInterludeEditorSaved;
+
+
+    editor.InterludeCancelled +=
+        OnInterludeEditorCancelled;
+
+
+    ShowView(
+        editor
+    );
+
+
+    editor.SetRepository(
+        interludeRepository
+    );
+
+
+    if (string.IsNullOrWhiteSpace(
+        interludeId))
+    {
+        editor.CreateNewInterlude();
+    }
+    else
+    {
+        editor.LoadInterlude(
+            interludeId
+        );
+    }
+}
+
+
+private void OnInterludeEditorSaved()
+{
+    GD.Print(
+        "MainEditor: interludio guardado. Volviendo a la lista."
+    );
+
+
+    ShowInterludeList();
+}
+
+
+private void OnInterludeEditorCancelled()
+{
+    GD.Print(
+        "MainEditor: edición de interludio cancelada."
+    );
+
+
+    ShowInterludeList();
+}
 
 
     private void OnCharactersPressed()
