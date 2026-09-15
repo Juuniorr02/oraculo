@@ -2,48 +2,103 @@
 
 [ext_resource type="Script" uid="uid://ows1ciw1l41v" path="res://scripts/editor/events/EventListItem.cs" id="1_0tlri"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_event_item"]
+
+bg_color = Color(0.133333, 0.149020, 0.168627, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.192157, 0.211765, 0.243137, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+
 [node name="EventListItem" type="PanelContainer" unique_id=1773939974]
 
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 44)
+
 offset_right = 40.0
-offset_bottom = 40.0
+offset_bottom = 44.0
+
 size_flags_horizontal = 3
+
+theme_override_styles/panel = SubResource("StyleBoxFlat_event_item")
+
 script = ExtResource("1_0tlri")
+
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1997251451]
 
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_right = 10
+
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 6
+
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=1944130445]
 
 layout_mode = 2
+
 theme_override_constants/separation = 10
+
 
 [node name="IdLabel" type="Label" parent="MarginContainer/HBoxContainer" unique_id=691094987]
 
 custom_minimum_size = Vector2(200, 0)
+
 layout_mode = 2
+
 size_flags_horizontal = 3
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
 text = "king_audience"
+
+vertical_alignment = 1
+
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1740478361]
 
 layout_mode = 2
+
 size_flags_horizontal = 3
+
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+
 text = "Audiencia con el rey"
+
+vertical_alignment = 1
+
 
 [node name="ChapterLabel" type="Label" parent="MarginContainer/HBoxContainer" unique_id=1853954687]
 
 custom_minimum_size = Vector2(100, 0)
+
 layout_mode = 2
+
 size_flags_horizontal = 3
+
+theme_override_colors/font_color = Color(0.654902, 0.686275, 0.737255, 1)
+
 text = "Capítulo I"
+
 horizontal_alignment = 1
+
+vertical_alignment = 1
+
 
 [node name="DeleteButton" type="Button" parent="MarginContainer/HBoxContainer"]
 
-custom_minimum_size = Vector2(100, 0)
+custom_minimum_size = Vector2(70, 0)
+
 layout_mode = 2
+
 text = "Eliminar"

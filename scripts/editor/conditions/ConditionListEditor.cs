@@ -176,6 +176,27 @@ public partial class ConditionListEditor : VBoxContainer
     }
 
 
+    public void SelectCondition(
+        int index)
+    {
+        if (
+            index < 0 ||
+            index >= conditions.Count)
+        {
+            GD.PrintErr(
+                "ConditionListEditor: índice de condición inválido: ",
+                index
+            );
+
+            return;
+        }
+
+        OpenEditor(
+            index
+        );
+    }
+
+
     public void LoadTestData()
     {
         conditions.Clear();
@@ -318,9 +339,10 @@ public partial class ConditionListEditor : VBoxContainer
 
 
     private static Button CreateListButton(
-        string text)
-    {
-        return new Button
+    string text)
+{
+    Button button =
+        new Button
         {
             Text =
                 text,
@@ -328,13 +350,192 @@ public partial class ConditionListEditor : VBoxContainer
             CustomMinimumSize =
                 new Vector2(
                     0,
-                    35
+                    46
                 ),
 
             Alignment =
-                HorizontalAlignment.Left
+                HorizontalAlignment.Left,
+
+            SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill,
+
+            ClipText =
+                true
         };
-    }
+
+
+    StyleBoxFlat normal =
+        new StyleBoxFlat
+        {
+            BgColor =
+                new Color(
+                    "222730"
+                ),
+
+            BorderColor =
+                new Color(
+                    "313743"
+                ),
+
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+
+            CornerRadiusTopLeft = 3,
+            CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3,
+            CornerRadiusBottomRight = 3,
+
+            ContentMarginLeft = 12,
+            ContentMarginRight = 12,
+            ContentMarginTop = 8,
+            ContentMarginBottom = 8
+        };
+
+
+    StyleBoxFlat hover =
+        new StyleBoxFlat
+        {
+            BgColor =
+                new Color(
+                    "252D35"
+                ),
+
+            BorderColor =
+                new Color(
+                    "4FA6A6"
+                ),
+
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+
+            CornerRadiusTopLeft = 3,
+            CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3,
+            CornerRadiusBottomRight = 3,
+
+            ContentMarginLeft = 12,
+            ContentMarginRight = 12,
+            ContentMarginTop = 8,
+            ContentMarginBottom = 8
+        };
+
+
+    StyleBoxFlat pressed =
+        new StyleBoxFlat
+        {
+            BgColor =
+                new Color(
+                    "27343A"
+                ),
+
+            BorderColor =
+                new Color(
+                    "4FA6A6"
+                ),
+
+            BorderWidthLeft = 2,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+
+            CornerRadiusTopLeft = 3,
+            CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3,
+            CornerRadiusBottomRight = 3,
+
+            ContentMarginLeft = 11,
+            ContentMarginRight = 12,
+            ContentMarginTop = 8,
+            ContentMarginBottom = 8
+        };
+
+
+    StyleBoxFlat focus =
+        new StyleBoxFlat
+        {
+            BgColor =
+                new Color(
+                    "222730"
+                ),
+
+            BorderColor =
+                new Color(
+                    "4FA6A6"
+                ),
+
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+
+            CornerRadiusTopLeft = 3,
+            CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3,
+            CornerRadiusBottomRight = 3,
+
+            ContentMarginLeft = 12,
+            ContentMarginRight = 12,
+            ContentMarginTop = 8,
+            ContentMarginBottom = 8
+        };
+
+
+    button.AddThemeStyleboxOverride(
+        "normal",
+        normal
+    );
+
+    button.AddThemeStyleboxOverride(
+        "hover",
+        hover
+    );
+
+    button.AddThemeStyleboxOverride(
+        "pressed",
+        pressed
+    );
+
+    button.AddThemeStyleboxOverride(
+        "focus",
+        focus
+    );
+
+
+    button.AddThemeColorOverride(
+        "font_color",
+        new Color(
+            "A8AFBC"
+        )
+    );
+
+    button.AddThemeColorOverride(
+        "font_hover_color",
+        new Color(
+            "E7EAF0"
+        )
+    );
+
+    button.AddThemeColorOverride(
+        "font_pressed_color",
+        new Color(
+            "E7EAF0"
+        )
+    );
+
+    button.AddThemeColorOverride(
+        "font_focus_color",
+        new Color(
+            "E7EAF0"
+        )
+    );
+
+
+    return button;
+}
 
 
     private void OpenEditor(

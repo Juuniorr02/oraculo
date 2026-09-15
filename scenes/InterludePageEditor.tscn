@@ -1,0 +1,197 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/interludes/InterludePageEditor.cs" id="1_interlude_page_editor"]
+
+[node name="InterludePageEditor" type="Control"]
+
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_interlude_page_editor")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+
+[node name="PagesPanel" type="PanelContainer" parent="HBoxContainer"]
+
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer/PagesPanel"]
+
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/PagesPanel/MarginContainer"]
+
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PagesTitle" type="Label" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer"]
+
+layout_mode = 2
+text = "PÁGINAS"
+
+[node name="Separator" type="HSeparator" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer"]
+
+layout_mode = 2
+
+[node name="PageList" type="VBoxContainer" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer"]
+
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="AddPageButton" type="Button" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+text = "+ Página"
+
+
+[node name="EditorPanel" type="PanelContainer" parent="HBoxContainer"]
+
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer/EditorPanel"]
+
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/EditorPanel/MarginContainer"]
+
+layout_mode = 2
+theme_override_constants/separation = 10
+
+
+[node name="PageTitle" type="Label" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer"]
+
+layout_mode = 2
+text = "Página"
+
+
+[node name="TextLabel" type="Label" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer"]
+
+layout_mode = 2
+text = "Texto"
+
+
+[node name="TextEdit" type="TextEdit" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "Escribe aquí el texto del interludio..."
+wrap_mode = 1
+
+
+[node name="AddIllustrationButton" type="Button" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+text = "+ Añadir ilustración"
+
+
+[node name="IllustrationSection" type="VBoxContainer" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer"]
+
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+
+[node name="IllustrationLabel" type="Label" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection"]
+
+layout_mode = 2
+text = "ILUSTRACIÓN"
+
+
+[node name="PreviewPanel" type="PanelContainer" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection"]
+
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+
+[node name="Preview" type="TextureRect" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection/PreviewPanel"]
+
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+
+[node name="IllustrationButtons" type="HBoxContainer" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection"]
+
+layout_mode = 2
+theme_override_constants/separation = 8
+
+
+[node name="ChangeIllustrationButton" type="Button" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection/IllustrationButtons"]
+
+custom_minimum_size = Vector2(110, 38)
+layout_mode = 2
+text = "Cambiar"
+
+
+[node name="RemoveIllustrationButton" type="Button" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection/IllustrationButtons"]
+
+custom_minimum_size = Vector2(160, 38)
+layout_mode = 2
+text = "Eliminar ilustración"
+
+
+[node name="IllustrationPlacementLabel" type="Label" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection"]
+
+layout_mode = 2
+text = "Posición de la ilustración"
+
+
+[node name="IllustrationPlacementOption" type="OptionButton" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection"]
+
+custom_minimum_size = Vector2(220, 38)
+layout_mode = 2
+item_count = 6
+selected = 0
+
+popup/item_0/text = "Centro"
+popup/item_0/id = 0
+
+popup/item_1/text = "Página completa"
+popup/item_1/id = 1
+
+popup/item_2/text = "Arriba"
+popup/item_2/id = 2
+
+popup/item_3/text = "Abajo"
+popup/item_3/id = 3
+
+popup/item_4/text = "Izquierda"
+popup/item_4/id = 4
+
+popup/item_5/text = "Derecha"
+popup/item_5/id = 5
+
+
+[node name="IllustrationFileDialog" type="FileDialog" parent="."]
+
+file_mode = 0
+access = 2
+title = "Seleccionar ilustración"
+size = Vector2i(900, 600)
+filters = PackedStringArray("*.png ; PNG", "*.jpg ; JPEG", "*.jpeg ; JPEG", "*.webp ; WebP")

@@ -2,26 +2,49 @@
 
 [ext_resource type="Script" path="res://scripts/editor/conditions/ConditionListEditor.cs" id="1_conditionlisteditor"]
 
+
 [node name="ConditionListEditor" type="VBoxContainer"]
+
 layout_mode = 2
+
 script = ExtResource("1_conditionlisteditor")
-theme_override_constants/separation = 6
+
+theme_override_constants/separation = 8
+
 
 [node name="ConditionsHeader" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(0, 35)
+
+custom_minimum_size = Vector2(0, 36)
+
 layout_mode = 2
+
 
 [node name="ConditionsTitle" type="Label" parent="ConditionsHeader"]
+
 layout_mode = 2
+
 size_flags_horizontal = 3
-text = "Condiciones"
+
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+
+theme_override_font_sizes/font_size = 13
+
+text = "CONDICIONES"
+
 vertical_alignment = 1
 
+
 [node name="AddConditionButton" type="Button" parent="ConditionsHeader"]
-custom_minimum_size = Vector2(170, 35)
+
+custom_minimum_size = Vector2(170, 36)
+
 layout_mode = 2
+
 text = "+ Añadir condición"
 
+
 [node name="ConditionsList" type="VBoxContainer" parent="."]
+
 layout_mode = 2
-theme_override_constants/separation = 6
+
+theme_override_constants/separation = 5

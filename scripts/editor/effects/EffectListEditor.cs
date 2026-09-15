@@ -176,6 +176,28 @@ public partial class EffectListEditor : VBoxContainer
     }
 
 
+    public void SelectEffect(
+        int index)
+    {
+        if (
+            index < 0 ||
+            index >= effects.Count)
+        {
+            GD.PrintErr(
+                "EffectListEditor: índice de efecto inválido: ",
+                index
+            );
+
+            return;
+        }
+
+
+        OpenEditor(
+            index
+        );
+    }
+
+
     public void LoadTestData()
     {
         effects.Clear();
@@ -305,20 +327,9 @@ public partial class EffectListEditor : VBoxContainer
 
 
             Button button =
-                new Button
-                {
-                    Text =
-                        effects[index].Summary,
-
-                    CustomMinimumSize =
-                        new Vector2(
-                            0,
-                            35
-                        ),
-
-                    Alignment =
-                        HorizontalAlignment.Left
-                };
+                CreateListButton(
+                    effects[index].Summary
+                );
 
 
             button.Pressed +=
@@ -332,6 +343,219 @@ public partial class EffectListEditor : VBoxContainer
                 button
             );
         }
+    }
+
+
+    private static Button CreateListButton(
+        string text)
+    {
+        Button button =
+            new Button
+            {
+                Text =
+                    text,
+
+                CustomMinimumSize =
+                    new Vector2(
+                        0,
+                        46
+                    ),
+
+                Alignment =
+                    HorizontalAlignment.Left,
+
+                SizeFlagsHorizontal =
+                    Control.SizeFlags.ExpandFill
+            };
+
+
+        // =====================================================
+        // ESTILO NORMAL
+        // =====================================================
+
+        StyleBoxFlat normal =
+            new StyleBoxFlat();
+
+        normal.BgColor =
+            new Color("222730");
+
+        normal.BorderColor =
+            new Color("313743");
+
+        normal.SetBorderWidthAll(
+            1
+        );
+
+        normal.SetCornerRadiusAll(
+            3
+        );
+
+        normal.ContentMarginLeft =
+            12;
+
+        normal.ContentMarginRight =
+            12;
+
+        normal.ContentMarginTop =
+            8;
+
+        normal.ContentMarginBottom =
+            8;
+
+
+        // =====================================================
+        // ESTILO HOVER
+        // =====================================================
+
+        StyleBoxFlat hover =
+            new StyleBoxFlat();
+
+        hover.BgColor =
+            new Color("252D35");
+
+        hover.BorderColor =
+            new Color("4FA6A6");
+
+        hover.SetBorderWidthAll(
+            1
+        );
+
+        hover.SetCornerRadiusAll(
+            3
+        );
+
+        hover.ContentMarginLeft =
+            12;
+
+        hover.ContentMarginRight =
+            12;
+
+        hover.ContentMarginTop =
+            8;
+
+        hover.ContentMarginBottom =
+            8;
+
+
+        // =====================================================
+        // ESTILO PRESIONADO
+        // =====================================================
+
+        StyleBoxFlat pressed =
+            new StyleBoxFlat();
+
+        pressed.BgColor =
+            new Color("27343A");
+
+        pressed.BorderColor =
+            new Color("4FA6A6");
+
+        pressed.SetBorderWidthAll(
+            1
+        );
+
+        pressed.SetCornerRadiusAll(
+            3
+        );
+
+        pressed.ContentMarginLeft =
+            12;
+
+        pressed.ContentMarginRight =
+            12;
+
+        pressed.ContentMarginTop =
+            8;
+
+        pressed.ContentMarginBottom =
+            8;
+
+
+        // =====================================================
+        // ESTILO FOCUS
+        // =====================================================
+
+        StyleBoxFlat focus =
+            new StyleBoxFlat();
+
+        focus.BgColor =
+            new Color("222730");
+
+        focus.BorderColor =
+            new Color("4FA6A6");
+
+        focus.SetBorderWidthAll(
+            1
+        );
+
+        focus.SetCornerRadiusAll(
+            3
+        );
+
+        focus.ContentMarginLeft =
+            12;
+
+        focus.ContentMarginRight =
+            12;
+
+        focus.ContentMarginTop =
+            8;
+
+        focus.ContentMarginBottom =
+            8;
+
+
+        // =====================================================
+        // COLORES DEL TEXTO
+        // =====================================================
+
+        button.AddThemeColorOverride(
+            "font_color",
+            new Color("A8AFBC")
+        );
+
+        button.AddThemeColorOverride(
+            "font_hover_color",
+            new Color("E7EAF0")
+        );
+
+        button.AddThemeColorOverride(
+            "font_pressed_color",
+            new Color("E7EAF0")
+        );
+
+        button.AddThemeColorOverride(
+            "font_focus_color",
+            new Color("E7EAF0")
+        );
+
+
+        // =====================================================
+        // APLICAR ESTILOS
+        // =====================================================
+
+        button.AddThemeStyleboxOverride(
+            "normal",
+            normal
+        );
+
+        button.AddThemeStyleboxOverride(
+            "hover",
+            hover
+        );
+
+        button.AddThemeStyleboxOverride(
+            "pressed",
+            pressed
+        );
+
+        button.AddThemeStyleboxOverride(
+            "focus",
+            focus
+        );
+
+
+        return button;
     }
 
 

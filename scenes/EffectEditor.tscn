@@ -2,38 +2,93 @@
 
 [ext_resource type="Script" uid="uid://cwwm5pp8gnjn" path="res://scripts/editor/effects/EffectEditor.cs" id="1_effecteditor"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_effect_panel"]
+
+bg_color = Color(0.133333, 0.152941, 0.188235, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.192157, 0.215686, 0.262745, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+
 [node name="EffectEditor" type="PanelContainer" unique_id=725586478]
+
 script = ExtResource("1_effecteditor")
 
+theme_override_styles/panel = SubResource("StyleBoxFlat_effect_panel")
+
+
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1002606504]
+
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1920078502]
+
 layout_mode = 2
-theme_override_constants/separation = 8
+
+theme_override_constants/separation = 10
+
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1973002125]
-custom_minimum_size = Vector2(0, 35)
+
+custom_minimum_size = Vector2(0, 38)
+
 layout_mode = 2
+
+theme_override_constants/separation = 10
+
 
 [node name="TypeLabel" type="Label" parent="MarginContainer/VBoxContainer/Header" unique_id=2134270642]
+
 layout_mode = 2
-text = "Tipo"
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 11
+
+text = "TIPO"
+
+vertical_alignment = 1
+
 
 [node name="TypeOption" type="OptionButton" parent="MarginContainer/VBoxContainer/Header" unique_id=1433277539]
-custom_minimum_size = Vector2(220, 35)
+
+custom_minimum_size = Vector2(220, 36)
+
 layout_mode = 2
+
+size_flags_horizontal = 3
+
 
 [node name="RemoveButton" type="Button" parent="MarginContainer/VBoxContainer/Header" unique_id=1919304825]
-custom_minimum_size = Vector2(40, 35)
+
+custom_minimum_size = Vector2(40, 36)
+
 layout_mode = 2
+
 size_flags_horizontal = 8
+
 text = "×"
 
+
 [node name="FieldsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=755260449]
+
 layout_mode = 2
-theme_override_constants/separation = 8
+
+size_flags_vertical = 3
+
+theme_override_constants/separation = 10

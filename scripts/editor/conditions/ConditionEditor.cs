@@ -144,6 +144,17 @@ public partial class ConditionEditor : PanelContainer
             "ConditionEditor: capítulo establecido: ",
             chapter
         );
+
+
+        if (
+            fieldsContainer == null ||
+            conditionData == null)
+        {
+            return;
+        }
+
+
+        RefreshCurrentFields();
     }
 
 
@@ -308,20 +319,19 @@ public partial class ConditionEditor : PanelContainer
 
     private void BuildCharacterAttributeFields()
     {
+        GD.Print(
+            "ConditionEditor: construyendo atributos para capítulo: ",
+            chapter
+        );
+
+
         AddSectionLabel(
             "Atributo"
         );
 
 
         OptionButton attributeOption =
-            new OptionButton();
-
-
-        attributeOption.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledOptionButton();
 
 
         attributeOption.AddItem(
@@ -466,22 +476,44 @@ public partial class ConditionEditor : PanelContainer
 
 
         Button decisionButton =
-            new Button();
+            new Button
+            {
+                Text =
+                    GetCurrentDecisionDisplayName(),
+
+                Alignment =
+                    HorizontalAlignment.Left,
+
+                CustomMinimumSize =
+                    new Vector2(
+                        0,
+                        40
+                    )
+            };
 
 
-        decisionButton.CustomMinimumSize =
-            new Vector2(
-                0,
-                40
-            );
+        decisionButton.AddThemeColorOverride(
+            "font_color",
+            new Color("A8AFBC")
+        );
 
 
-        decisionButton.Alignment =
-            HorizontalAlignment.Left;
+        decisionButton.AddThemeColorOverride(
+            "font_hover_color",
+            new Color("E7EAF0")
+        );
 
 
-        decisionButton.Text =
-            GetCurrentDecisionDisplayName();
+        decisionButton.AddThemeColorOverride(
+            "font_pressed_color",
+            new Color("E7EAF0")
+        );
+
+
+        decisionButton.AddThemeColorOverride(
+            "font_focus_color",
+            new Color("E7EAF0")
+        );
 
 
         decisionButton.Pressed +=
@@ -583,15 +615,18 @@ public partial class ConditionEditor : PanelContainer
             12
         );
 
+
         margin.AddThemeConstantOverride(
             "margin_top",
             12
         );
 
+
         margin.AddThemeConstantOverride(
             "margin_right",
             12
         );
+
 
         margin.AddThemeConstantOverride(
             "margin_bottom",
@@ -1006,14 +1041,7 @@ public partial class ConditionEditor : PanelContainer
 
 
         OptionButton empireAttributeOption =
-            new OptionButton();
-
-
-        empireAttributeOption.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledOptionButton();
 
 
         empireAttributeOption.AddItem(
@@ -1196,19 +1224,13 @@ public partial class ConditionEditor : PanelContainer
 
 
         OptionButton comparisonOption =
-            new OptionButton();
-
-
-        comparisonOption.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledOptionButton();
 
 
         comparisonOption.AddItem(
             "Igual"
         );
+
 
         comparisonOption.SetItemMetadata(
             0,
@@ -1220,6 +1242,7 @@ public partial class ConditionEditor : PanelContainer
             "Mayor que"
         );
 
+
         comparisonOption.SetItemMetadata(
             1,
             "greater"
@@ -1229,6 +1252,7 @@ public partial class ConditionEditor : PanelContainer
         comparisonOption.AddItem(
             "Mayor o igual que"
         );
+
 
         comparisonOption.SetItemMetadata(
             2,
@@ -1240,6 +1264,7 @@ public partial class ConditionEditor : PanelContainer
             "Menor que"
         );
 
+
         comparisonOption.SetItemMetadata(
             3,
             "less"
@@ -1249,6 +1274,7 @@ public partial class ConditionEditor : PanelContainer
         comparisonOption.AddItem(
             "Menor o igual que"
         );
+
 
         comparisonOption.SetItemMetadata(
             4,
@@ -1281,14 +1307,7 @@ public partial class ConditionEditor : PanelContainer
 
 
         SpinBox valueSpinBox =
-            new SpinBox();
-
-
-        valueSpinBox.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledSpinBox();
 
 
         valueSpinBox.MinValue =
@@ -1307,21 +1326,22 @@ public partial class ConditionEditor : PanelContainer
             GetRelationshipConditionValue();
 
 
-valueSpinBox.ValueChanged +=
-    value =>
-    {
-        string comparison =
-            comparisonOption.GetItemMetadata(
-                comparisonOption.Selected
-            ).AsString();
+        valueSpinBox.ValueChanged +=
+            value =>
+            {
+                string comparison =
+                    comparisonOption.GetItemMetadata(
+                        comparisonOption.Selected
+                    ).AsString();
 
-        SetRelationshipConditionValue(
-            Mathf.RoundToInt(
-                (float)value
-            ),
-            comparison
-        );
-    };
+
+                SetRelationshipConditionValue(
+                    Mathf.RoundToInt(
+                        (float)value
+                    ),
+                    comparison
+                );
+            };
 
 
         fieldsContainer.AddChild(
@@ -1357,14 +1377,7 @@ valueSpinBox.ValueChanged +=
 
 
         OptionButton titleOption =
-            new OptionButton();
-
-
-        titleOption.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledOptionButton();
 
 
         titleOption.AddItem(
@@ -1433,14 +1446,7 @@ valueSpinBox.ValueChanged +=
     private OptionButton CreateCharacterOption()
     {
         OptionButton characterOption =
-            new OptionButton();
-
-
-        characterOption.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledOptionButton();
 
 
         characterOption.AddItem(
@@ -1717,6 +1723,7 @@ valueSpinBox.ValueChanged +=
         int minimum =
             conditionData.MinimumValue;
 
+
         int maximum =
             conditionData.MaximumValue;
 
@@ -1802,24 +1809,26 @@ valueSpinBox.ValueChanged +=
     }
 
 
-private void UpdateRelationshipComparison(
-    OptionButton comparisonOption)
-{
-    int value =
-        GetRelationshipConditionValue();
+    private void UpdateRelationshipComparison(
+        OptionButton comparisonOption)
+    {
+        int value =
+            GetRelationshipConditionValue();
 
 
-    string comparison =
-        comparisonOption.GetItemMetadata(
-            comparisonOption.Selected
-        ).AsString();
+        string comparison =
+            comparisonOption.GetItemMetadata(
+                comparisonOption.Selected
+            ).AsString();
 
 
-    SetRelationshipConditionValue(
-        value,
-        comparison
-    );
-}
+        SetRelationshipConditionValue(
+            value,
+            comparison
+        );
+    }
+
+
     private int GetRelationshipConditionValue()
     {
         if (
@@ -1848,82 +1857,115 @@ private void UpdateRelationshipComparison(
     }
 
 
-
-private void SetRelationshipConditionValue(
-    int value,
-    string comparison)
-{
-    value =
-        Mathf.Clamp(
-            value,
-            -10,
-            10
-        );
-
-
-    switch (comparison)
+    private void SetRelationshipConditionValue(
+        int value,
+        string comparison)
     {
-        case "equal":
-            conditionData.MinimumValue =
-                value;
-
-            conditionData.MaximumValue =
-                value;
-            break;
-
-
-        case "greater":
-            conditionData.MinimumValue =
-                Mathf.Clamp(
-                    value + 1,
-                    -10,
-                    10
-                );
-
-            conditionData.MaximumValue =
-                10;
-            break;
+        value =
+            Mathf.Clamp(
+                value,
+                -10,
+                10
+            );
 
 
-        case "greater_equal":
-            conditionData.MinimumValue =
-                value;
+        switch (comparison)
+        {
+            case "equal":
+                conditionData.MinimumValue =
+                    value;
 
-            conditionData.MaximumValue =
-                10;
-            break;
-
-
-        case "less":
-            conditionData.MinimumValue =
-                -10;
-
-            conditionData.MaximumValue =
-                Mathf.Clamp(
-                    value - 1,
-                    -10,
-                    10
-                );
-            break;
+                conditionData.MaximumValue =
+                    value;
+                break;
 
 
-        case "less_equal":
-            conditionData.MinimumValue =
-                -10;
+            case "greater":
+                conditionData.MinimumValue =
+                    Mathf.Clamp(
+                        value + 1,
+                        -10,
+                        10
+                    );
 
-            conditionData.MaximumValue =
-                value;
-            break;
+                conditionData.MaximumValue =
+                    10;
+                break;
+
+
+            case "greater_equal":
+                conditionData.MinimumValue =
+                    value;
+
+                conditionData.MaximumValue =
+                    10;
+                break;
+
+
+            case "less":
+                conditionData.MinimumValue =
+                    -10;
+
+                conditionData.MaximumValue =
+                    Mathf.Clamp(
+                        value - 1,
+                        -10,
+                        10
+                    );
+                break;
+
+
+            case "less_equal":
+                conditionData.MinimumValue =
+                    -10;
+
+                conditionData.MaximumValue =
+                    value;
+                break;
+        }
+
+
+        GD.Print(
+            "ConditionEditor: condición de relación actualizada: ",
+            comparison,
+            " ",
+            value
+        );
     }
 
 
-    GD.Print(
-        "ConditionEditor: condición de relación actualizada: ",
-        comparison,
-        " ",
-        value
-    );
-}
+    private OptionButton CreateStyledOptionButton()
+    {
+        OptionButton option =
+            new OptionButton();
+
+
+        option.CustomMinimumSize =
+            new Vector2(
+                0,
+                36
+            );
+
+
+        return option;
+    }
+
+
+    private SpinBox CreateStyledSpinBox()
+    {
+        SpinBox spinBox =
+            new SpinBox();
+
+
+        spinBox.CustomMinimumSize =
+            new Vector2(
+                0,
+                36
+            );
+
+
+        return spinBox;
+    }
 
 
     private void AddRangeFields(
@@ -1936,14 +1978,7 @@ private void SetRelationshipConditionValue(
 
 
         SpinBox minimumSpinBox =
-            new SpinBox();
-
-
-        minimumSpinBox.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledSpinBox();
 
 
         minimumSpinBox.MinValue =
@@ -1987,14 +2022,7 @@ private void SetRelationshipConditionValue(
 
 
         SpinBox maximumSpinBox =
-            new SpinBox();
-
-
-        maximumSpinBox.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledSpinBox();
 
 
         maximumSpinBox.MinValue =
@@ -2037,11 +2065,23 @@ private void SetRelationshipConditionValue(
         string text)
     {
         Label label =
-            new Label();
+            new Label
+            {
+                Text =
+                    text
+            };
 
 
-        label.Text =
-            text;
+        label.AddThemeColorOverride(
+            "font_color",
+            new Color("6F7785")
+        );
+
+
+        label.AddThemeFontSizeOverride(
+            "font_size",
+            11
+        );
 
 
         fieldsContainer.AddChild(
@@ -2056,6 +2096,10 @@ private void SetRelationshipConditionValue(
             Node child
             in fieldsContainer.GetChildren())
         {
+            fieldsContainer.RemoveChild(
+                child
+            );
+
             child.QueueFree();
         }
     }

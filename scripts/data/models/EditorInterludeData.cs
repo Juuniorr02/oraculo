@@ -5,6 +5,8 @@ public class EditorInterludeData
     public string Id { get; set; } = "";
     public string Title { get; set; } = "";
 
+    public int Chapter { get; set; } = 1;
+
     public InterludeStyle Style { get; set; } =
         InterludeStyle.Letter;
 
@@ -18,5 +20,6 @@ public class EditorInterludeData
         new();
 
     public string NextEventId { get; set; } = "";
-    public string NextChapterId { get; set; } = "";
+
+    public int NextChapter { get; set; } = 0;
 }

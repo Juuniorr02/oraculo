@@ -1,53 +1,157 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/editor/decisions/DecisionEditor.cs" id="1_decisioneditor"]
+
 [ext_resource type="PackedScene" path="res://scenes/ConditionListEditor.tscn" id="2_conditionlisteditor"]
+
 [ext_resource type="PackedScene" path="res://scenes/EffectListEditor.tscn" id="3_effectlisteditor"]
 
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_decision_text"]
+
+bg_color = Color(0.113725, 0.129412, 0.156863, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.243137, 0.266667, 0.305882, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_decision_focus"]
+
+bg_color = Color(0.113725, 0.129412, 0.156863, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.309804, 0.650980, 0.650980, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+
+
 [node name="DecisionEditor" type="VBoxContainer"]
+
 layout_mode = 3
+
 anchors_preset = 15
+
 anchor_right = 1.0
+
 anchor_bottom = 1.0
+
 grow_horizontal = 2
+
 grow_vertical = 2
-theme_override_constants/separation = 10
+
+theme_override_constants/separation = 14
+
 script = ExtResource("1_decisioneditor")
 
+
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
+
 layout_mode = 2
-theme_override_constants/separation = 8
+
+theme_override_constants/separation = 6
+
 
 [node name="DecisionTextLabel" type="Label" parent="VBoxContainer"]
+
 layout_mode = 2
-text = "Texto de la opción"
+
+theme_override_colors/font_color = Color(0.662745, 0.686275, 0.737255, 1)
+
+theme_override_font_sizes/font_size = 11
+
+text = "TEXTO DE LA OPCIÓN"
+
 
 [node name="DecisionTextEdit" type="TextEdit" parent="VBoxContainer"]
+
 custom_minimum_size = Vector2(0, 90)
+
 layout_mode = 2
+
 size_flags_vertical = 3
+
 placeholder_text = "Escribe el texto de la opción..."
 
+theme_override_styles/normal = SubResource("StyleBoxFlat_decision_text")
+
+theme_override_styles/focus = SubResource("StyleBoxFlat_decision_focus")
+
+
 [node name="DescriptionLabel" type="Label" parent="VBoxContainer"]
+
 layout_mode = 2
-text = "Descripción"
+
+theme_override_colors/font_color = Color(0.662745, 0.686275, 0.737255, 1)
+
+theme_override_font_sizes/font_size = 11
+
+text = "DESCRIPCIÓN"
+
 
 [node name="DescriptionTextEdit" type="TextEdit" parent="VBoxContainer"]
+
 custom_minimum_size = Vector2(0, 90)
+
 layout_mode = 2
+
 size_flags_vertical = 3
+
 placeholder_text = "Escribe una descripción para esta opción..."
 
+theme_override_styles/normal = SubResource("StyleBoxFlat_decision_text")
+
+theme_override_styles/focus = SubResource("StyleBoxFlat_decision_focus")
+
+
 [node name="NextPageLabel" type="Label" parent="VBoxContainer"]
+
 layout_mode = 2
-text = "Próxima página"
+
+theme_override_colors/font_color = Color(0.662745, 0.686275, 0.737255, 1)
+
+theme_override_font_sizes/font_size = 11
+
+text = "PRÓXIMA PÁGINA"
+
 
 [node name="NextPageOption" type="OptionButton" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 35)
+
+custom_minimum_size = Vector2(0, 36)
+
 layout_mode = 2
+
 
 [node name="ConditionListEditor" parent="VBoxContainer" instance=ExtResource("2_conditionlisteditor")]
+
 layout_mode = 2
 
+
 [node name="EffectListEditor" parent="VBoxContainer" instance=ExtResource("3_effectlisteditor")]
+
 layout_mode = 2

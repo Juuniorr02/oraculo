@@ -3,6 +3,20 @@ using System.Collections.Generic;
 
 public class EventValidator
 {
+    private readonly ConditionValidator conditionValidator;
+    private readonly EffectValidator effectValidator;
+
+
+    public EventValidator()
+    {
+        conditionValidator =
+            new ConditionValidator();
+
+        effectValidator =
+            new EffectValidator();
+    }
+
+
     public ValidationResult Validate(
         EditorEventData eventData)
     {
@@ -382,9 +396,10 @@ public class EventValidator
             }
 
 
-            ValidateConditions(
+            conditionValidator.Validate(
                 decision.Conditions,
                 location,
+                ValidationResourceType.Event,
                 eventId,
                 pageIndex,
                 page.Id ?? "",
@@ -393,10 +408,10 @@ public class EventValidator
                 result
             );
 
-
-            ValidateEffects(
+            effectValidator.Validate(
                 decision.Effects,
                 location,
+                ValidationResourceType.Event,
                 eventId,
                 pageIndex,
                 page.Id ?? "",
@@ -469,415 +484,6 @@ public class EventValidator
                     );
                 }
             }
-        }
-    }
-
-
-    private void ValidateConditions(
-        List<EditorConditionData> conditions,
-        string location,
-        string eventId,
-        int pageIndex,
-        string pageId,
-        int decisionIndex,
-        string decisionId,
-        ValidationResult result)
-    {
-        if (conditions == null)
-        {
-            return;
-        }
-
-
-        for (
-            int i = 0;
-            i < conditions.Count;
-            i++)
-        {
-            EditorConditionData condition =
-                conditions[i];
-
-
-            string conditionLocation =
-                $"{location}, condición {i + 1}";
-
-
-            if (condition == null)
-            {
-                result.AddError(
-                    $"{conditionLocation}: la condición es nula.",
-                    eventId,
-                    pageIndex,
-                    pageId,
-                    decisionIndex,
-                    decisionId
-                );
-
-                continue;
-            }
-
-
-            if (string.IsNullOrWhiteSpace(
-                condition.TypeId))
-            {
-                result.AddError(
-                    $"{conditionLocation}: no tiene tipo.",
-                    eventId,
-                    pageIndex,
-                    pageId,
-                    decisionIndex,
-                    decisionId
-                );
-
-                continue;
-            }
-
-
-            if (
-                condition.MinimumValue >
-                condition.MaximumValue)
-            {
-                result.AddError(
-                    $"{conditionLocation}: tiene un rango inválido.",
-                    eventId,
-                    pageIndex,
-                    pageId,
-                    decisionIndex,
-                    decisionId
-                );
-            }
-
-
-            switch (condition.TypeId)
-            {
-                case "characterattribute":
-
-                    ValidateRequiredField(
-                        condition.AttributeId,
-                        "AttributeId",
-                        conditionLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                case "prestige":
-
-                    break;
-
-
-                case "year":
-
-                    break;
-
-
-                case "decision":
-
-                    ValidateRequiredField(
-                        condition.DecisionId,
-                        "DecisionId",
-                        conditionLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                case "empireattribute":
-
-                    ValidateRequiredField(
-                        condition.AttributeId,
-                        "AttributeId",
-                        conditionLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                case "relationship":
-
-                    ValidateRequiredField(
-                        condition.RelationshipCharacterId,
-                        "RelationshipCharacterId",
-                        conditionLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                case "relationshiptitle":
-
-                    ValidateRequiredField(
-                        condition.RelationshipCharacterId,
-                        "RelationshipCharacterId",
-                        conditionLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-
-                    ValidateRequiredField(
-                        condition.RelationshipTitle,
-                        "RelationshipTitle",
-                        conditionLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                default:
-
-                    result.AddError(
-                        $"{conditionLocation}: tipo de condición desconocido '{condition.TypeId}'.",
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId
-                    );
-
-                    break;
-            }
-        }
-    }
-
-
-    private void ValidateEffects(
-        List<EditorEffectData> effects,
-        string location,
-        string eventId,
-        int pageIndex,
-        string pageId,
-        int decisionIndex,
-        string decisionId,
-        ValidationResult result)
-    {
-        if (effects == null)
-        {
-            return;
-        }
-
-
-        for (
-            int i = 0;
-            i < effects.Count;
-            i++)
-        {
-            EditorEffectData effect =
-                effects[i];
-
-
-            string effectLocation =
-                $"{location}, efecto {i + 1}";
-
-
-            if (effect == null)
-            {
-                result.AddError(
-                    $"{effectLocation}: el efecto es nulo.",
-                    eventId,
-                    pageIndex,
-                    pageId,
-                    decisionIndex,
-                    decisionId
-                );
-
-                continue;
-            }
-
-
-            if (string.IsNullOrWhiteSpace(
-                effect.TypeId))
-            {
-                result.AddError(
-                    $"{effectLocation}: no tiene tipo.",
-                    eventId,
-                    pageIndex,
-                    pageId,
-                    decisionIndex,
-                    decisionId
-                );
-
-                continue;
-            }
-
-
-            switch (effect.TypeId)
-            {
-                case "characterattribute":
-
-                    ValidateRequiredField(
-                        effect.AttributeId,
-                        "AttributeId",
-                        effectLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                case "prestige":
-
-                    break;
-
-
-                case "decision":
-
-                    ValidateRequiredField(
-                        effect.DecisionId,
-                        "DecisionId",
-                        effectLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                case "empireattribute":
-
-                    ValidateRequiredField(
-                        effect.AttributeId,
-                        "AttributeId",
-                        effectLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                case "relationship":
-
-                    ValidateRequiredField(
-                        effect.RelationshipCharacterId,
-                        "RelationshipCharacterId",
-                        effectLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                case "relationshiptitle":
-
-                    ValidateRequiredField(
-                        effect.RelationshipCharacterId,
-                        "RelationshipCharacterId",
-                        effectLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-
-                    ValidateRequiredField(
-                        effect.RelationshipTitle,
-                        "RelationshipTitle",
-                        effectLocation,
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId,
-                        result
-                    );
-
-                    break;
-
-
-                default:
-
-                    result.AddError(
-                        $"{effectLocation}: tipo de efecto desconocido '{effect.TypeId}'.",
-                        eventId,
-                        pageIndex,
-                        pageId,
-                        decisionIndex,
-                        decisionId
-                    );
-
-                    break;
-            }
-        }
-    }
-
-
-    private void ValidateRequiredField(
-        string value,
-        string fieldName,
-        string location,
-        string eventId,
-        int pageIndex,
-        string pageId,
-        int decisionIndex,
-        string decisionId,
-        ValidationResult result)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            result.AddError(
-                $"{location}: el campo '{fieldName}' es obligatorio.",
-                eventId,
-                pageIndex,
-                pageId,
-                decisionIndex,
-                decisionId
-            );
         }
     }
 }

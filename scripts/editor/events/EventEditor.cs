@@ -123,13 +123,16 @@ public partial class EventEditor : Control
             OnSavePressed;
 
         yearSpinBox.ValueChanged +=
-            OnYearChanged;
+    OnYearChanged;
 
-        worldYearSpinBox.ValueChanged +=
-            OnWorldYearChanged;
+worldYearSpinBox.ValueChanged +=
+    OnWorldYearChanged;
 
-        tabBar.TabChanged +=
-            OnTabChanged;
+chapterOption.ItemSelected +=
+    OnChapterSelected;
+
+tabBar.TabChanged +=
+    OnTabChanged;
 
         unsavedChangesGuard =
             new UnsavedChangesGuard<EditorEventData>(
@@ -462,6 +465,27 @@ public partial class EventEditor : Control
             chapterIndex
         );
     }
+    private void OnChapterSelected(
+    long index)
+{
+    int chapter =
+        (int)index + 1;
+
+    if (eventData != null)
+    {
+        eventData.Chapter =
+            chapter;
+    }
+
+    optionsEditor.SetChapter(
+        chapter
+    );
+
+    GD.Print(
+        "EventEditor: capítulo cambiado a: ",
+        chapter
+    );
+}
 
 
     private void InitializeYears()

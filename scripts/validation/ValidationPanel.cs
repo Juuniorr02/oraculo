@@ -6,12 +6,14 @@ public partial class ValidationPanel : Control
     [Signal]
     public delegate void ClosedEventHandler();
 
-
     [Signal]
     public delegate void IssueSelectedEventHandler(
-        string eventId,
+        int resourceType,
+        string resourceId,
         string pageId,
-        int decisionIndex
+        int decisionIndex,
+        int conditionIndex,
+        int effectIndex
     );
 
 
@@ -29,9 +31,12 @@ public partial class ValidationPanel : Control
 
 
     private EventRepository eventRepository;
+    private InterludeRepository interludeRepository;
+
     private ProjectValidator projectValidator;
 
     private ValidationResult currentResult;
+
 
     private ValidationFilter currentFilter =
         ValidationFilter.All;
@@ -116,9 +121,26 @@ public partial class ValidationPanel : Control
         eventRepository =
             repository;
 
+        RebuildProjectValidator();
+    }
+
+
+    public void SetInterludeRepository(
+        InterludeRepository repository)
+    {
+        interludeRepository =
+            repository;
+
+        RebuildProjectValidator();
+    }
+
+
+    private void RebuildProjectValidator()
+    {
         projectValidator =
             new ProjectValidator(
-                eventRepository
+                eventRepository,
+                interludeRepository
             );
     }
 
@@ -274,7 +296,7 @@ public partial class ValidationPanel : Control
 
 
         if (!string.IsNullOrWhiteSpace(
-            issue.EventId))
+            issue.ResourceId))
         {
             panel.MouseDefaultCursorShape =
                 Control.CursorShape.PointingHand;
@@ -455,9 +477,12 @@ public partial class ValidationPanel : Control
 
         EmitSignal(
             SignalName.IssueSelected,
-            issue.EventId,
+            (int)issue.ResourceType,
+            issue.ResourceId,
             issue.PageId,
-            issue.DecisionIndex
+            issue.DecisionIndex,
+            issue.ConditionIndex,
+            issue.EffectIndex
         );
     }
 
@@ -465,11 +490,11 @@ public partial class ValidationPanel : Control
     private string BuildLocationText(
         ValidationIssue issue)
     {
-        string eventText =
+        string resourceText =
             string.IsNullOrWhiteSpace(
-                issue.EventId)
-                ? "Evento desconocido"
-                : issue.EventId;
+                issue.ResourceId)
+                ? "Recurso desconocido"
+                : issue.ResourceId;
 
 
         List<string> parts =
@@ -492,14 +517,30 @@ public partial class ValidationPanel : Control
         }
 
 
+        if (issue.ConditionIndex >= 0)
+        {
+            parts.Add(
+                $"Condición {issue.ConditionIndex + 1}"
+            );
+        }
+
+
+        if (issue.EffectIndex >= 0)
+        {
+            parts.Add(
+                $"Efecto {issue.EffectIndex + 1}"
+            );
+        }
+
+
         if (parts.Count == 0)
         {
-            return eventText;
+            return resourceText;
         }
 
 
         return
-            $"{eventText}  ·  " +
+            $"{resourceText}  ·  " +
             string.Join(
                 "  ·  ",
                 parts

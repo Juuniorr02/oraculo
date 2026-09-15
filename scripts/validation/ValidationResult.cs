@@ -62,23 +62,34 @@ public class ValidationResult
         GetErrorCount() == 0;
 
 
+    // --------------------------------------------------
+    // COMPATIBILIDAD CON EL SISTEMA ACTUAL
+    // --------------------------------------------------
+
     public void AddError(
         string message,
         string eventId = "",
         int pageIndex = -1,
         string pageId = "",
         int decisionIndex = -1,
-        string decisionId = "")
+        string decisionId = "",
+        int conditionIndex = -1,
+        int effectIndex = -1)
     {
         AddIssue(
             new ValidationIssue(
                 ValidationIssueSeverity.Error,
                 message,
+                string.IsNullOrWhiteSpace(eventId)
+                    ? ValidationResourceType.Unknown
+                    : ValidationResourceType.Event,
                 eventId,
                 pageIndex,
                 pageId,
                 decisionIndex,
-                decisionId
+                decisionId,
+                conditionIndex,
+                effectIndex
             )
         );
     }
@@ -90,17 +101,84 @@ public class ValidationResult
         int pageIndex = -1,
         string pageId = "",
         int decisionIndex = -1,
-        string decisionId = "")
+        string decisionId = "",
+        int conditionIndex = -1,
+        int effectIndex = -1)
     {
         AddIssue(
             new ValidationIssue(
                 ValidationIssueSeverity.Warning,
                 message,
+                string.IsNullOrWhiteSpace(eventId)
+                    ? ValidationResourceType.Unknown
+                    : ValidationResourceType.Event,
                 eventId,
                 pageIndex,
                 pageId,
                 decisionIndex,
-                decisionId
+                decisionId,
+                conditionIndex,
+                effectIndex
+            )
+        );
+    }
+
+
+    // --------------------------------------------------
+    // NUEVA API GENÉRICA
+    // --------------------------------------------------
+
+    public void AddError(
+        string message,
+        ValidationResourceType resourceType,
+        string resourceId = "",
+        int pageIndex = -1,
+        string pageId = "",
+        int decisionIndex = -1,
+        string decisionId = "",
+        int conditionIndex = -1,
+        int effectIndex = -1)
+    {
+        AddIssue(
+            new ValidationIssue(
+                ValidationIssueSeverity.Error,
+                message,
+                resourceType,
+                resourceId,
+                pageIndex,
+                pageId,
+                decisionIndex,
+                decisionId,
+                conditionIndex,
+                effectIndex
+            )
+        );
+    }
+
+
+    public void AddWarning(
+        string message,
+        ValidationResourceType resourceType,
+        string resourceId = "",
+        int pageIndex = -1,
+        string pageId = "",
+        int decisionIndex = -1,
+        string decisionId = "",
+        int conditionIndex = -1,
+        int effectIndex = -1)
+    {
+        AddIssue(
+            new ValidationIssue(
+                ValidationIssueSeverity.Warning,
+                message,
+                resourceType,
+                resourceId,
+                pageIndex,
+                pageId,
+                decisionIndex,
+                decisionId,
+                conditionIndex,
+                effectIndex
             )
         );
     }

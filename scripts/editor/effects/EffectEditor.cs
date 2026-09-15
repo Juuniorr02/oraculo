@@ -316,19 +316,12 @@ public partial class EffectEditor : PanelContainer
     private void BuildCharacterAttributeFields()
     {
         AddSectionLabel(
-            "Atributo"
+            "ATRIBUTO"
         );
 
 
         OptionButton attributeOption =
-            new OptionButton();
-
-
-        attributeOption.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledOptionButton();
 
 
         attributeOption.AddItem(
@@ -453,27 +446,46 @@ public partial class EffectEditor : PanelContainer
     private void BuildDecisionFields()
     {
         AddSectionLabel(
-            "Decisión"
+            "DECISIÓN"
         );
 
 
         Button decisionButton =
-            new Button();
+            new Button
+            {
+                Text =
+                    GetCurrentDecisionDisplayName(),
+
+                Alignment =
+                    HorizontalAlignment.Left,
+
+                CustomMinimumSize =
+                    new Vector2(
+                        0,
+                        40
+                    )
+            };
 
 
-        decisionButton.CustomMinimumSize =
-            new Vector2(
-                0,
-                40
-            );
+        decisionButton.AddThemeColorOverride(
+            "font_color",
+            new Color("A8AFBC")
+        );
 
+        decisionButton.AddThemeColorOverride(
+            "font_hover_color",
+            new Color("E7EAF0")
+        );
 
-        decisionButton.Alignment =
-            HorizontalAlignment.Left;
+        decisionButton.AddThemeColorOverride(
+            "font_pressed_color",
+            new Color("E7EAF0")
+        );
 
-
-        decisionButton.Text =
-            GetCurrentDecisionDisplayName();
+        decisionButton.AddThemeColorOverride(
+            "font_focus_color",
+            new Color("E7EAF0")
+        );
 
 
         decisionButton.Pressed +=
@@ -572,7 +584,7 @@ public partial class EffectEditor : PanelContainer
 
         margin.AddThemeConstantOverride(
             "margin_left",
-            12
+            14
         );
 
         margin.AddThemeConstantOverride(
@@ -582,7 +594,7 @@ public partial class EffectEditor : PanelContainer
 
         margin.AddThemeConstantOverride(
             "margin_right",
-            12
+            14
         );
 
         margin.AddThemeConstantOverride(
@@ -604,8 +616,19 @@ public partial class EffectEditor : PanelContainer
             new Label
             {
                 Text =
-                    "Buscar decisión"
+                    "BUSCAR DECISIÓN"
             };
+
+
+        searchLabel.AddThemeColorOverride(
+            "font_color",
+            new Color("6F7785")
+        );
+
+        searchLabel.AddThemeFontSizeOverride(
+            "font_size",
+            11
+        );
 
 
         content.AddChild(
@@ -624,8 +647,55 @@ public partial class EffectEditor : PanelContainer
         searchEdit.CustomMinimumSize =
             new Vector2(
                 0,
-                35
+                36
             );
+
+
+        StyleBoxFlat searchNormal =
+            new StyleBoxFlat();
+
+        searchNormal.BgColor =
+            new Color("1D2128");
+
+        searchNormal.BorderColor =
+            new Color("3E444E");
+
+        searchNormal.SetBorderWidthAll(
+            1
+        );
+
+        searchNormal.SetCornerRadiusAll(
+            3
+        );
+
+
+        StyleBoxFlat searchFocus =
+            new StyleBoxFlat();
+
+        searchFocus.BgColor =
+            new Color("1D2128");
+
+        searchFocus.BorderColor =
+            new Color("4FA6A6");
+
+        searchFocus.SetBorderWidthAll(
+            1
+        );
+
+        searchFocus.SetCornerRadiusAll(
+            3
+        );
+
+
+        searchEdit.AddThemeStyleboxOverride(
+            "normal",
+            searchNormal
+        );
+
+        searchEdit.AddThemeStyleboxOverride(
+            "focus",
+            searchFocus
+        );
 
 
         content.AddChild(
@@ -666,32 +736,14 @@ public partial class EffectEditor : PanelContainer
 
 
         Button cancelButton =
-            new Button
-            {
-                Text =
-                    "Cancelar"
-            };
-
-
-        Button selectButton =
-            new Button
-            {
-                Text =
-                    "Seleccionar"
-            };
-
-
-        cancelButton.CustomMinimumSize =
-            new Vector2(
-                110,
-                35
+            CreateActionButton(
+                "Cancelar"
             );
 
 
-        selectButton.CustomMinimumSize =
-            new Vector2(
-                110,
-                35
+        Button selectButton =
+            CreateActionButton(
+                "Seleccionar"
             );
 
 
@@ -993,19 +1045,12 @@ public partial class EffectEditor : PanelContainer
     private void BuildEmpireAttributeFields()
     {
         AddSectionLabel(
-            "Atributo del imperio"
+            "ATRIBUTO DEL IMPERIO"
         );
 
 
         OptionButton empireAttributeOption =
-            new OptionButton();
-
-
-        empireAttributeOption.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledOptionButton();
 
 
         empireAttributeOption.AddItem(
@@ -1166,7 +1211,7 @@ public partial class EffectEditor : PanelContainer
     private void BuildRelationshipFields()
     {
         AddSectionLabel(
-            "Personaje"
+            "PERSONAJE"
         );
 
 
@@ -1218,19 +1263,12 @@ public partial class EffectEditor : PanelContainer
 
 
         AddSectionLabel(
-            "Cambio"
+            "CAMBIO"
         );
 
 
         SpinBox valueSpinBox =
-            new SpinBox();
-
-
-        valueSpinBox.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledSpinBox();
 
 
         valueSpinBox.MinValue =
@@ -1272,220 +1310,205 @@ public partial class EffectEditor : PanelContainer
         );
     }
 
-private void BuildRelationshipTitleFields()
-{
-    AddSectionLabel(
-        "Personaje"
-    );
 
-
-    if (characterDatabase == null ||
-        relationshipDatabase == null)
+    private void BuildRelationshipTitleFields()
     {
-        AddPlaceholderField(
-            "No hay un proyecto cargado."
+        AddSectionLabel(
+            "PERSONAJE"
         );
+
+
+        if (characterDatabase == null ||
+            relationshipDatabase == null)
+        {
+            AddPlaceholderField(
+                "No hay un proyecto cargado."
+            );
+
+
+            AddSectionLabel(
+                "OPERACIÓN"
+            );
+
+
+            AddPlaceholderField(
+                "Añadir o quitar título."
+            );
+
+
+            AddSectionLabel(
+                "TÍTULO"
+            );
+
+
+            AddPlaceholderField(
+                "Aquí aparecerán los títulos disponibles."
+            );
+
+
+            return;
+        }
+
+
+        OptionButton characterOption =
+            CreateCharacterOption();
+
+
+        OptionButton titleOption =
+            CreateStyledOptionButton();
+
+
+        titleOption.AddItem(
+            "Seleccionar título..."
+        );
+
+
+        titleOption.SetItemMetadata(
+            0,
+            ""
+        );
+
+
+        PopulateRelationshipTitles(
+            titleOption,
+            effectData.RelationshipCharacterId
+        );
+
+
+        characterOption.ItemSelected +=
+            index =>
+            {
+                Variant metadata =
+                    characterOption.GetItemMetadata(
+                        (int)index
+                    );
+
+
+                effectData.RelationshipCharacterId =
+                    metadata.AsString();
+
+
+                GD.Print(
+                    "EffectEditor: personaje de título seleccionado: ",
+                    effectData.RelationshipCharacterId
+                );
+
+
+                PopulateRelationshipTitles(
+                    titleOption,
+                    effectData.RelationshipCharacterId
+                );
+            };
+
+
+        SelectCharacter(
+            characterOption,
+            effectData.RelationshipCharacterId
+        );
+
+
+        fieldsContainer.AddChild(
+            characterOption
+        );
+
 
         AddSectionLabel(
-            "Operación"
+            "OPERACIÓN"
         );
 
-        AddPlaceholderField(
-            "Añadir o quitar título."
+
+        OptionButton operationOption =
+            CreateStyledOptionButton();
+
+
+        operationOption.AddItem(
+            "Añadir"
         );
+
+
+        operationOption.AddItem(
+            "Quitar"
+        );
+
+
+        operationOption.SetItemMetadata(
+            0,
+            true
+        );
+
+
+        operationOption.SetItemMetadata(
+            1,
+            false
+        );
+
+
+        operationOption.Select(
+            effectData.AddTitle
+                ? 0
+                : 1
+        );
+
+
+        operationOption.ItemSelected +=
+            index =>
+            {
+                Variant metadata =
+                    operationOption.GetItemMetadata(
+                        (int)index
+                    );
+
+
+                effectData.AddTitle =
+                    metadata.AsBool();
+            };
+
+
+        fieldsContainer.AddChild(
+            operationOption
+        );
+
 
         AddSectionLabel(
-            "Título"
+            "TÍTULO"
         );
 
-        AddPlaceholderField(
-            "Aquí aparecerán los títulos disponibles."
+
+        titleOption.ItemSelected +=
+            index =>
+            {
+                Variant metadata =
+                    titleOption.GetItemMetadata(
+                        (int)index
+                    );
+
+
+                effectData.RelationshipTitle =
+                    metadata.AsString();
+
+
+                GD.Print(
+                    "EffectEditor: título de relación seleccionado: ",
+                    effectData.RelationshipTitle
+                );
+            };
+
+
+        SelectRelationshipTitle(
+            titleOption
         );
 
-        return;
+
+        fieldsContainer.AddChild(
+            titleOption
+        );
     }
-
-
-    OptionButton characterOption =
-        CreateCharacterOption();
-
-
-    OptionButton titleOption =
-        new OptionButton();
-
-
-    titleOption.CustomMinimumSize =
-        new Vector2(
-            0,
-            35
-        );
-
-
-    titleOption.AddItem(
-        "Seleccionar título..."
-    );
-
-
-    titleOption.SetItemMetadata(
-        0,
-        ""
-    );
-
-
-    PopulateRelationshipTitles(
-        titleOption,
-        effectData.RelationshipCharacterId
-    );
-
-
-    characterOption.ItemSelected +=
-        index =>
-        {
-            Variant metadata =
-                characterOption.GetItemMetadata(
-                    (int)index
-                );
-
-
-            effectData.RelationshipCharacterId =
-                metadata.AsString();
-
-
-            GD.Print(
-                "EffectEditor: personaje de título seleccionado: ",
-                effectData.RelationshipCharacterId
-            );
-
-
-            PopulateRelationshipTitles(
-                titleOption,
-                effectData.RelationshipCharacterId
-            );
-        };
-
-
-    SelectCharacter(
-        characterOption,
-        effectData.RelationshipCharacterId
-    );
-
-
-    fieldsContainer.AddChild(
-        characterOption
-    );
-
-
-    AddSectionLabel(
-        "Operación"
-    );
-
-
-    OptionButton operationOption =
-        new OptionButton();
-
-
-    operationOption.CustomMinimumSize =
-        new Vector2(
-            0,
-            35
-        );
-
-
-    operationOption.AddItem(
-        "Añadir"
-    );
-
-
-    operationOption.AddItem(
-        "Quitar"
-    );
-
-
-    operationOption.SetItemMetadata(
-        0,
-        true
-    );
-
-
-    operationOption.SetItemMetadata(
-        1,
-        false
-    );
-
-
-    operationOption.Select(
-        effectData.AddTitle
-            ? 0
-            : 1
-    );
-
-
-    operationOption.ItemSelected +=
-        index =>
-        {
-            Variant metadata =
-                operationOption.GetItemMetadata(
-                    (int)index
-                );
-
-
-            effectData.AddTitle =
-                metadata.AsBool();
-        };
-
-
-    fieldsContainer.AddChild(
-        operationOption
-    );
-
-
-    AddSectionLabel(
-        "Título"
-    );
-
-
-    titleOption.ItemSelected +=
-        index =>
-        {
-            Variant metadata =
-                titleOption.GetItemMetadata(
-                    (int)index
-                );
-
-
-            effectData.RelationshipTitle =
-                metadata.AsString();
-
-
-            GD.Print(
-                "EffectEditor: título de relación seleccionado: ",
-                effectData.RelationshipTitle
-            );
-        };
-
-
-    SelectRelationshipTitle(
-        titleOption
-    );
-
-
-    fieldsContainer.AddChild(
-        titleOption
-    );
-}
 
 
     private OptionButton CreateCharacterOption()
     {
         OptionButton characterOption =
-            new OptionButton();
-
-
-        characterOption.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledOptionButton();
 
 
         characterOption.AddItem(
@@ -1700,19 +1723,12 @@ private void BuildRelationshipTitleFields()
     private void AddValueField()
     {
         AddSectionLabel(
-            "Valor"
+            "VALOR"
         );
 
 
         SpinBox valueSpinBox =
-            new SpinBox();
-
-
-        valueSpinBox.CustomMinimumSize =
-            new Vector2(
-                0,
-                35
-            );
+            CreateStyledSpinBox();
 
 
         valueSpinBox.MinValue =
@@ -1751,11 +1767,23 @@ private void BuildRelationshipTitleFields()
         string text)
     {
         Label label =
-            new Label();
+            new Label
+            {
+                Text =
+                    text
+            };
 
 
-        label.Text =
-            text;
+        label.AddThemeColorOverride(
+            "font_color",
+            new Color("6F7785")
+        );
+
+
+        label.AddThemeFontSizeOverride(
+            "font_size",
+            11
+        );
 
 
         fieldsContainer.AddChild(
@@ -1774,7 +1802,7 @@ private void BuildRelationshipTitleFields()
         lineEdit.CustomMinimumSize =
             new Vector2(
                 0,
-                35
+                36
             );
 
 
@@ -1786,9 +1814,94 @@ private void BuildRelationshipTitleFields()
             false;
 
 
+        StyleBoxFlat normal =
+            new StyleBoxFlat();
+
+        normal.BgColor =
+            new Color("1D2128");
+
+        normal.BorderColor =
+            new Color("313743");
+
+        normal.SetBorderWidthAll(
+            1
+        );
+
+        normal.SetCornerRadiusAll(
+            3
+        );
+
+
+        lineEdit.AddThemeStyleboxOverride(
+            "normal",
+            normal
+        );
+
+
+        lineEdit.AddThemeColorOverride(
+            "font_color",
+            new Color("6F7785")
+        );
+
+
         fieldsContainer.AddChild(
             lineEdit
         );
+    }
+
+
+    private OptionButton CreateStyledOptionButton()
+    {
+        OptionButton option =
+            new OptionButton();
+
+
+        option.CustomMinimumSize =
+            new Vector2(
+                0,
+                36
+            );
+
+
+        return option;
+    }
+
+
+    private SpinBox CreateStyledSpinBox()
+    {
+        SpinBox spinBox =
+            new SpinBox();
+
+
+        spinBox.CustomMinimumSize =
+            new Vector2(
+                0,
+                36
+            );
+
+
+        return spinBox;
+    }
+
+
+    private static Button CreateActionButton(
+        string text)
+    {
+        Button button =
+            new Button
+            {
+                Text =
+                    text,
+
+                CustomMinimumSize =
+                    new Vector2(
+                        110,
+                        35
+                    )
+            };
+
+
+        return button;
     }
 
 

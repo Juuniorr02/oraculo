@@ -1,170 +1,393 @@
 [gd_scene format=3 uid="uid://cl72skdbu2rsq"]
 
 [ext_resource type="Script" uid="uid://bvq1clsuo2miq" path="res://scripts/editor/events/EventEditor.cs" id="1_eventeditor"]
+
 [ext_resource type="PackedScene" path="res://scenes/EventPageEditor.tscn" id="2_pageeditor"]
+
 [ext_resource type="PackedScene" uid="uid://c15w057a7a56d" path="res://scenes/OptionsEditor.tscn" id="3_k52qj"]
 
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info"]
+
+bg_color = Color(0.113725, 0.129412, 0.149020, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.192157, 0.211765, 0.243137, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_save"]
+
+bg_color = Color(0.309804, 0.650980, 0.650980, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.309804, 0.650980, 0.650980, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel"]
+
+bg_color = Color(0.133333, 0.149020, 0.168627, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.243137, 0.266667, 0.305882, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+
 [node name="EventEditor" type="Control" unique_id=1929228491]
+
 layout_mode = 3
+
 anchors_preset = 15
+
 anchor_right = 1.0
+
 anchor_bottom = 1.0
+
 grow_horizontal = 2
+
 grow_vertical = 2
+
 script = ExtResource("1_eventeditor")
 
+
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1616564054]
+
 layout_mode = 1
+
 anchors_preset = 15
+
 anchor_right = 1.0
+
 anchor_bottom = 1.0
+
 grow_horizontal = 2
+
 grow_vertical = 2
+
 theme_override_constants/separation = 10
 
+
 [node name="Header" type="HBoxContainer" parent="VBoxContainer" unique_id=444782770]
-custom_minimum_size = Vector2(0, 40)
+
+custom_minimum_size = Vector2(0, 44)
+
 layout_mode = 2
+
+theme_override_constants/separation = 12
+
 
 [node name="Title" type="Label" parent="VBoxContainer/Header" unique_id=1617778612]
+
 layout_mode = 2
+
 size_flags_horizontal = 3
+
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+
+theme_override_font_sizes/font_size = 20
+
 text = "Editor de evento"
+
 vertical_alignment = 1
 
+
 [node name="CloseButton" type="Button" parent="VBoxContainer/Header" unique_id=1139662920]
+
 custom_minimum_size = Vector2(40, 0)
+
 layout_mode = 2
+
 text = "×"
 
+
 [node name="Separator" type="HSeparator" parent="VBoxContainer" unique_id=1423080885]
+
 layout_mode = 2
+
 
 [node name="EventInfo" type="VBoxContainer" parent="VBoxContainer" unique_id=2127658366]
+
 layout_mode = 2
-theme_override_constants/separation = 5
+
+theme_override_constants/separation = 8
+
 
 [node name="IdContainer" type="VBoxContainer" parent="VBoxContainer/EventInfo" unique_id=250970134]
+
 layout_mode = 2
+
+theme_override_constants/separation = 4
+
 
 [node name="IdLabel" type="Label" parent="VBoxContainer/EventInfo/IdContainer" unique_id=2124910965]
+
 layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 12
+
 text = "ID"
 
+
 [node name="IdEdit" type="LineEdit" parent="VBoxContainer/EventInfo/IdContainer" unique_id=1450416315]
+
 custom_minimum_size = Vector2(0, 35)
+
 custom_maximum_size = Vector2(350, 55)
+
 layout_mode = 2
+
+theme_override_colors/font_color = Color(0.717647, 0.741176, 0.788235, 1)
+
 text = "king_audience"
 
+
 [node name="TitleContainer" type="VBoxContainer" parent="VBoxContainer/EventInfo" unique_id=1806945218]
+
 layout_mode = 2
+
+theme_override_constants/separation = 4
+
 
 [node name="TitleLabel" type="Label" parent="VBoxContainer/EventInfo/TitleContainer" unique_id=1325175117]
+
 layout_mode = 2
-text = "Título"
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 12
+
+text = "TÍTULO"
+
 
 [node name="TitleEdit" type="LineEdit" parent="VBoxContainer/EventInfo/TitleContainer" unique_id=1961643485]
+
 custom_minimum_size = Vector2(0, 35)
+
 custom_maximum_size = Vector2(-1, 55)
+
 layout_mode = 2
+
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+
 text = "Audiencia con el rey"
 
+
 [node name="BasicInfo" type="HBoxContainer" parent="VBoxContainer/EventInfo" unique_id=740555601]
+
 custom_minimum_size = Vector2(0, 70)
+
 layout_mode = 2
+
 theme_override_constants/separation = 20
 
+
 [node name="ChapterContainer" type="VBoxContainer" parent="VBoxContainer/EventInfo/BasicInfo" unique_id=335025874]
+
 custom_minimum_size = Vector2(200, 0)
+
 layout_mode = 2
-theme_override_constants/separation = 5
+
+theme_override_constants/separation = 4
+
 
 [node name="ChapterLabel" type="Label" parent="VBoxContainer/EventInfo/BasicInfo/ChapterContainer" unique_id=871620201]
+
 layout_mode = 2
-text = "Capítulo"
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 12
+
+text = "CAPÍTULO"
+
 
 [node name="ChapterOption" type="OptionButton" parent="VBoxContainer/EventInfo/BasicInfo/ChapterContainer" unique_id=1197467087]
+
 custom_minimum_size = Vector2(200, 35)
+
 layout_mode = 2
+
 selected = 0
+
 item_count = 7
+
 popup/item_0/text = "Capítulo I"
 popup/item_0/id = 0
+
 popup/item_1/text = "Capítulo II"
 popup/item_1/id = 1
+
 popup/item_2/text = "Capítulo III"
 popup/item_2/id = 2
+
 popup/item_3/text = "Capítulo IV"
 popup/item_3/id = 3
+
 popup/item_4/text = "Capítulo V"
 popup/item_4/id = 4
+
 popup/item_5/text = "Capítulo VI"
 popup/item_5/id = 5
+
 popup/item_6/text = "Capítulo VII"
 popup/item_6/id = 6
 
+
 [node name="YearContainer" type="VBoxContainer" parent="VBoxContainer/EventInfo/BasicInfo" unique_id=1216131568]
+
 custom_minimum_size = Vector2(120, 0)
+
 layout_mode = 2
-theme_override_constants/separation = 5
+
+theme_override_constants/separation = 4
+
 
 [node name="YearLabel" type="Label" parent="VBoxContainer/EventInfo/BasicInfo/YearContainer" unique_id=1149643686]
+
 layout_mode = 2
-text = "Año"
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 12
+
+text = "AÑO"
+
 
 [node name="YearSpinBox" type="SpinBox" parent="VBoxContainer/EventInfo/BasicInfo/YearContainer" unique_id=1448698535]
+
 custom_minimum_size = Vector2(120, 35)
+
 layout_mode = 2
+
 value = 1.0
 
+
 [node name="WorldYearContainer" type="VBoxContainer" parent="VBoxContainer/EventInfo/BasicInfo" unique_id=16424881]
+
 custom_minimum_size = Vector2(120, 0)
+
 layout_mode = 2
-theme_override_constants/separation = 5
+
+theme_override_constants/separation = 4
+
 
 [node name="WorldYearLabel" type="Label" parent="VBoxContainer/EventInfo/BasicInfo/WorldYearContainer" unique_id=17235721]
+
 layout_mode = 2
-text = "Año del mundo"
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 12
+
+text = "AÑO DEL MUNDO"
+
 
 [node name="WorldYearSpinBox" type="SpinBox" parent="VBoxContainer/EventInfo/BasicInfo/WorldYearContainer" unique_id=1163026488]
+
 custom_minimum_size = Vector2(120, 35)
+
 layout_mode = 2
+
 min_value = 1134.0
+
 max_value = 9999.0
+
 value = 1134.0
 
+
 [node name="TabBar" type="TabBar" parent="VBoxContainer" unique_id=661099692]
+
 custom_minimum_size = Vector2(0, 40)
+
 layout_mode = 2
+
 current_tab = 0
+
 tab_count = 2
+
 tab_0/title = "Narrativa"
+
 tab_1/title = "Opciones"
 
+
 [node name="Content" type="PanelContainer" parent="VBoxContainer" unique_id=1275300309]
+
 layout_mode = 2
+
 size_flags_vertical = 3
+
+theme_override_styles/panel = SubResource("StyleBoxFlat_info")
+
 
 [node name="EventPageEditor" parent="VBoxContainer/Content" unique_id=937564168 instance=ExtResource("2_pageeditor")]
+
 layout_mode = 2
+
 size_flags_horizontal = 3
+
 size_flags_vertical = 3
 
+
 [node name="OptionsEditor" parent="VBoxContainer/Content" unique_id=1954712861 instance=ExtResource("3_k52qj")]
+
 layout_mode = 2
+
 
 [node name="Buttons" type="HBoxContainer" parent="VBoxContainer" unique_id=1871704284]
+
 custom_minimum_size = Vector2(0, 40)
+
 layout_mode = 2
+
 alignment = 2
 
+theme_override_constants/separation = 8
+
+
 [node name="CancelButton" type="Button" parent="VBoxContainer/Buttons" unique_id=1814879562]
+
 custom_minimum_size = Vector2(110, 0)
+
 layout_mode = 2
+
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel")
+
 text = "Cancelar"
 
+
 [node name="SaveButton" type="Button" parent="VBoxContainer/Buttons" unique_id=569920456]
+
 custom_minimum_size = Vector2(110, 0)
+
 layout_mode = 2
+
+theme_override_styles/normal = SubResource("StyleBoxFlat_save")
+
 text = "Guardar"

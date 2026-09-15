@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://djyo2jgjkhwj1" path="res://scripts/editor/shell/MainEditor.cs" id="1_68nbw"]
 [ext_resource type="Theme" uid="uid://bpomku5jaxovl" path="res://resources/OraculoTheme.tres" id="1_n7hwu"]
+[ext_resource type="Texture2D" uid="uid://b4beknrbijqgr" path="res://resources/assets/descarga.png" id="3_uhkrm"]
 
 [node name="MainEditor" type="Control" unique_id=1166175185]
 layout_mode = 3
@@ -61,8 +62,8 @@ custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 tooltip_text = "Configuración"
 text = "⚙"
-[node name="ExitButton" type="Button" parent="MainLayout/TopBar/MarginContainer/HBoxContainer"]
 
+[node name="ExitButton" type="Button" parent="MainLayout/TopBar/MarginContainer/HBoxContainer" unique_id=1296886825]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 text = "Salir"
@@ -152,41 +153,67 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_vertical = 3
 
+[node name="EmptyWorkspace" type="Control" parent="MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer/WorkspaceContent" unique_id=1201841771]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer/WorkspaceContent/EmptyWorkspace" unique_id=1297410000]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer/WorkspaceContent/EmptyWorkspace/CenterContainer" unique_id=61795196]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LogoPlaceholder" type="TextureRect" parent="MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer/WorkspaceContent/EmptyWorkspace/CenterContainer/VBoxContainer" unique_id=330456444]
+custom_minimum_size = Vector2(180, 180)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("3_uhkrm")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="OraculoLabel" type="Label" parent="MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer/WorkspaceContent/EmptyWorkspace/CenterContainer/VBoxContainer" unique_id=321550889]
+layout_mode = 2
+text = "ORÁCULO"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer/WorkspaceContent/EmptyWorkspace/CenterContainer/VBoxContainer" unique_id=678423599]
+layout_mode = 2
+text = "Archivo de mundos"
+horizontal_alignment = 1
+
 [node name="StatusBar" type="PanelContainer" parent="MainLayout" unique_id=120688316]
-
 custom_minimum_size = Vector2(0, 45)
-
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="MainLayout/StatusBar"]
-
+[node name="MarginContainer" type="MarginContainer" parent="MainLayout/StatusBar" unique_id=1605239489]
 layout_mode = 2
-
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 6
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/StatusBar/MarginContainer"]
-
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/StatusBar/MarginContainer" unique_id=683517189]
 layout_mode = 2
-
 theme_override_constants/separation = 12
 
-[node name="StatusLabel" type="Label" parent="MainLayout/StatusBar/MarginContainer/HBoxContainer"]
-
+[node name="StatusLabel" type="Label" parent="MainLayout/StatusBar/MarginContainer/HBoxContainer" unique_id=84012812]
 layout_mode = 2
-
 size_flags_horizontal = 3
-
 text = "✓ Proyecto válido"
-
 vertical_alignment = 1
 
-[node name="DetailsButton" type="Button" parent="MainLayout/StatusBar/MarginContainer/HBoxContainer"]
-
+[node name="DetailsButton" type="Button" parent="MainLayout/StatusBar/MarginContainer/HBoxContainer" unique_id=1021574477]
 custom_minimum_size = Vector2(110, 0)
-
 layout_mode = 2
-
 text = "Ver detalles"

@@ -10,11 +10,13 @@ public partial class MainEditor : Control
     private Button exitButton;
 
     private Control workspaceContent;
+    private Control emptyWorkspace;
 
     private PackedScene settingsDialogScene;
     private PackedScene eventListViewScene;
     private PackedScene eventEditorScene;
     private PackedScene interludeListViewScene;
+    private PackedScene interludeEditorScene;
     private PackedScene characterListViewScene;
     private PackedScene characterEditorScene;
     private PackedScene relationshipListViewScene;
@@ -113,6 +115,12 @@ public partial class MainEditor : Control
             );
 
 
+        emptyWorkspace =
+            GetNode<Control>(
+                "MainLayout/MainArea/WorkSpace/MarginContainer/VBoxContainer/WorkspaceContent/EmptyWorkspace"
+            );
+
+
         validationStatusLabel =
             GetNode<Label>(
                 "MainLayout/StatusBar/MarginContainer/HBoxContainer/StatusLabel"
@@ -146,6 +154,12 @@ public partial class MainEditor : Control
         interludeListViewScene =
             GD.Load<PackedScene>(
                 "res://scenes/InterludeListView.tscn"
+            );
+
+
+        interludeEditorScene =
+            GD.Load<PackedScene>(
+                "res://scenes/InterludeEditor.tscn"
             );
 
 
@@ -219,7 +233,9 @@ public partial class MainEditor : Control
     private void ApplyOraculoTheme()
     {
         Theme theme =
-            OraculoThemeBuilder.CreateTheme();
+            GD.Load<Theme>(
+                "res://resources/OraculoTheme.tres"
+            );
 
         Theme =
             theme;
@@ -245,7 +261,8 @@ public partial class MainEditor : Control
 
         ProjectValidator projectValidator =
             new ProjectValidator(
-                eventRepository
+                eventRepository,
+                interludeRepository
             );
 
 
@@ -334,156 +351,154 @@ public partial class MainEditor : Control
 
 
     private void OnInterludesPressed()
-{
-    ShowInterludeList();
-}
-
-
-private void ShowInterludeList()
-{
-    if (interludeListViewScene == null)
     {
-        GD.PrintErr(
-            "MainEditor: InterludeListView.tscn no está disponible."
-        );
-
-        return;
+        ShowInterludeList();
     }
 
 
-    InterludeListView view =
-        interludeListViewScene.Instantiate<InterludeListView>();
-
-
-    interludeListView =
-        view;
-
-
-    interludeListView.InterludeSelected +=
-        OnInterludeSelected;
-
-
-    ShowView(
-        view
-    );
-
-
-    if (
-        projectManager == null ||
-        !projectManager.HasProject())
+    private void ShowInterludeList()
     {
-        GD.PrintErr(
-            "MainEditor: no hay ningún proyecto cargado."
-        );
+        if (interludeListViewScene == null)
+        {
+            GD.PrintErr(
+                "MainEditor: InterludeListView.tscn no está disponible."
+            );
 
-        return;
-    }
-
-
-    view.SetRepository(
-        interludeRepository
-    );
-}
+            return;
+        }
 
 
-private void OnInterludeSelected(
-    string interludeId)
-{
-    if (interludeRepository == null)
-    {
-        GD.PrintErr(
-            "MainEditor: InterludeRepository no está disponible."
-        );
-
-        return;
-    }
+        InterludeListView view =
+            interludeListViewScene.Instantiate<InterludeListView>();
 
 
-    if (interludeListViewScene == null)
-    {
-        GD.PrintErr(
-            "MainEditor: InterludeListView.tscn no está disponible."
-        );
-
-        return;
-    }
+        interludeListView =
+            view;
 
 
-    InterludeEditor editor;
+        interludeListView.InterludeSelected +=
+            OnInterludeSelected;
 
 
-    PackedScene interludeEditorScene =
-        GD.Load<PackedScene>(
-            "res://scenes/InterludeEditor.tscn"
+        ShowView(
+            view
         );
 
 
-    if (interludeEditorScene == null)
-    {
-        GD.PrintErr(
-            "MainEditor: InterludeEditor.tscn no está disponible."
-        );
+        if (
+            projectManager == null ||
+            !projectManager.HasProject())
+        {
+            GD.PrintErr(
+                "MainEditor: no hay ningún proyecto cargado."
+            );
 
-        return;
-    }
-
-
-    editor =
-        interludeEditorScene.Instantiate<InterludeEditor>();
+            return;
+        }
 
 
-    editor.InterludeSaved +=
-        OnInterludeEditorSaved;
-
-
-    editor.InterludeCancelled +=
-        OnInterludeEditorCancelled;
-
-
-    ShowView(
-        editor
-    );
-
-
-    editor.SetRepository(
-        interludeRepository
-    );
-
-
-    if (string.IsNullOrWhiteSpace(
-        interludeId))
-    {
-        editor.CreateNewInterlude();
-    }
-    else
-    {
-        editor.LoadInterlude(
-            interludeId
+        view.SetRepository(
+            interludeRepository
         );
     }
-}
 
 
-private void OnInterludeEditorSaved()
-{
-    GD.Print(
-        "MainEditor: interludio guardado. Volviendo a la lista."
-    );
+    private void OnInterludeSelected(
+        string interludeId)
+    {
+        if (interludeRepository == null)
+        {
+            GD.PrintErr(
+                "MainEditor: InterludeRepository no está disponible."
+            );
+
+            return;
+        }
 
 
-    ShowInterludeList();
-}
+        if (interludeEditorScene == null)
+        {
+            GD.PrintErr(
+                "MainEditor: InterludeEditor.tscn no está disponible."
+            );
+
+            return;
+        }
 
 
-private void OnInterludeEditorCancelled()
-{
-    GD.Print(
-        "MainEditor: edición de interludio cancelada."
-    );
+        InterludeEditor editor =
+            interludeEditorScene.Instantiate<InterludeEditor>();
 
 
-    ShowInterludeList();
-}
+        editor.InterludeSaved +=
+            OnInterludeEditorSaved;
+
+
+        editor.InterludeCancelled +=
+            OnInterludeEditorCancelled;
+
+
+        editor.ApplicationCloseConfirmed +=
+            OnApplicationCloseConfirmed;
+
+
+        ShowView(
+            editor
+        );
+
+
+        editor.SetRepository(
+            interludeRepository
+        );
+
+
+        editor.SetEventRepository(
+            eventRepository
+        );
+
+
+        editor.SetProjectPath(
+            projectManager.GetProjectPath()
+        );
+
+
+        if (string.IsNullOrWhiteSpace(
+            interludeId))
+        {
+            editor.CreateNewInterlude();
+        }
+        else
+        {
+            editor.LoadInterlude(
+                interludeId
+            );
+        }
+    }
+
+
+    private void OnInterludeEditorSaved()
+    {
+        GD.Print(
+            "MainEditor: interludio guardado. Volviendo a la lista."
+        );
+
+
+        UpdateValidationStatus();
+
+
+        ShowInterludeList();
+    }
+
+
+    private void OnInterludeEditorCancelled()
+    {
+        GD.Print(
+            "MainEditor: edición de interludio cancelada."
+        );
+
+
+        ShowInterludeList();
+    }
 
 
     private void OnCharactersPressed()
@@ -814,26 +829,81 @@ private void OnInterludeEditorCancelled()
         );
 
 
+        panel.SetInterludeRepository(
+            interludeRepository
+        );
+
+
         panel.Validate();
     }
 
 
     private void OnValidationIssueSelected(
-        string eventId,
+        int resourceTypeValue,
+        string resourceId,
         string pageId,
-        int decisionIndex)
+        int decisionIndex,
+        int conditionIndex,
+        int effectIndex)
     {
         if (string.IsNullOrWhiteSpace(
-            eventId))
+            resourceId))
         {
             GD.PrintErr(
-                "MainEditor: la incidencia no tiene un evento asociado."
+                "MainEditor: la incidencia no tiene un recurso asociado."
             );
 
             return;
         }
 
 
+        ValidationResourceType resourceType =
+            (ValidationResourceType)
+            resourceTypeValue;
+
+
+        switch (resourceType)
+        {
+            case ValidationResourceType.Event:
+
+                OpenEventFromValidation(
+                    resourceId,
+                    pageId,
+                    decisionIndex
+                );
+
+                break;
+
+
+            case ValidationResourceType.Interlude:
+
+                OpenInterludeFromValidation(
+                    resourceId,
+                    pageId,
+                    conditionIndex,
+                    effectIndex
+                );
+
+                break;
+
+
+            default:
+
+                GD.PrintErr(
+                    "MainEditor: tipo de recurso de validación desconocido: ",
+                    resourceTypeValue
+                );
+
+                break;
+        }
+    }
+
+
+    private void OpenEventFromValidation(
+        string eventId,
+        string pageId,
+        int decisionIndex)
+    {
         GD.Print(
             "MainEditor: incidencia seleccionada. Abriendo evento: ",
             eventId
@@ -883,12 +953,85 @@ private void OnInterludeEditorCancelled()
     }
 
 
+    private void OpenInterludeFromValidation(
+        string interludeId,
+        string pageId,
+        int conditionIndex,
+        int effectIndex)
+    {
+        GD.Print(
+            "MainEditor: incidencia seleccionada. Abriendo interludio: ",
+            interludeId
+        );
+
+
+        if (interludeEditorScene == null)
+        {
+            GD.PrintErr(
+                "MainEditor: InterludeEditor.tscn no está disponible."
+            );
+
+            return;
+        }
+
+
+        InterludeEditor interludeEditor =
+            interludeEditorScene.Instantiate<InterludeEditor>();
+
+
+        interludeEditor.InterludeSaved +=
+            OnInterludeEditorSaved;
+
+
+        interludeEditor.InterludeCancelled +=
+            OnInterludeEditorCancelled;
+
+
+        interludeEditor.ApplicationCloseConfirmed +=
+            OnApplicationCloseConfirmed;
+
+
+        ShowView(
+            interludeEditor
+        );
+
+
+        interludeEditor.SetRepository(
+            interludeRepository
+        );
+
+
+        interludeEditor.SetEventRepository(
+            eventRepository
+        );
+
+
+        interludeEditor.SetProjectPath(
+            projectManager.GetProjectPath()
+        );
+
+
+        interludeEditor.SetValidationTarget(
+            pageId,
+            conditionIndex,
+            effectIndex
+        );
+
+
+        interludeEditor.LoadInterlude(
+            interludeId
+        );
+    }
+
+
     private void OnValidationPanelClosed()
     {
         validationPanel =
             null;
 
+
         UpdateValidationStatus();
+
 
         ShowEventList();
     }
@@ -1022,6 +1165,17 @@ private void OnInterludeEditorCancelled()
         }
 
 
+        InterludeEditor interludeEditor =
+            currentView as InterludeEditor;
+
+
+        if (interludeEditor != null)
+        {
+            interludeEditor.RequestApplicationClose();
+            return;
+        }
+
+
         OnApplicationCloseConfirmed();
     }
 
@@ -1078,5 +1232,11 @@ private void OnInterludeEditorCancelled()
         currentView.SetAnchorsAndOffsetsPreset(
             LayoutPreset.FullRect
         );
+
+
+        if (emptyWorkspace != null)
+        {
+            emptyWorkspace.Hide();
+        }
     }
 }

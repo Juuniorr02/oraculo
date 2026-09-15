@@ -25,6 +25,8 @@ public partial class EventListView : Control
 
     private string pendingDeleteEventId = "";
 
+    private EventListItem selectedEventItem;
+
 
     public override void _Ready()
     {
@@ -47,6 +49,7 @@ public partial class EventListView : Control
             GetNode<Button>(
                 "VBoxContainer/Header/NewEventButton"
             );
+
 
         eventListItemScene =
             GD.Load<PackedScene>(
@@ -128,6 +131,10 @@ public partial class EventListView : Control
             eventRepository.LoadAll();
 
 
+        selectedEventItem =
+            null;
+
+
         RefreshEventList();
     }
 
@@ -148,6 +155,9 @@ public partial class EventListView : Control
     private void OnSearchTextChanged(
         string searchText)
     {
+        selectedEventItem =
+            null;
+
         RefreshEventList();
     }
 
@@ -294,6 +304,33 @@ public partial class EventListView : Control
     private void OnEventSelected(
         string eventId)
     {
+        EventListItem newSelectedItem =
+            GetEventItemById(
+                eventId
+            );
+
+
+        if (selectedEventItem != null &&
+            IsInstanceValid(selectedEventItem))
+        {
+            selectedEventItem.SetSelected(
+                false
+            );
+        }
+
+
+        selectedEventItem =
+            newSelectedItem;
+
+
+        if (selectedEventItem != null)
+        {
+            selectedEventItem.SetSelected(
+                true
+            );
+        }
+
+
         GD.Print(
             "Evento seleccionado: ",
             eventId
@@ -304,6 +341,27 @@ public partial class EventListView : Control
             SignalName.EventSelected,
             eventId
         );
+    }
+
+
+    private EventListItem GetEventItemById(
+        string eventId)
+    {
+        foreach (
+            Node child
+            in eventList.GetChildren())
+        {
+            if (child is EventListItem item)
+            {
+                if (item.GetEventId() == eventId)
+                {
+                    return item;
+                }
+            }
+        }
+
+
+        return null;
     }
 
 

@@ -1,4 +1,6 @@
 using Godot;
+using System;
+using System.Collections.Generic;
 
 public partial class InterludeEditor : Control
 {
@@ -12,12 +14,22 @@ public partial class InterludeEditor : Control
     public delegate void ApplicationCloseConfirmedEventHandler();
 
     private InterludeRepository interludeRepository;
+    private EventRepository eventRepository;
 
     private EditorInterludeData currentInterlude;
 
     private LineEdit idEdit;
     private LineEdit titleEdit;
+
+    private OptionButton chapterOption;
     private OptionButton styleOption;
+
+    private EventSelector eventSelector;
+    private OptionButton nextChapterOption;
+
+    private InterludePageEditor pageEditor;
+    private ConditionListEditor conditionEditor;
+    private EffectListEditor effectEditor;
 
     private Button closeButton;
     private Button cancelButton;
@@ -25,38 +37,75 @@ public partial class InterludeEditor : Control
 
     private bool isNewInterlude = false;
 
+    private string pendingPageId = "";
+
+    private int pendingConditionIndex = -1;
+
+    private int pendingEffectIndex = -1;
+
+    private string projectPath = "";
+
+    private UnsavedChangesGuard<EditorInterludeData> unsavedChangesGuard;
+
+    private bool applicationCloseRequested = false;
+
 
     public override void _Ready()
     {
         idEdit =
             GetNode<LineEdit>(
-                "VBoxContainer/InterludeInfo/IdContainer/IdEdit"
+                "VBoxContainer/InterludeInfo/BasicInfo/IdContainer/IdEdit"
             );
-
 
         titleEdit =
             GetNode<LineEdit>(
-                "VBoxContainer/InterludeInfo/TitleContainer/TitleEdit"
+                "VBoxContainer/InterludeInfo/BasicInfo/TitleContainer/TitleEdit"
             );
 
+        chapterOption =
+            GetNode<OptionButton>(
+                "VBoxContainer/InterludeInfo/BasicInfo/ChapterContainer/ChapterOption"
+            );
 
         styleOption =
             GetNode<OptionButton>(
-                "VBoxContainer/InterludeInfo/StyleContainer/StyleOption"
+                "VBoxContainer/InterludeInfo/BasicInfo/StyleContainer/StyleOption"
             );
 
+        eventSelector =
+            GetNode<EventSelector>(
+                "VBoxContainer/InterludeInfo/BasicInfo/NextEventContainer/EventSelector"
+            );
+
+        nextChapterOption =
+            GetNode<OptionButton>(
+                "VBoxContainer/InterludeInfo/BasicInfo/NextChapterContainer/NextChapterOption"
+            );
+
+        pageEditor =
+            GetNode<InterludePageEditor>(
+                "VBoxContainer/Content/TabContainer/Narrativa/InterludePageEditor"
+            );
+
+        conditionEditor =
+            GetNode<ConditionListEditor>(
+                "VBoxContainer/Content/TabContainer/Condiciones/ConditionListEditor"
+            );
+
+        effectEditor =
+            GetNode<EffectListEditor>(
+                "VBoxContainer/Content/TabContainer/Consecuencias/EffectListEditor"
+            );
 
         closeButton =
             GetNode<Button>(
                 "VBoxContainer/Header/CloseButton"
             );
 
-
         cancelButton =
             GetNode<Button>(
                 "VBoxContainer/Buttons/CancelButton"
             );
-
 
         saveButton =
             GetNode<Button>(
@@ -67,21 +116,98 @@ public partial class InterludeEditor : Control
         closeButton.Pressed +=
             OnClosePressed;
 
-
         cancelButton.Pressed +=
             OnCancelPressed;
 
-
         saveButton.Pressed +=
             OnSavePressed;
+
+        chapterOption.ItemSelected +=
+            OnChapterChanged;
+
+
+        unsavedChangesGuard =
+            new UnsavedChangesGuard<EditorInterludeData>(
+                this,
+                GetCurrentInterludeState,
+                CloseEditor
+            );
+
+
+        ApplyChapterToEditors();
     }
 
 
-    public void SetRepository(
+    public void SetProjectPath(
+        string path)
+    {
+        projectPath =
+            path ?? "";
+
+        if (conditionEditor != null)
+        {
+            conditionEditor.SetProjectPath(
+                projectPath
+            );
+        }
+
+        if (effectEditor != null)
+        {
+            effectEditor.SetProjectPath(
+                projectPath
+            );
+        }
+    }
+
+
+    public void SetInterludeRepository(
         InterludeRepository repository)
     {
-        interludeRepository =
-            repository;
+        interludeRepository = repository;
+    }
+
+
+    public void SetEventRepository(
+        EventRepository repository)
+    {
+        eventRepository = repository;
+
+        if (eventSelector != null)
+        {
+            eventSelector.SetRepository(
+                eventRepository
+            );
+        }
+
+        if (conditionEditor != null)
+        {
+            conditionEditor.SetRepository(
+                eventRepository
+            );
+        }
+
+        if (effectEditor != null)
+        {
+            effectEditor.SetRepository(
+                eventRepository
+            );
+        }
+    }
+
+
+    public void SetValidationTarget(
+        string pageId,
+        int conditionIndex = -1,
+        int effectIndex = -1)
+    {
+        pendingPageId =
+            pageId ?? "";
+
+        pendingConditionIndex =
+            conditionIndex;
+
+        pendingEffectIndex =
+            effectIndex;
     }
 
 
@@ -90,18 +216,42 @@ public partial class InterludeEditor : Control
         currentInterlude =
             new EditorInterludeData();
 
-
-        isNewInterlude =
-            true;
-
+        isNewInterlude = true;
 
         idEdit.Text = "";
         titleEdit.Text = "";
 
+        chapterOption.Select(0);
 
         styleOption.Select(
             (int)InterludeStyle.Letter
         );
+
+        eventSelector.ClearSelection();
+
+        nextChapterOption.Select(0);
+
+        ApplyChapterToEditors();
+
+        pageEditor.SetPages(
+            currentInterlude.Pages
+        );
+
+        conditionEditor.SetConditions(
+            currentInterlude.Conditions
+        );
+
+        effectEditor.SetEffects(
+            currentInterlude.Effects
+        );
+
+        pendingPageId = "";
+
+        pendingConditionIndex = -1;
+
+        pendingEffectIndex = -1;
+
+        SaveOriginalState();
     }
 
 
@@ -111,73 +261,198 @@ public partial class InterludeEditor : Control
         if (interludeRepository == null)
         {
             GD.PrintErr(
-                "InterludeEditor: InterludeRepository no está disponible."
+                "InterludeEditor: no hay repositorio de interludios."
             );
 
             return;
         }
-
-
-        if (string.IsNullOrWhiteSpace(
-            interludeId))
-        {
-            GD.PrintErr(
-                "InterludeEditor: el ID del interludio está vacío."
-            );
-
-            return;
-        }
-
 
         EditorInterludeData interlude =
             interludeRepository.Load(
                 interludeId
             );
 
-
         if (interlude == null)
         {
             GD.PrintErr(
-                $"InterludeEditor: no se pudo cargar el interludio '{interludeId}'."
+                "InterludeEditor: no se pudo cargar el interludio: ",
+                interludeId
             );
 
             return;
         }
 
-
         currentInterlude =
             interlude;
 
-
-        isNewInterlude =
-            false;
-
+        isNewInterlude = false;
 
         LoadInterludeIntoEditor(
-            currentInterlude
+            interlude
         );
+
+        SaveOriginalState();
     }
 
 
     private void LoadInterludeIntoEditor(
         EditorInterludeData interlude)
     {
-        if (interlude == null)
-        {
-            return;
-        }
-
-
         idEdit.Text =
             interlude.Id ?? "";
-
 
         titleEdit.Text =
             interlude.Title ?? "";
 
+        LoadChapter(
+            interlude.Chapter
+        );
 
-        styleOption.Select(
-            (int)interlude.Style
+        if (Enum.IsDefined(
+            typeof(InterludeStyle),
+            interlude.Style))
+        {
+            styleOption.Select(
+                (int)interlude.Style
+            );
+        }
+        else
+        {
+            styleOption.Select(
+                (int)InterludeStyle.Letter
+            );
+        }
+
+
+        eventSelector.SetSelectedEventId(
+            interlude.NextEventId
+        );
+
+
+        int nextChapter =
+            interlude.NextChapter;
+
+        if (nextChapter < 0 ||
+            nextChapter > 7)
+        {
+            nextChapter = 0;
+        }
+
+        nextChapterOption.Select(
+            nextChapter
+        );
+
+
+        ApplyChapterToEditors();
+
+
+        if (interlude.Pages == null)
+        {
+            interlude.Pages =
+                new List<EditorInterludePageData>();
+        }
+
+        if (interlude.Conditions == null)
+        {
+            interlude.Conditions =
+                new List<EditorConditionData>();
+        }
+
+        if (interlude.Effects == null)
+        {
+            interlude.Effects =
+                new List<EditorEffectData>();
+        }
+
+
+        pageEditor.SetPages(
+            interlude.Pages
+        );
+
+        conditionEditor.SetConditions(
+            interlude.Conditions
+        );
+
+        effectEditor.SetEffects(
+            interlude.Effects
+        );
+
+
+        SelectValidationTarget();
+    }
+
+
+    public void SetRepository(
+        InterludeRepository repository)
+    {
+        interludeRepository = repository;
+    }
+
+
+    public void RequestApplicationClose()
+    {
+        applicationCloseRequested = true;
+
+        if (unsavedChangesGuard == null)
+        {
+            EmitSignal(
+                SignalName.ApplicationCloseConfirmed
+            );
+
+            return;
+        }
+
+        unsavedChangesGuard.RequestClose();
+    }
+
+
+    public bool HasUnsavedChanges()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            return false;
+        }
+
+        return unsavedChangesGuard.HasUnsavedChanges();
+    }
+
+
+    private EditorInterludeData GetCurrentInterludeState()
+    {
+        UpdateInterludeDataFromEditor();
+
+        return currentInterlude;
+    }
+
+
+    private void SaveOriginalState()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            return;
+        }
+
+        unsavedChangesGuard.SaveOriginalState(
+            currentInterlude
+        );
+    }
+
+
+    private void CloseEditor()
+    {
+        if (applicationCloseRequested)
+        {
+            applicationCloseRequested = false;
+
+            EmitSignal(
+                SignalName.ApplicationCloseConfirmed
+            );
+
+            return;
+        }
+
+        EmitSignal(
+            SignalName.InterludeCancelled
         );
     }
 
@@ -186,86 +461,170 @@ public partial class InterludeEditor : Control
     {
         if (currentInterlude == null)
         {
-            currentInterlude =
-                new EditorInterludeData();
+            return;
         }
 
 
         currentInterlude.Id =
             idEdit.Text.Trim();
 
-
         currentInterlude.Title =
             titleEdit.Text.Trim();
 
 
+        currentInterlude.Chapter =
+            chapterOption.Selected + 1;
+
+
         currentInterlude.Style =
-            (InterludeStyle)styleOption.Selected;
+            (InterludeStyle)
+            styleOption.Selected;
+
+
+        currentInterlude.NextEventId =
+            eventSelector.GetSelectedEventId();
+
+
+        currentInterlude.NextChapter =
+            nextChapterOption.Selected;
+
+
+        currentInterlude.Pages =
+            pageEditor.GetPages();
+
+        currentInterlude.Conditions =
+            conditionEditor.GetConditions();
+
+        currentInterlude.Effects =
+            effectEditor.GetEffects();
+    }
+
+
+    private void LoadChapter(
+        int chapter)
+    {
+        if (chapter < 1 ||
+            chapter > 7)
+        {
+            chapter = 1;
+        }
+
+        chapterOption.Select(
+            chapter - 1
+        );
+    }
+
+
+    private void ApplyChapterToEditors()
+    {
+        if (chapterOption == null)
+        {
+            return;
+        }
+
+        if (conditionEditor != null)
+        {
+            conditionEditor.SetChapter(
+                chapterOption.Selected + 1
+            );
+        }
+
+        if (effectEditor != null)
+        {
+            effectEditor.SetChapter(
+                chapterOption.Selected + 1
+            );
+        }
+    }
+
+
+    private void OnChapterChanged(
+        long index)
+    {
+        ApplyChapterToEditors();
+    }
+
+
+    private void SelectValidationTarget()
+    {
+        if (pendingConditionIndex >= 0)
+        {
+            conditionEditor.SelectCondition(
+                pendingConditionIndex
+            );
+
+            pendingPageId = "";
+            pendingConditionIndex = -1;
+            pendingEffectIndex = -1;
+
+            return;
+        }
+
+
+        if (pendingEffectIndex >= 0)
+        {
+            effectEditor.SelectEffect(
+                pendingEffectIndex
+            );
+
+            pendingPageId = "";
+            pendingConditionIndex = -1;
+            pendingEffectIndex = -1;
+
+            return;
+        }
+
+
+        if (string.IsNullOrWhiteSpace(
+            pendingPageId))
+        {
+            return;
+        }
+
+        bool pageSelected =
+            pageEditor.SelectPageById(
+                pendingPageId
+            );
+
+        if (!pageSelected)
+        {
+            GD.PrintErr(
+                "InterludeEditor: no se encontró la página de validación: ",
+                pendingPageId
+            );
+
+            return;
+        }
+
+        pendingPageId = "";
     }
 
 
     private void OnSavePressed()
     {
-        if (interludeRepository == null)
+        if (currentInterlude == null)
         {
-            GD.PrintErr(
-                "InterludeEditor: InterludeRepository no está disponible."
-            );
-
             return;
         }
-
 
         UpdateInterludeDataFromEditor();
 
-
-        if (string.IsNullOrWhiteSpace(
-            currentInterlude.Id))
+        if (interludeRepository == null)
         {
             GD.PrintErr(
-                "InterludeEditor: el ID no puede estar vacío."
+                "InterludeEditor: no hay repositorio de interludios."
             );
 
             return;
         }
 
-
-        if (
-            isNewInterlude &&
-            interludeRepository.Exists(
-                currentInterlude.Id
-            ))
-        {
-            GD.PrintErr(
-                $"InterludeEditor: ya existe un interludio con ID '{currentInterlude.Id}'."
-            );
-
-            return;
-        }
-
-
-        try
-        {
-            interludeRepository.Save(
-                currentInterlude
-            );
-        }
-        catch (System.Exception exception)
-        {
-            GD.PrintErr(
-                "InterludeEditor: error al guardar: ",
-                exception.Message
-            );
-
-            return;
-        }
-
-
-        GD.Print(
-            "InterludeEditor: interludio guardado: ",
-            currentInterlude.Id
+        interludeRepository.Save(
+            currentInterlude
         );
 
+        isNewInterlude = false;
+
+        SaveOriginalState();
 
         EmitSignal(
             SignalName.InterludeSaved
@@ -273,26 +632,32 @@ public partial class InterludeEditor : Control
     }
 
 
-    private void OnCancelPressed()
-    {
-        EmitSignal(
-            SignalName.InterludeCancelled
-        );
-    }
-
-
     private void OnClosePressed()
     {
-        EmitSignal(
-            SignalName.InterludeCancelled
-        );
+        RequestClose();
     }
 
 
-    public void RequestApplicationClose()
+    private void OnCancelPressed()
     {
-        EmitSignal(
-            SignalName.ApplicationCloseConfirmed
-        );
+        RequestClose();
+    }
+
+
+    private void RequestClose()
+    {
+        if (unsavedChangesGuard == null)
+        {
+            CloseEditor();
+            return;
+        }
+
+        unsavedChangesGuard.RequestClose();
+    }
+
+
+    private void OnApplicationCloseRequested()
+    {
+        RequestApplicationClose();
     }
 }

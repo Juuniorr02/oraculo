@@ -713,100 +713,312 @@ public bool SelectPageById(
 
 
     private sealed partial class PageDragButton : Button
+{
+    public int PageIndex { get; set; }
+
+    public event Action DragStarted;
+
+    public event Action<int, int> PageDropped;
+
+
+    public override void _Ready()
     {
-        public int PageIndex { get; set; }
+        MouseEntered +=
+            OnMouseEntered;
 
-        public event Action DragStarted;
+        MouseExited +=
+            OnMouseExited;
 
-        public event Action<int, int> PageDropped;
+        Toggled +=
+            OnToggled;
 
-
-        public override Variant _GetDragData(
-            Vector2 atPosition)
-        {
-            DragStarted?.Invoke();
-
-
-            Label preview =
-                new Label
-                {
-                    Text =
-                        Text
-                };
+        ApplyStyle(
+            ButtonPressed
+        );
+    }
 
 
-            SetDragPreview(
-                preview
-            );
-
-
-            return
-                EventPageEditor.DragDataPrefix +
-                PageIndex;
-        }
-
-
-        public override bool _CanDropData(
-            Vector2 atPosition,
-            Variant data)
-        {
-            return
-                TryGetDraggedPageIndex(
-                    data,
-                    out int sourceIndex
-                ) &&
-                sourceIndex != PageIndex;
-        }
-
-
-        public override void _DropData(
-            Vector2 atPosition,
-            Variant data)
-        {
-            if (
-                TryGetDraggedPageIndex(
-                    data,
-                    out int sourceIndex
-                ))
+    private void ApplyStyle(
+        bool selected)
+    {
+        StyleBoxFlat normalStyle =
+            new StyleBoxFlat
             {
-                PageDropped?.Invoke(
-                    sourceIndex,
-                    PageIndex
-                );
-            }
-        }
-
-
-        private static bool TryGetDraggedPageIndex(
-            Variant data,
-            out int pageIndex)
-        {
-            pageIndex =
-                -1;
-
-
-            if (
-                data.VariantType !=
-                Variant.Type.String)
-            {
-                return false;
-            }
-
-
-            string value =
-                data.AsString();
-
-
-            return
-                value.StartsWith(
-                    EventPageEditor.DragDataPrefix
-                ) &&
-                int.TryParse(
-                    value.Substring(
-                        EventPageEditor.DragDataPrefix.Length
+                BgColor =
+                    new Color(
+                        "222730"
                     ),
-                    out pageIndex
-                );
+
+                BorderWidthLeft = 1,
+                BorderWidthTop = 1,
+                BorderWidthRight = 1,
+                BorderWidthBottom = 1,
+
+                BorderColor =
+                    new Color(
+                        "313743"
+                    ),
+
+                CornerRadiusTopLeft = 3,
+                CornerRadiusTopRight = 3,
+                CornerRadiusBottomLeft = 3,
+                CornerRadiusBottomRight = 3,
+
+                ContentMarginLeft = 12,
+                ContentMarginRight = 12,
+                ContentMarginTop = 8,
+                ContentMarginBottom = 8
+            };
+
+
+        StyleBoxFlat hoverStyle =
+            new StyleBoxFlat
+            {
+                BgColor =
+                    new Color(
+                        "252D35"
+                    ),
+
+                BorderWidthLeft = 1,
+                BorderWidthTop = 1,
+                BorderWidthRight = 1,
+                BorderWidthBottom = 1,
+
+                BorderColor =
+                    new Color(
+                        "4FA6A6"
+                    ),
+
+                CornerRadiusTopLeft = 3,
+                CornerRadiusTopRight = 3,
+                CornerRadiusBottomLeft = 3,
+                CornerRadiusBottomRight = 3,
+
+                ContentMarginLeft = 12,
+                ContentMarginRight = 12,
+                ContentMarginTop = 8,
+                ContentMarginBottom = 8
+            };
+
+
+        StyleBoxFlat pressedStyle =
+            new StyleBoxFlat
+            {
+                BgColor =
+                    new Color(
+                        "27343A"
+                    ),
+
+                BorderWidthLeft = 2,
+                BorderWidthTop = 1,
+                BorderWidthRight = 1,
+                BorderWidthBottom = 1,
+
+                BorderColor =
+                    new Color(
+                        "4FA6A6"
+                    ),
+
+                CornerRadiusTopLeft = 3,
+                CornerRadiusTopRight = 3,
+                CornerRadiusBottomLeft = 3,
+                CornerRadiusBottomRight = 3,
+
+                ContentMarginLeft = 11,
+                ContentMarginRight = 12,
+                ContentMarginTop = 8,
+                ContentMarginBottom = 8
+            };
+
+
+        AddThemeStyleboxOverride(
+            "normal",
+            normalStyle
+        );
+
+        AddThemeStyleboxOverride(
+            "hover",
+            hoverStyle
+        );
+
+        AddThemeStyleboxOverride(
+            "pressed",
+            pressedStyle
+        );
+
+
+        AddThemeColorOverride(
+            "font_color",
+            new Color(
+                "A8AFBC"
+            )
+        );
+
+        AddThemeColorOverride(
+            "font_hover_color",
+            new Color(
+                "E7EAF0"
+            )
+        );
+
+        AddThemeColorOverride(
+            "font_pressed_color",
+            new Color(
+                "E7EAF0"
+            )
+        );
+
+        AddThemeColorOverride(
+            "font_focus_color",
+            new Color(
+                "E7EAF0"
+            )
+        );
+
+
+        if (selected)
+        {
+            AddThemeStyleboxOverride(
+                "normal",
+                pressedStyle
+            );
         }
     }
+
+
+    private void OnMouseEntered()
+    {
+        if (!ButtonPressed)
+        {
+            ApplyStyle(false);
+        }
+    }
+
+
+    private void OnMouseExited()
+    {
+        ApplyStyle(
+            ButtonPressed
+        );
+    }
+
+
+    private void OnToggled(
+        bool pressed)
+    {
+        ApplyStyle(
+            pressed
+        );
+    }
+
+
+    public override Variant _GetDragData(
+        Vector2 atPosition)
+    {
+        DragStarted?.Invoke();
+
+
+        Label preview =
+            new Label
+            {
+                Text =
+                    Text
+            };
+
+
+        preview.AddThemeColorOverride(
+            "font_color",
+            new Color(
+                "E7EAF0"
+            )
+        );
+
+
+        preview.AddThemeColorOverride(
+            "font_color",
+            new Color(
+                "E7EAF0"
+            )
+        );
+
+        preview.AddThemeFontSizeOverride(
+            "font_size",
+            14
+        );
+
+
+        SetDragPreview(
+            preview
+        );
+
+
+        return
+            EventPageEditor.DragDataPrefix +
+            PageIndex;
+    }
+
+
+    public override bool _CanDropData(
+        Vector2 atPosition,
+        Variant data)
+    {
+        return
+            TryGetDraggedPageIndex(
+                data,
+                out int sourceIndex
+            ) &&
+            sourceIndex != PageIndex;
+    }
+
+
+    public override void _DropData(
+        Vector2 atPosition,
+        Variant data)
+    {
+        if (
+            TryGetDraggedPageIndex(
+                data,
+                out int sourceIndex
+            ))
+        {
+            PageDropped?.Invoke(
+                sourceIndex,
+                PageIndex
+            );
+        }
+    }
+
+
+    private static bool TryGetDraggedPageIndex(
+        Variant data,
+        out int pageIndex)
+    {
+        pageIndex =
+            -1;
+
+
+        if (
+            data.VariantType !=
+            Variant.Type.String)
+        {
+            return false;
+        }
+
+
+        string value =
+            data.AsString();
+
+
+        return
+            value.StartsWith(
+                EventPageEditor.DragDataPrefix
+            ) &&
+            int.TryParse(
+                value.Substring(
+                    EventPageEditor.DragDataPrefix.Length
+                ),
+                out pageIndex
+            );
+    }
+}
 }
