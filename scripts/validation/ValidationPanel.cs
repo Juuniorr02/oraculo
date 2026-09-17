@@ -6,6 +6,7 @@ public partial class ValidationPanel : Control
     [Signal]
     public delegate void ClosedEventHandler();
 
+
     [Signal]
     public delegate void IssueSelectedEventHandler(
         int resourceType,
@@ -33,6 +34,8 @@ public partial class ValidationPanel : Control
     private EventRepository eventRepository;
     private InterludeRepository interludeRepository;
 
+    private string projectPath = "";
+
     private ProjectValidator projectValidator;
 
     private ValidationResult currentResult;
@@ -57,35 +60,42 @@ public partial class ValidationPanel : Control
                 "VBoxContainer/Summary/ErrorsPanel/MarginContainer/ErrorsLabel"
             );
 
+
         warningsLabel =
             GetNode<Label>(
                 "VBoxContainer/Summary/WarningsPanel/MarginContainer/WarningsLabel"
             );
+
 
         validateButton =
             GetNode<Button>(
                 "VBoxContainer/Header/ValidateButton"
             );
 
+
         closeButton =
             GetNode<Button>(
                 "VBoxContainer/Header/CloseButton"
             );
+
 
         allButton =
             GetNode<Button>(
                 "VBoxContainer/FilterBar/AllButton"
             );
 
+
         errorsButton =
             GetNode<Button>(
                 "VBoxContainer/FilterBar/ErrorsButton"
             );
 
+
         warningsButton =
             GetNode<Button>(
                 "VBoxContainer/FilterBar/WarningsButton"
             );
+
 
         issueList =
             GetNode<VBoxContainer>(
@@ -96,14 +106,18 @@ public partial class ValidationPanel : Control
         validateButton.Pressed +=
             OnValidatePressed;
 
+
         closeButton.Pressed +=
             OnClosePressed;
+
 
         allButton.Pressed +=
             OnAllFilterPressed;
 
+
         errorsButton.Pressed +=
             OnErrorsFilterPressed;
+
 
         warningsButton.Pressed +=
             OnWarningsFilterPressed;
@@ -121,6 +135,7 @@ public partial class ValidationPanel : Control
         eventRepository =
             repository;
 
+
         RebuildProjectValidator();
     }
 
@@ -131,6 +146,18 @@ public partial class ValidationPanel : Control
         interludeRepository =
             repository;
 
+
+        RebuildProjectValidator();
+    }
+
+
+    public void SetProjectPath(
+        string path)
+    {
+        projectPath =
+            path ?? "";
+
+
         RebuildProjectValidator();
     }
 
@@ -140,7 +167,8 @@ public partial class ValidationPanel : Control
         projectValidator =
             new ProjectValidator(
                 eventRepository,
-                interludeRepository
+                interludeRepository,
+                projectPath
             );
     }
 
@@ -150,6 +178,7 @@ public partial class ValidationPanel : Control
         if (projectValidator == null)
         {
             ShowNoRepositoryMessage();
+
             return;
         }
 
@@ -159,6 +188,8 @@ public partial class ValidationPanel : Control
 
 
         UpdateSummary();
+
+
         RefreshIssueList();
     }
 
@@ -182,6 +213,7 @@ public partial class ValidationPanel : Control
         currentFilter =
             ValidationFilter.All;
 
+
         RefreshIssueList();
     }
 
@@ -191,6 +223,7 @@ public partial class ValidationPanel : Control
         currentFilter =
             ValidationFilter.Errors;
 
+
         RefreshIssueList();
     }
 
@@ -199,6 +232,7 @@ public partial class ValidationPanel : Control
     {
         currentFilter =
             ValidationFilter.Warnings;
+
 
         RefreshIssueList();
     }
@@ -211,8 +245,10 @@ public partial class ValidationPanel : Control
             errorsLabel.Text =
                 "✕ 0 ERRORES";
 
+
             warningsLabel.Text =
                 "⚠ 0 ADVERTENCIAS";
+
 
             return;
         }
@@ -220,6 +256,7 @@ public partial class ValidationPanel : Control
 
         errorsLabel.Text =
             $"✕ {currentResult.GetErrorCount()} ERRORES";
+
 
         warningsLabel.Text =
             $"⚠ {currentResult.GetWarningCount()} ADVERTENCIAS";
@@ -263,14 +300,16 @@ public partial class ValidationPanel : Control
     private bool ShouldShowIssue(
         ValidationIssue issue)
     {
-        if (currentFilter ==
+        if (
+            currentFilter ==
             ValidationFilter.Errors)
         {
             return issue.IsError();
         }
 
 
-        if (currentFilter ==
+        if (
+            currentFilter ==
             ValidationFilter.Warnings)
         {
             return issue.IsWarning();
@@ -300,6 +339,7 @@ public partial class ValidationPanel : Control
         {
             panel.MouseDefaultCursorShape =
                 Control.CursorShape.PointingHand;
+
 
             panel.GuiInput +=
                 (InputEvent inputEvent) =>
@@ -331,15 +371,18 @@ public partial class ValidationPanel : Control
             10
         );
 
+
         margin.AddThemeConstantOverride(
             "margin_right",
             10
         );
 
+
         margin.AddThemeConstantOverride(
             "margin_top",
             7
         );
+
 
         margin.AddThemeConstantOverride(
             "margin_bottom",
@@ -468,7 +511,8 @@ public partial class ValidationPanel : Control
         }
 
 
-        if (mouseButton.ButtonIndex !=
+        if (
+            mouseButton.ButtonIndex !=
             MouseButton.Left)
         {
             return;
@@ -571,6 +615,8 @@ public partial class ValidationPanel : Control
 
 
         UpdateSummary();
+
+
         RefreshIssueList();
     }
 }

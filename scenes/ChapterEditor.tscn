@@ -1,0 +1,386 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/chapters/ChapterEditor.cs" id="1_chaptereditor"]
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info"]
+
+bg_color = Color(0.113725, 0.129412, 0.14902, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.192157, 0.211765, 0.243137, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_save"]
+
+bg_color = Color(0.309804, 0.65098, 0.65098, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.309804, 0.65098, 0.65098, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel"]
+
+bg_color = Color(0.133333, 0.14902, 0.168627, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_bottom_width = 1
+
+border_color = Color(0.243137, 0.266667, 0.305882, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+
+[node name="ChapterEditor" type="Control"]
+
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_chaptereditor")
+
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+
+[node name="Header" type="HBoxContainer" parent="VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+
+[node name="Title" type="Label" parent="VBoxContainer/Header"]
+
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+theme_override_font_sizes/font_size = 20
+text = "Editor de capítulo"
+vertical_alignment = 1
+
+
+[node name="NewButton" type="Button" parent="VBoxContainer/Header"]
+
+custom_minimum_size = Vector2(140, 38)
+layout_mode = 2
+text = "＋ Nuevo capítulo"
+
+
+[node name="DeleteButton" type="Button" parent="VBoxContainer/Header"]
+
+custom_minimum_size = Vector2(110, 38)
+layout_mode = 2
+text = "Eliminar"
+
+
+[node name="CloseButton" type="Button" parent="VBoxContainer/Header"]
+
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+text = "×"
+
+
+[node name="Separator" type="HSeparator" parent="VBoxContainer"]
+
+layout_mode = 2
+
+
+[node name="ChapterInfo" type="VBoxContainer" parent="VBoxContainer"]
+
+layout_mode = 2
+theme_override_constants/separation = 8
+
+
+[node name="IdContainer" type="VBoxContainer" parent="VBoxContainer/ChapterInfo"]
+
+layout_mode = 2
+theme_override_constants/separation = 4
+
+
+[node name="IdLabel" type="Label" parent="VBoxContainer/ChapterInfo/IdContainer"]
+
+layout_mode = 2
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 12
+text = "ID"
+
+
+[node name="Id" type="Label" parent="VBoxContainer/ChapterInfo/IdContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.717647, 0.741176, 0.788235, 1)
+vertical_alignment = 1
+
+
+[node name="TitleContainer" type="VBoxContainer" parent="VBoxContainer/ChapterInfo"]
+
+layout_mode = 2
+theme_override_constants/separation = 4
+
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer/ChapterInfo/TitleContainer"]
+
+layout_mode = 2
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 12
+text = "TÍTULO"
+
+
+[node name="TitleEdit" type="LineEdit" parent="VBoxContainer/ChapterInfo/TitleContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+custom_maximum_size = Vector2(-1, 55)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+
+
+[node name="BasicInfo" type="HBoxContainer" parent="VBoxContainer/ChapterInfo"]
+
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_constants/separation = 20
+
+
+[node name="NumberContainer" type="VBoxContainer" parent="VBoxContainer/ChapterInfo/BasicInfo"]
+
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+
+[node name="NumberLabel" type="Label" parent="VBoxContainer/ChapterInfo/BasicInfo/NumberContainer"]
+
+layout_mode = 2
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 12
+text = "NÚMERO"
+
+
+[node name="NumberSpinBox" type="SpinBox" parent="VBoxContainer/ChapterInfo/BasicInfo/NumberContainer"]
+
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+min_value = 1.0
+max_value = 99.0
+step = 1.0
+
+
+[node name="StartYearContainer" type="VBoxContainer" parent="VBoxContainer/ChapterInfo/BasicInfo"]
+
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+
+[node name="StartYearLabel" type="Label" parent="VBoxContainer/ChapterInfo/BasicInfo/StartYearContainer"]
+
+layout_mode = 2
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 12
+text = "AÑO INICIO"
+
+
+[node name="StartYearSpinBox" type="SpinBox" parent="VBoxContainer/ChapterInfo/BasicInfo/StartYearContainer"]
+
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+min_value = 0.0
+max_value = 9999.0
+step = 1.0
+
+
+[node name="StartMonthContainer" type="VBoxContainer" parent="VBoxContainer/ChapterInfo/BasicInfo"]
+
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+
+[node name="StartMonthLabel" type="Label" parent="VBoxContainer/ChapterInfo/BasicInfo/StartMonthContainer"]
+
+layout_mode = 2
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 12
+text = "MES INICIO"
+
+
+[node name="StartMonthSpinBox" type="SpinBox" parent="VBoxContainer/ChapterInfo/BasicInfo/StartMonthContainer"]
+
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+min_value = 1.0
+max_value = 12.0
+step = 1.0
+
+
+[node name="Attributes" type="VBoxContainer" parent="VBoxContainer"]
+
+layout_mode = 2
+theme_override_constants/separation = 6
+
+
+[node name="AttributesLabel" type="Label" parent="VBoxContainer/Attributes"]
+
+layout_mode = 2
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 12
+text = "ATRIBUTOS DEL CAPÍTULO"
+
+
+[node name="SelectedAttributes" type="VBoxContainer" parent="VBoxContainer/Attributes"]
+
+layout_mode = 2
+theme_override_constants/separation = 4
+
+
+[node name="SelectedList" type="VBoxContainer" parent="VBoxContainer/Attributes/SelectedAttributes"]
+
+layout_mode = 2
+theme_override_constants/separation = 4
+
+
+[node name="AttributeSearch" type="VBoxContainer" parent="VBoxContainer/Attributes"]
+
+layout_mode = 2
+theme_override_constants/separation = 4
+
+
+[node name="AttributeSearchEdit" type="LineEdit" parent="VBoxContainer/Attributes/AttributeSearch"]
+
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+placeholder_text = "Buscar atributo..."
+
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/Attributes/AttributeSearch"]
+
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+
+[node name="AttributeList" type="VBoxContainer" parent="VBoxContainer/Attributes/AttributeSearch/ScrollContainer"]
+
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+
+[node name="EditPagesButton" type="Button" parent="VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+text = "Editar páginas"
+
+
+[node name="Content" type="PanelContainer" parent="VBoxContainer"]
+
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_info")
+
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Content"]
+
+layout_mode = 2
+theme_override_constants/separation = 8
+
+
+[node name="ContentHeader" type="HBoxContainer" parent="VBoxContainer/Content/VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+
+[node name="SearchEdit" type="LineEdit" parent="VBoxContainer/Content/VBoxContainer/ContentHeader"]
+
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Buscar evento o interludio..."
+
+
+[node name="FilterButton" type="OptionButton" parent="VBoxContainer/Content/VBoxContainer/ContentHeader"]
+
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+
+
+[node name="ContentBody" type="VBoxContainer" parent="VBoxContainer/Content/VBoxContainer"]
+
+layout_mode = 2
+size_flags_vertical = 3
+
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/Content/VBoxContainer/ContentBody"]
+
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+
+[node name="ContentList" type="VBoxContainer" parent="VBoxContainer/Content/VBoxContainer/ContentBody/ScrollContainer"]
+
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+
+[node name="Buttons" type="HBoxContainer" parent="VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 8
+
+
+[node name="CancelButton" type="Button" parent="VBoxContainer/Buttons"]
+
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel")
+text = "Cancelar"
+
+
+[node name="SaveButton" type="Button" parent="VBoxContainer/Buttons"]
+
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_save")
+text = "Guardar"

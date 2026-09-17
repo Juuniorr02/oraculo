@@ -1,5 +1,7 @@
 using Godot;
+using System;
 using System.Collections.Generic;
+
 
 public partial class EffectListEditor : VBoxContainer
 {
@@ -13,15 +15,21 @@ public partial class EffectListEditor : VBoxContainer
     private Button addEffectButton;
     private VBoxContainer effectsList;
 
+
     private readonly List<EffectData> effects = new();
+
 
     private Window effectEditorWindow;
     private EffectEditor effectEditor;
 
+
     private int chapter = 1;
+
 
     private EventRepository eventRepository;
     private DecisionDatabase decisionDatabase;
+    private AttributeRepository attributeRepository;
+
 
     private string projectPath = "";
 
@@ -32,6 +40,7 @@ public partial class EffectListEditor : VBoxContainer
             GetNode<Button>(
                 "EffectsHeader/AddEffectButton"
             );
+
 
         effectsList =
             GetNode<VBoxContainer>(
@@ -82,10 +91,41 @@ public partial class EffectListEditor : VBoxContainer
             path ?? "";
 
 
+        if (string.IsNullOrWhiteSpace(
+            projectPath))
+        {
+            attributeRepository =
+                null;
+
+
+            GD.PrintErr(
+                "EffectListEditor: la ruta del proyecto está vacía."
+            );
+
+
+            return;
+        }
+
+
+        attributeRepository =
+            new AttributeRepository(
+                projectPath
+            );
+
+
         GD.Print(
             "EffectListEditor: ruta del proyecto establecida: ",
             projectPath
         );
+
+
+        UpdateAllSummaries();
+
+
+        if (IsInsideTree())
+        {
+            Refresh();
+        }
     }
 
 
@@ -126,7 +166,9 @@ public partial class EffectListEditor : VBoxContainer
 
 
                 EditorEffectData copy =
-                    CopyData(effect);
+                    CopyData(
+                        effect
+                    );
 
 
                 effects.Add(
@@ -136,7 +178,9 @@ public partial class EffectListEditor : VBoxContainer
                             copy,
 
                         Summary =
-                            BuildSummary(copy)
+                            BuildSummary(
+                                copy
+                            )
                     }
                 );
             }
@@ -187,6 +231,7 @@ public partial class EffectListEditor : VBoxContainer
                 "EffectListEditor: índice de efecto inválido: ",
                 index
             );
+
 
             return;
         }
@@ -259,6 +304,7 @@ public partial class EffectListEditor : VBoxContainer
 
         UpdateAllSummaries();
 
+
         Refresh();
     }
 
@@ -303,7 +349,9 @@ public partial class EffectListEditor : VBoxContainer
         );
 
 
-        OpenEditor(index);
+        OpenEditor(
+            index
+        );
     }
 
 
@@ -335,7 +383,9 @@ public partial class EffectListEditor : VBoxContainer
             button.Pressed +=
                 () =>
                 {
-                    OpenEditor(index);
+                    OpenEditor(
+                        index
+                    );
                 };
 
 
@@ -369,160 +419,175 @@ public partial class EffectListEditor : VBoxContainer
             };
 
 
-        // =====================================================
-        // ESTILO NORMAL
-        // =====================================================
-
         StyleBoxFlat normal =
             new StyleBoxFlat();
+
 
         normal.BgColor =
             new Color("222730");
 
+
         normal.BorderColor =
             new Color("313743");
+
 
         normal.SetBorderWidthAll(
             1
         );
 
+
         normal.SetCornerRadiusAll(
             3
         );
 
+
         normal.ContentMarginLeft =
             12;
+
 
         normal.ContentMarginRight =
             12;
 
+
         normal.ContentMarginTop =
             8;
+
 
         normal.ContentMarginBottom =
             8;
 
 
-        // =====================================================
-        // ESTILO HOVER
-        // =====================================================
-
         StyleBoxFlat hover =
             new StyleBoxFlat();
+
 
         hover.BgColor =
             new Color("252D35");
 
+
         hover.BorderColor =
             new Color("4FA6A6");
+
 
         hover.SetBorderWidthAll(
             1
         );
 
+
         hover.SetCornerRadiusAll(
             3
         );
 
+
         hover.ContentMarginLeft =
             12;
+
 
         hover.ContentMarginRight =
             12;
 
+
         hover.ContentMarginTop =
             8;
+
 
         hover.ContentMarginBottom =
             8;
 
 
-        // =====================================================
-        // ESTILO PRESIONADO
-        // =====================================================
-
         StyleBoxFlat pressed =
             new StyleBoxFlat();
+
 
         pressed.BgColor =
             new Color("27343A");
 
+
         pressed.BorderColor =
             new Color("4FA6A6");
+
 
         pressed.SetBorderWidthAll(
             1
         );
 
+
         pressed.SetCornerRadiusAll(
             3
         );
 
+
         pressed.ContentMarginLeft =
             12;
+
 
         pressed.ContentMarginRight =
             12;
 
+
         pressed.ContentMarginTop =
             8;
+
 
         pressed.ContentMarginBottom =
             8;
 
 
-        // =====================================================
-        // ESTILO FOCUS
-        // =====================================================
-
         StyleBoxFlat focus =
             new StyleBoxFlat();
+
 
         focus.BgColor =
             new Color("222730");
 
+
         focus.BorderColor =
             new Color("4FA6A6");
+
 
         focus.SetBorderWidthAll(
             1
         );
 
+
         focus.SetCornerRadiusAll(
             3
         );
 
+
         focus.ContentMarginLeft =
             12;
+
 
         focus.ContentMarginRight =
             12;
 
+
         focus.ContentMarginTop =
             8;
+
 
         focus.ContentMarginBottom =
             8;
 
-
-        // =====================================================
-        // COLORES DEL TEXTO
-        // =====================================================
 
         button.AddThemeColorOverride(
             "font_color",
             new Color("A8AFBC")
         );
 
+
         button.AddThemeColorOverride(
             "font_hover_color",
             new Color("E7EAF0")
         );
 
+
         button.AddThemeColorOverride(
             "font_pressed_color",
             new Color("E7EAF0")
         );
+
 
         button.AddThemeColorOverride(
             "font_focus_color",
@@ -530,24 +595,23 @@ public partial class EffectListEditor : VBoxContainer
         );
 
 
-        // =====================================================
-        // APLICAR ESTILOS
-        // =====================================================
-
         button.AddThemeStyleboxOverride(
             "normal",
             normal
         );
+
 
         button.AddThemeStyleboxOverride(
             "hover",
             hover
         );
 
+
         button.AddThemeStyleboxOverride(
             "pressed",
             pressed
         );
+
 
         button.AddThemeStyleboxOverride(
             "focus",
@@ -703,25 +767,17 @@ public partial class EffectListEditor : VBoxContainer
             );
 
 
-        buttons.AddChild(
-            deleteButton
-        );
-
-
-        buttons.AddChild(
-            cancelButton
-        );
-
-
-        buttons.AddChild(
-            saveButton
-        );
+        buttons.AddChild(deleteButton);
+        buttons.AddChild(cancelButton);
+        buttons.AddChild(saveButton);
 
 
         deleteButton.Pressed +=
             () =>
             {
-                DeleteEffect(index);
+                DeleteEffect(
+                    index
+                );
             };
 
 
@@ -732,7 +788,9 @@ public partial class EffectListEditor : VBoxContainer
         saveButton.Pressed +=
             () =>
             {
-                SaveEffect(index);
+                SaveEffect(
+                    index
+                );
             };
 
 
@@ -750,10 +808,10 @@ public partial class EffectListEditor : VBoxContainer
         if (
             effectEditor == null ||
             index < 0 ||
-            index >= effects.Count
-        )
+            index >= effects.Count)
         {
             CloseEditor();
+
 
             return;
         }
@@ -859,6 +917,45 @@ public partial class EffectListEditor : VBoxContainer
     }
 
 
+    private string GetAttributeDisplayName(
+        string attributeId)
+    {
+        if (string.IsNullOrWhiteSpace(
+            attributeId))
+        {
+            return "Seleccionar atributo";
+        }
+
+
+        if (attributeRepository == null)
+        {
+            return "Atributo no disponible";
+        }
+
+
+        AttributeDefinitionData attribute =
+            attributeRepository.Load(
+                attributeId
+            );
+
+
+        if (attribute == null)
+        {
+            return "Atributo no encontrado";
+        }
+
+
+        if (!string.IsNullOrWhiteSpace(
+            attribute.DisplayName))
+        {
+            return attribute.DisplayName;
+        }
+
+
+        return "Atributo sin nombre";
+    }
+
+
     private static EditorEffectData CopyData(
         EditorEffectData source)
     {
@@ -906,7 +1003,7 @@ public partial class EffectListEditor : VBoxContainer
         return data.TypeId switch
         {
             "characterattribute" =>
-                $"{GetDisplayId(data.AttributeId, "Atributo")} {FormatSignedValue(data.Value)}",
+                $"{GetAttributeDisplayName(data.AttributeId)} {FormatSignedValue(data.Value)}",
 
             "prestige" =>
                 $"Prestigio {FormatSignedValue(data.Value)}",
@@ -934,7 +1031,8 @@ public partial class EffectListEditor : VBoxContainer
     private string BuildDecisionSummary(
         string decisionId)
     {
-        if (string.IsNullOrWhiteSpace(decisionId))
+        if (string.IsNullOrWhiteSpace(
+            decisionId))
         {
             return "Decisión: seleccionar decisión";
         }
@@ -942,8 +1040,7 @@ public partial class EffectListEditor : VBoxContainer
 
         if (decisionDatabase == null)
         {
-            return
-                $"Decisión: {decisionId}";
+            return "Decisión no disponible";
         }
 
 
@@ -955,15 +1052,14 @@ public partial class EffectListEditor : VBoxContainer
 
         if (decision == null)
         {
-            return
-                $"Decisión no encontrada: {decisionId}";
+            return "Decisión no encontrada";
         }
 
 
         string eventName =
             string.IsNullOrWhiteSpace(
                 decision.EventTitle)
-                ? decision.EventId
+                ? "Evento sin título"
                 : decision.EventTitle;
 
 
@@ -1022,10 +1118,7 @@ public partial class EffectListEditor : VBoxContainer
                 "Legitimidad",
 
             _ =>
-                GetDisplayId(
-                    attributeId,
-                    "Atributo del imperio"
-                )
+                "Atributo del imperio"
         };
     }
 

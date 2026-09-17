@@ -131,6 +131,20 @@ public partial class ProjectManager : Node
             }
 
 
+            // =====================================================
+            // DATOS INICIALES
+            // =====================================================
+
+            AttributeDataGenerator.Generate(
+                currentProjectPath
+            );
+
+
+            ChapterDataGenerator.Generate(
+                currentProjectPath
+            );
+
+
             EmitSignal(
                 SignalName.ProjectOpened
             );

@@ -411,6 +411,10 @@ public partial class RelationshipEditor : Control
         titleLineEdit.Clear();
         titleLineEdit.GrabFocus();
     }
+    public void SaveCurrentRelationship()
+{
+    OnSavePressed();
+}
 
 
     private void OnRemoveTitlePressed()

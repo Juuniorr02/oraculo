@@ -339,6 +339,10 @@ public partial class CharacterEditor : Control
             characterData
         );
     }
+    public void SaveCurrentCharacter()
+{
+    OnSavePressed();
+}
 
 
     private void OnSavePressed()

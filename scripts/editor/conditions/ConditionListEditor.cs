@@ -1,5 +1,7 @@
 using Godot;
+using System;
 using System.Collections.Generic;
+
 
 public partial class ConditionListEditor : VBoxContainer
 {
@@ -13,15 +15,21 @@ public partial class ConditionListEditor : VBoxContainer
     private Button addConditionButton;
     private VBoxContainer conditionsList;
 
+
     private readonly List<ConditionData> conditions = new();
+
 
     private Window conditionEditorWindow;
     private ConditionEditor conditionEditor;
 
+
     private int chapter = 1;
+
 
     private EventRepository eventRepository;
     private DecisionDatabase decisionDatabase;
+    private AttributeRepository attributeRepository;
+
 
     private string projectPath = "";
 
@@ -32,6 +40,7 @@ public partial class ConditionListEditor : VBoxContainer
             GetNode<Button>(
                 "ConditionsHeader/AddConditionButton"
             );
+
 
         conditionsList =
             GetNode<VBoxContainer>(
@@ -82,10 +91,41 @@ public partial class ConditionListEditor : VBoxContainer
             path ?? "";
 
 
+        if (string.IsNullOrWhiteSpace(
+            projectPath))
+        {
+            attributeRepository =
+                null;
+
+
+            GD.PrintErr(
+                "ConditionListEditor: la ruta del proyecto está vacía."
+            );
+
+
+            return;
+        }
+
+
+        attributeRepository =
+            new AttributeRepository(
+                projectPath
+            );
+
+
         GD.Print(
             "ConditionListEditor: ruta del proyecto establecida: ",
             projectPath
         );
+
+
+        UpdateAllSummaries();
+
+
+        if (IsInsideTree())
+        {
+            Refresh();
+        }
     }
 
 
@@ -93,11 +133,7 @@ public partial class ConditionListEditor : VBoxContainer
         int eventChapter)
     {
         chapter =
-            Mathf.Clamp(
-                eventChapter,
-                1,
-                7
-            );
+            eventChapter;
 
 
         GD.Print(
@@ -126,7 +162,9 @@ public partial class ConditionListEditor : VBoxContainer
 
 
                 EditorConditionData copy =
-                    CopyData(condition);
+                    CopyData(
+                        condition
+                    );
 
 
                 conditions.Add(
@@ -136,7 +174,9 @@ public partial class ConditionListEditor : VBoxContainer
                             copy,
 
                         Summary =
-                            BuildSummary(copy)
+                            BuildSummary(
+                                copy
+                            )
                     }
                 );
             }
@@ -188,8 +228,10 @@ public partial class ConditionListEditor : VBoxContainer
                 index
             );
 
+
             return;
         }
+
 
         OpenEditor(
             index
@@ -245,6 +287,7 @@ public partial class ConditionListEditor : VBoxContainer
 
         UpdateAllSummaries();
 
+
         Refresh();
     }
 
@@ -295,7 +338,9 @@ public partial class ConditionListEditor : VBoxContainer
         );
 
 
-        OpenEditor(index);
+        OpenEditor(
+            index
+        );
     }
 
 
@@ -327,7 +372,9 @@ public partial class ConditionListEditor : VBoxContainer
             button.Pressed +=
                 () =>
                 {
-                    OpenEditor(index);
+                    OpenEditor(
+                        index
+                    );
                 };
 
 
@@ -339,203 +386,209 @@ public partial class ConditionListEditor : VBoxContainer
 
 
     private static Button CreateListButton(
-    string text)
-{
-    Button button =
-        new Button
-        {
-            Text =
-                text,
+        string text)
+    {
+        Button button =
+            new Button
+            {
+                Text =
+                    text,
 
-            CustomMinimumSize =
-                new Vector2(
-                    0,
-                    46
-                ),
+                CustomMinimumSize =
+                    new Vector2(
+                        0,
+                        46
+                    ),
 
-            Alignment =
-                HorizontalAlignment.Left,
+                Alignment =
+                    HorizontalAlignment.Left,
 
-            SizeFlagsHorizontal =
-                Control.SizeFlags.ExpandFill,
+                SizeFlagsHorizontal =
+                    Control.SizeFlags.ExpandFill,
 
-            ClipText =
-                true
-        };
-
-
-    StyleBoxFlat normal =
-        new StyleBoxFlat
-        {
-            BgColor =
-                new Color(
-                    "222730"
-                ),
-
-            BorderColor =
-                new Color(
-                    "313743"
-                ),
-
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
-
-            CornerRadiusTopLeft = 3,
-            CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3,
-            CornerRadiusBottomRight = 3,
-
-            ContentMarginLeft = 12,
-            ContentMarginRight = 12,
-            ContentMarginTop = 8,
-            ContentMarginBottom = 8
-        };
+                ClipText =
+                    true
+            };
 
 
-    StyleBoxFlat hover =
-        new StyleBoxFlat
-        {
-            BgColor =
-                new Color(
-                    "252D35"
-                ),
+        StyleBoxFlat normal =
+            new StyleBoxFlat
+            {
+                BgColor =
+                    new Color(
+                        "222730"
+                    ),
 
-            BorderColor =
-                new Color(
-                    "4FA6A6"
-                ),
+                BorderColor =
+                    new Color(
+                        "313743"
+                    ),
 
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
+                BorderWidthLeft = 1,
+                BorderWidthTop = 1,
+                BorderWidthRight = 1,
+                BorderWidthBottom = 1,
 
-            CornerRadiusTopLeft = 3,
-            CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3,
-            CornerRadiusBottomRight = 3,
+                CornerRadiusTopLeft = 3,
+                CornerRadiusTopRight = 3,
+                CornerRadiusBottomLeft = 3,
+                CornerRadiusBottomRight = 3,
 
-            ContentMarginLeft = 12,
-            ContentMarginRight = 12,
-            ContentMarginTop = 8,
-            ContentMarginBottom = 8
-        };
-
-
-    StyleBoxFlat pressed =
-        new StyleBoxFlat
-        {
-            BgColor =
-                new Color(
-                    "27343A"
-                ),
-
-            BorderColor =
-                new Color(
-                    "4FA6A6"
-                ),
-
-            BorderWidthLeft = 2,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
-
-            CornerRadiusTopLeft = 3,
-            CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3,
-            CornerRadiusBottomRight = 3,
-
-            ContentMarginLeft = 11,
-            ContentMarginRight = 12,
-            ContentMarginTop = 8,
-            ContentMarginBottom = 8
-        };
+                ContentMarginLeft = 12,
+                ContentMarginRight = 12,
+                ContentMarginTop = 8,
+                ContentMarginBottom = 8
+            };
 
 
-    StyleBoxFlat focus =
-        new StyleBoxFlat
-        {
-            BgColor =
-                new Color(
-                    "222730"
-                ),
+        StyleBoxFlat hover =
+            new StyleBoxFlat
+            {
+                BgColor =
+                    new Color(
+                        "252D35"
+                    ),
 
-            BorderColor =
-                new Color(
-                    "4FA6A6"
-                ),
+                BorderColor =
+                    new Color(
+                        "4FA6A6"
+                    ),
 
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
+                BorderWidthLeft = 1,
+                BorderWidthTop = 1,
+                BorderWidthRight = 1,
+                BorderWidthBottom = 1,
 
-            CornerRadiusTopLeft = 3,
-            CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3,
-            CornerRadiusBottomRight = 3,
+                CornerRadiusTopLeft = 3,
+                CornerRadiusTopRight = 3,
+                CornerRadiusBottomLeft = 3,
+                CornerRadiusBottomRight = 3,
 
-            ContentMarginLeft = 12,
-            ContentMarginRight = 12,
-            ContentMarginTop = 8,
-            ContentMarginBottom = 8
-        };
-
-
-    button.AddThemeStyleboxOverride(
-        "normal",
-        normal
-    );
-
-    button.AddThemeStyleboxOverride(
-        "hover",
-        hover
-    );
-
-    button.AddThemeStyleboxOverride(
-        "pressed",
-        pressed
-    );
-
-    button.AddThemeStyleboxOverride(
-        "focus",
-        focus
-    );
+                ContentMarginLeft = 12,
+                ContentMarginRight = 12,
+                ContentMarginTop = 8,
+                ContentMarginBottom = 8
+            };
 
 
-    button.AddThemeColorOverride(
-        "font_color",
-        new Color(
-            "A8AFBC"
-        )
-    );
+        StyleBoxFlat pressed =
+            new StyleBoxFlat
+            {
+                BgColor =
+                    new Color(
+                        "27343A"
+                    ),
 
-    button.AddThemeColorOverride(
-        "font_hover_color",
-        new Color(
-            "E7EAF0"
-        )
-    );
+                BorderColor =
+                    new Color(
+                        "4FA6A6"
+                    ),
 
-    button.AddThemeColorOverride(
-        "font_pressed_color",
-        new Color(
-            "E7EAF0"
-        )
-    );
+                BorderWidthLeft = 2,
+                BorderWidthTop = 1,
+                BorderWidthRight = 1,
+                BorderWidthBottom = 1,
 
-    button.AddThemeColorOverride(
-        "font_focus_color",
-        new Color(
-            "E7EAF0"
-        )
-    );
+                CornerRadiusTopLeft = 3,
+                CornerRadiusTopRight = 3,
+                CornerRadiusBottomLeft = 3,
+                CornerRadiusBottomRight = 3,
+
+                ContentMarginLeft = 11,
+                ContentMarginRight = 12,
+                ContentMarginTop = 8,
+                ContentMarginBottom = 8
+            };
 
 
-    return button;
-}
+        StyleBoxFlat focus =
+            new StyleBoxFlat
+            {
+                BgColor =
+                    new Color(
+                        "222730"
+                    ),
+
+                BorderColor =
+                    new Color(
+                        "4FA6A6"
+                    ),
+
+                BorderWidthLeft = 1,
+                BorderWidthTop = 1,
+                BorderWidthRight = 1,
+                BorderWidthBottom = 1,
+
+                CornerRadiusTopLeft = 3,
+                CornerRadiusTopRight = 3,
+                CornerRadiusBottomLeft = 3,
+                CornerRadiusBottomRight = 3,
+
+                ContentMarginLeft = 12,
+                ContentMarginRight = 12,
+                ContentMarginTop = 8,
+                ContentMarginBottom = 8
+            };
+
+
+        button.AddThemeStyleboxOverride(
+            "normal",
+            normal
+        );
+
+
+        button.AddThemeStyleboxOverride(
+            "hover",
+            hover
+        );
+
+
+        button.AddThemeStyleboxOverride(
+            "pressed",
+            pressed
+        );
+
+
+        button.AddThemeStyleboxOverride(
+            "focus",
+            focus
+        );
+
+
+        button.AddThemeColorOverride(
+            "font_color",
+            new Color(
+                "A8AFBC"
+            )
+        );
+
+
+        button.AddThemeColorOverride(
+            "font_hover_color",
+            new Color(
+                "E7EAF0"
+            )
+        );
+
+
+        button.AddThemeColorOverride(
+            "font_pressed_color",
+            new Color(
+                "E7EAF0"
+            )
+        );
+
+
+        button.AddThemeColorOverride(
+            "font_focus_color",
+            new Color(
+                "E7EAF0"
+            )
+        );
+
+
+        return button;
+    }
 
 
     private void OpenEditor(
@@ -690,7 +743,9 @@ public partial class ConditionListEditor : VBoxContainer
         deleteButton.Pressed +=
             () =>
             {
-                DeleteCondition(index);
+                DeleteCondition(
+                    index
+                );
             };
 
 
@@ -701,7 +756,9 @@ public partial class ConditionListEditor : VBoxContainer
         saveButton.Pressed +=
             () =>
             {
-                SaveCondition(index);
+                SaveCondition(
+                    index
+                );
             };
 
 
@@ -718,6 +775,7 @@ public partial class ConditionListEditor : VBoxContainer
             index >= conditions.Count)
         {
             CloseEditor();
+
 
             return;
         }
@@ -823,7 +881,46 @@ public partial class ConditionListEditor : VBoxContainer
     }
 
 
-    private static EditorConditionData CopyData(
+    private string GetAttributeDisplayName(
+        string attributeId)
+    {
+        if (string.IsNullOrWhiteSpace(
+            attributeId))
+        {
+            return "Seleccionar atributo";
+        }
+
+
+        if (attributeRepository == null)
+        {
+            return "Atributo no disponible";
+        }
+
+
+        AttributeDefinitionData attribute =
+            attributeRepository.Load(
+                attributeId
+            );
+
+
+        if (attribute == null)
+        {
+            return "Atributo no encontrado";
+        }
+
+
+        if (!string.IsNullOrWhiteSpace(
+            attribute.DisplayName))
+        {
+            return attribute.DisplayName;
+        }
+
+
+        return "Atributo sin nombre";
+    }
+
+
+    private EditorConditionData CopyData(
         EditorConditionData source)
     {
         if (source == null)
@@ -877,7 +974,7 @@ public partial class ConditionListEditor : VBoxContainer
         return data.TypeId switch
         {
             "characterattribute" =>
-                $"{GetDisplayId(data.AttributeId, "Atributo")} {requirement}",
+                $"{GetAttributeDisplayName(data.AttributeId)} {requirement}",
 
             "prestige" =>
                 $"Prestigio {requirement}",
@@ -908,7 +1005,8 @@ public partial class ConditionListEditor : VBoxContainer
     private string BuildDecisionSummary(
         string decisionId)
     {
-        if (string.IsNullOrWhiteSpace(decisionId))
+        if (string.IsNullOrWhiteSpace(
+            decisionId))
         {
             return "Decisión: seleccionar decisión";
         }
@@ -916,8 +1014,7 @@ public partial class ConditionListEditor : VBoxContainer
 
         if (decisionDatabase == null)
         {
-            return
-                $"Decisión: {decisionId}";
+            return "Decisión no disponible";
         }
 
 
@@ -929,15 +1026,14 @@ public partial class ConditionListEditor : VBoxContainer
 
         if (decision == null)
         {
-            return
-                $"Decisión no encontrada: {decisionId}";
+            return "Decisión no encontrada";
         }
 
 
         string eventName =
             string.IsNullOrWhiteSpace(
                 decision.EventTitle)
-                ? decision.EventId
+                ? "Evento sin título"
                 : decision.EventTitle;
 
 
@@ -1007,10 +1103,7 @@ public partial class ConditionListEditor : VBoxContainer
                 "Legitimidad",
 
             _ =>
-                GetDisplayId(
-                    attributeId,
-                    "Atributo del imperio"
-                )
+                "Atributo del imperio"
         };
     }
 

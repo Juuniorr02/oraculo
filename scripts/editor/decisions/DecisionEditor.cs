@@ -518,29 +518,25 @@ public partial class DecisionEditor : VBoxContainer
 
 
     public void SetChapter(
-        int eventChapter)
-    {
-        chapter =
-            Mathf.Clamp(
-                eventChapter,
-                1,
-                7
-            );
+    int eventChapter)
+{
+    chapter =
+        eventChapter;
 
 
-        conditionListEditor.SetChapter(
-            chapter
-        );
+    conditionListEditor.SetChapter(
+        chapter
+    );
 
 
-        effectListEditor.SetChapter(
-            chapter
-        );
+    effectListEditor.SetChapter(
+        chapter
+    );
 
 
-        GD.Print(
-            "DecisionEditor: capítulo establecido: ",
-            chapter
-        );
-    }
+    GD.Print(
+        "DecisionEditor: capítulo establecido: ",
+        chapter
+    );
+}
 }

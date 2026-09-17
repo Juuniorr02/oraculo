@@ -2,248 +2,148 @@ using System.Collections.Generic;
 
 public class AttributeDatabase
 {
-    private readonly List<AttributeDefinitionData> attributes =
-        new List<AttributeDefinitionData>
-        {
-            // ================================================
-            // CAPÍTULO I
-            // ================================================
+    private AttributeRepository attributeRepository;
 
-            new AttributeDefinitionData
-            {
-                Id = "confidence",
-                DisplayName = "Confianza",
-                Chapter = 1
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "obedience",
-                DisplayName = "Obediencia",
-                Chapter = 1
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "curiosity",
-                DisplayName = "Curiosidad",
-                Chapter = 1
-            },
+    private ChapterRepository chapterRepository;
 
 
-            // ================================================
-            // CAPÍTULO II
-            // ================================================
+    // =========================================================
+    // CONSTRUCTOR
+    // =========================================================
 
-            new AttributeDefinitionData
-            {
-                Id = "sociability",
-                DisplayName = "Sociabilidad",
-                Chapter = 2
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "compassion",
-                DisplayName = "Compasión",
-                Chapter = 2
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "ambition",
-                DisplayName = "Ambición",
-                Chapter = 2
-            },
-
-
-            // ================================================
-            // CAPÍTULO III
-            // ================================================
-
-            new AttributeDefinitionData
-            {
-                Id = "bravery",
-                DisplayName = "Valentía",
-                Chapter = 3
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "cunning",
-                DisplayName = "Astucia",
-                Chapter = 3
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "tradition",
-                DisplayName = "Tradición",
-                Chapter = 3
-            },
-
-
-            // ================================================
-            // CAPÍTULO IV
-            // ================================================
-
-            new AttributeDefinitionData
-            {
-                Id = "discipline",
-                DisplayName = "Disciplina",
-                Chapter = 4
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "prudence",
-                DisplayName = "Prudencia",
-                Chapter = 4
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "idealism",
-                DisplayName = "Idealismo",
-                Chapter = 4
-            },
-
-
-            // ================================================
-            // CAPÍTULO V
-            // ================================================
-
-            new AttributeDefinitionData
-            {
-                Id = "loyalty",
-                DisplayName = "Lealtad",
-                Chapter = 5
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "generosity",
-                DisplayName = "Generosidad",
-                Chapter = 5
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "justice",
-                DisplayName = "Justicia",
-                Chapter = 5
-            },
-
-
-            // ================================================
-            // CAPÍTULO VI
-            // ================================================
-
-            new AttributeDefinitionData
-            {
-                Id = "authority",
-                DisplayName = "Autoridad",
-                Chapter = 6
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "diplomacy",
-                DisplayName = "Diplomacia",
-                Chapter = 6
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "perseverance",
-                DisplayName = "Perseverancia",
-                Chapter = 6
-            },
-
-
-            // ================================================
-            // CAPÍTULO VII
-            // ================================================
-
-            new AttributeDefinitionData
-            {
-                Id = "devotion",
-                DisplayName = "Devoción",
-                Chapter = 7
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "sacrifice",
-                DisplayName = "Sacrificio",
-                Chapter = 7
-            },
-
-            new AttributeDefinitionData
-            {
-                Id = "hope",
-                DisplayName = "Esperanza",
-                Chapter = 7
-            }
-        };
-
-
-    public List<AttributeDefinitionData> GetAllAttributes()
+    public AttributeDatabase()
     {
-        return new List<AttributeDefinitionData>(
-            attributes
+    }
+
+
+    public AttributeDatabase(
+        string projectFolder)
+    {
+        Initialize(
+            projectFolder
         );
     }
 
 
-    public List<AttributeDefinitionData> GetAttributesForChapter(
-        int chapter)
+    // =========================================================
+    // INICIALIZACIÓN
+    // =========================================================
+
+    public void Initialize(
+        string projectFolder)
     {
-        List<AttributeDefinitionData> result =
-            new List<AttributeDefinitionData>();
-
-
-        foreach (
-            AttributeDefinitionData attribute
-            in attributes)
+        if (string.IsNullOrWhiteSpace(projectFolder))
         {
-            if (
-                attribute.Chapter ==
-                chapter)
-            {
-                result.Add(
-                    attribute
-                );
-            }
+            attributeRepository = null;
+            chapterRepository = null;
+
+            return;
         }
 
 
-        return result;
+        attributeRepository =
+            new AttributeRepository(
+                projectFolder
+            );
+
+
+        chapterRepository =
+            new ChapterRepository(
+                projectFolder
+            );
     }
 
+
+    // =========================================================
+    // TODOS LOS ATRIBUTOS
+    // =========================================================
+
+    public List<AttributeDefinitionData> GetAllAttributes()
+    {
+        if (attributeRepository == null)
+        {
+            return new List<AttributeDefinitionData>();
+        }
+
+
+        return attributeRepository.LoadAll();
+    }
+
+
+    // =========================================================
+    // ATRIBUTO POR ID
+    // =========================================================
 
     public AttributeDefinitionData GetAttribute(
         string id)
     {
-        if (string.IsNullOrWhiteSpace(id))
+        if (attributeRepository == null)
         {
             return null;
         }
 
 
-        foreach (
-            AttributeDefinitionData attribute
-            in attributes)
+        return attributeRepository.Load(
+            id
+        );
+    }
+
+
+    // =========================================================
+    // ATRIBUTOS DE UN CAPÍTULO
+    // =========================================================
+
+    public List<AttributeDefinitionData> GetAttributesForChapter(
+        int chapterNumber)
+    {
+        List<AttributeDefinitionData> result =
+            new List<AttributeDefinitionData>();
+
+
+        if (attributeRepository == null ||
+            chapterRepository == null)
         {
-            if (
-                attribute.Id ==
-                id)
-            {
-                return attribute;
-            }
+            return result;
         }
 
 
-        return null;
+        List<ChapterDefinitionData> chapters =
+            chapterRepository.LoadAll();
+
+
+        foreach (
+            ChapterDefinitionData chapter
+            in chapters)
+        {
+            if (chapter.Number != chapterNumber)
+            {
+                continue;
+            }
+
+
+            foreach (
+                string attributeId
+                in chapter.AttributeIds)
+            {
+                AttributeDefinitionData attribute =
+                    attributeRepository.Load(
+                        attributeId
+                    );
+
+
+                if (attribute != null)
+                {
+                    result.Add(
+                        attribute
+                    );
+                }
+            }
+
+
+            break;
+        }
+
+
+        return result;
     }
 }

@@ -103,6 +103,12 @@ public partial class ConditionEditor : PanelContainer
         }
 
 
+        attributeDatabase =
+            new AttributeDatabase(
+                projectPath
+            );
+
+
         characterDatabase =
             new CharacterDatabase(
                 projectPath
@@ -2099,6 +2105,7 @@ public partial class ConditionEditor : PanelContainer
             fieldsContainer.RemoveChild(
                 child
             );
+
 
             child.QueueFree();
         }

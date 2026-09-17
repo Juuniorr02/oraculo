@@ -19,8 +19,6 @@ public partial class EffectEditor : PanelContainer
 
     private EffectDefinitionDatabase effectDatabase;
 
-    private AttributeDatabase attributeDatabase;
-
     private DecisionDatabase decisionDatabase;
 
     private CharacterDatabase characterDatabase;
@@ -29,9 +27,12 @@ public partial class EffectEditor : PanelContainer
 
     private EditorEffectData effectData;
 
-    private int chapter = 1;
-
     private EventRepository eventRepository;
+    private AttributeRepository attributeRepository;
+
+private ChapterRepository chapterRepository;
+
+private int chapter = 1;
 
 
     public override void _Ready()
@@ -56,10 +57,6 @@ public partial class EffectEditor : PanelContainer
 
         effectDatabase =
             new EffectDefinitionDatabase();
-
-
-        attributeDatabase =
-            new AttributeDatabase();
 
 
         effectData =
@@ -106,57 +103,65 @@ public partial class EffectEditor : PanelContainer
 
 
     public void SetProjectPath(
-        string projectPath)
+    string projectPath)
+{
+    if (string.IsNullOrWhiteSpace(
+        projectPath))
     {
-        if (string.IsNullOrWhiteSpace(
-            projectPath))
-        {
-            characterDatabase = null;
-            relationshipDatabase = null;
+        characterDatabase = null;
+        relationshipDatabase = null;
+        attributeRepository = null;
+        chapterRepository = null;
 
-            GD.PrintErr(
-                "EffectEditor: la ruta del proyecto está vacía."
-            );
+        GD.PrintErr(
+            "EffectEditor: la ruta del proyecto está vacía."
+        );
 
-            return;
-        }
-
-
-        characterDatabase =
-            new CharacterDatabase(
-                projectPath
-            );
+        return;
+    }
 
 
-        relationshipDatabase =
-            new RelationshipDatabase(
-                projectPath
-            );
-
-
-        GD.Print(
-            "EffectEditor: ruta del proyecto establecida: ",
+    characterDatabase =
+        new CharacterDatabase(
             projectPath
         );
-    }
 
 
-    public void SetChapter(
-        int eventChapter)
-    {
-        chapter =
-            Mathf.Clamp(
-                eventChapter,
-                1,
-                7
-            );
-
-
-        GD.Print(
-            "EffectEditor: capítulo establecido: ",
-            chapter
+    relationshipDatabase =
+        new RelationshipDatabase(
+            projectPath
         );
-    }
+
+
+    attributeRepository =
+        new AttributeRepository(
+            projectPath
+        );
+
+
+    chapterRepository =
+        new ChapterRepository(
+            projectPath
+        );
+
+
+    GD.Print(
+        "EffectEditor: ruta del proyecto establecida: ",
+        projectPath
+    );
+}
+public void SetChapter(
+    int eventChapter)
+{
+    chapter =
+        eventChapter;
+
+
+    GD.Print(
+        "EffectEditor: capítulo establecido: ",
+        chapter
+    );
+}
 
 
     public void LoadEffect(
@@ -314,80 +319,161 @@ public partial class EffectEditor : PanelContainer
 
 
     private void BuildCharacterAttributeFields()
+{
+    AddSectionLabel(
+        "ATRIBUTO"
+    );
+
+
+    if (
+        attributeRepository == null ||
+        chapterRepository == null)
     {
-        AddSectionLabel(
-            "ATRIBUTO"
-        );
-
-
-        OptionButton attributeOption =
-            CreateStyledOptionButton();
-
-
-        attributeOption.AddItem(
-            "Seleccionar atributo..."
-        );
-
-
-        attributeOption.SetItemMetadata(
-            0,
-            ""
-        );
-
-
-        foreach (
-            AttributeDefinitionData attribute
-            in attributeDatabase.GetAttributesForChapter(
-                chapter))
-        {
-            attributeOption.AddItem(
-                attribute.DisplayName
-            );
-
-
-            int index =
-                attributeOption.ItemCount - 1;
-
-
-            attributeOption.SetItemMetadata(
-                index,
-                attribute.Id
-            );
-        }
-
-
-        attributeOption.ItemSelected +=
-            index =>
-            {
-                Variant metadata =
-                    attributeOption.GetItemMetadata(
-                        (int)index
-                    );
-
-
-                effectData.AttributeId =
-                    metadata.AsString();
-
-
-                GD.Print(
-                    "EffectEditor: atributo seleccionado: ",
-                    effectData.AttributeId
-                );
-            };
-
-
-        SelectAttribute(
-            attributeOption
-        );
-
-
-        fieldsContainer.AddChild(
-            attributeOption
+        AddPlaceholderField(
+            "No hay un proyecto cargado."
         );
 
 
         AddValueField();
+
+        return;
     }
+
+
+    ChapterDefinitionData currentChapter =
+        GetCurrentChapterData();
+
+
+    if (currentChapter == null)
+    {
+        AddPlaceholderField(
+            "No se ha encontrado el capítulo."
+        );
+
+
+        AddValueField();
+
+        return;
+    }
+
+
+    OptionButton attributeOption =
+        CreateStyledOptionButton();
+
+
+    attributeOption.AddItem(
+        "Seleccionar atributo..."
+    );
+
+
+    attributeOption.SetItemMetadata(
+        0,
+        ""
+    );
+
+
+    foreach (
+        string attributeId
+        in currentChapter.AttributeIds)
+    {
+        if (string.IsNullOrWhiteSpace(
+            attributeId))
+        {
+            continue;
+        }
+
+
+        AttributeDefinitionData attribute =
+            attributeRepository.Load(
+                attributeId
+            );
+
+
+        if (attribute == null)
+        {
+            continue;
+        }
+
+
+        attributeOption.AddItem(
+            attribute.DisplayName
+        );
+
+
+        int index =
+            attributeOption.ItemCount - 1;
+
+
+        attributeOption.SetItemMetadata(
+            index,
+            attribute.Id
+        );
+    }
+
+
+    attributeOption.ItemSelected +=
+        index =>
+        {
+            Variant metadata =
+                attributeOption.GetItemMetadata(
+                    (int)index
+                );
+
+
+            effectData.AttributeId =
+                metadata.AsString();
+
+
+            GD.Print(
+                "EffectEditor: atributo seleccionado: ",
+                effectData.AttributeId
+            );
+        };
+
+
+    SelectAttribute(
+        attributeOption
+    );
+
+
+    fieldsContainer.AddChild(
+        attributeOption
+    );
+
+
+    AddValueField();
+}
+private ChapterDefinitionData GetCurrentChapterData()
+{
+    if (chapterRepository == null)
+    {
+        return null;
+    }
+
+
+    List<ChapterDefinitionData> chapters =
+        chapterRepository.LoadAll();
+
+
+    foreach (
+        ChapterDefinitionData chapterData
+        in chapters)
+    {
+        if (chapterData == null)
+        {
+            continue;
+        }
+
+
+        if (chapterData.Number == chapter)
+        {
+            return chapterData;
+        }
+    }
+
+
+    return null;
+}
 
 
     private void SelectAttribute(

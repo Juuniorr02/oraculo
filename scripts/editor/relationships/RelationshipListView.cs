@@ -116,11 +116,67 @@ public partial class RelationshipListView : Control
     private void AddRelationshipRow(
         EditorRelationshipDefinitionData relationship)
     {
+        PanelContainer rowPanel =
+            new PanelContainer();
+
+        rowPanel.CustomMinimumSize =
+            new Vector2(0, 50);
+
+        StyleBoxFlat rowStyle =
+            new StyleBoxFlat();
+
+        rowStyle.BgColor =
+            new Color("222730");
+
+        rowStyle.BorderColor =
+            new Color("313743");
+
+        rowStyle.SetBorderWidthAll(
+            1
+        );
+
+        rowStyle.CornerRadiusTopLeft = 3;
+        rowStyle.CornerRadiusTopRight = 3;
+        rowStyle.CornerRadiusBottomLeft = 3;
+        rowStyle.CornerRadiusBottomRight = 3;
+
+        rowPanel.AddThemeStyleboxOverride(
+            "panel",
+            rowStyle
+        );
+
+
+        MarginContainer margin =
+            new MarginContainer();
+
+        margin.AddThemeConstantOverride(
+            "margin_left",
+            12
+        );
+
+        margin.AddThemeConstantOverride(
+            "margin_top",
+            5
+        );
+
+        margin.AddThemeConstantOverride(
+            "margin_right",
+            8
+        );
+
+        margin.AddThemeConstantOverride(
+            "margin_bottom",
+            5
+        );
+
+
         HBoxContainer row =
             new HBoxContainer();
 
-        row.CustomMinimumSize =
-            new Vector2(0, 50);
+        row.AddThemeConstantOverride(
+            "separation",
+            10
+        );
 
 
         EditorCharacterData character =
@@ -149,6 +205,11 @@ public partial class RelationshipListView : Control
         characterLabel.VerticalAlignment =
             VerticalAlignment.Center;
 
+        characterLabel.AddThemeColorOverride(
+            "font_color",
+            new Color("E7EAF0")
+        );
+
 
         Label valueLabel =
             new Label();
@@ -161,6 +222,11 @@ public partial class RelationshipListView : Control
 
         valueLabel.VerticalAlignment =
             VerticalAlignment.Center;
+
+        valueLabel.AddThemeColorOverride(
+            "font_color",
+            new Color("A8AFBC")
+        );
 
 
         int titleCount =
@@ -181,6 +247,11 @@ public partial class RelationshipListView : Control
         titleLabel.VerticalAlignment =
             VerticalAlignment.Center;
 
+        titleLabel.AddThemeColorOverride(
+            "font_color",
+            new Color("A8AFBC")
+        );
+
 
         Button editButton =
             new Button();
@@ -190,6 +261,26 @@ public partial class RelationshipListView : Control
 
         editButton.CustomMinimumSize =
             new Vector2(90, 40);
+
+        editButton.AddThemeColorOverride(
+            "font_color",
+            new Color("A8AFBC")
+        );
+
+        editButton.AddThemeColorOverride(
+            "font_hover_color",
+            new Color("E7EAF0")
+        );
+
+        editButton.AddThemeColorOverride(
+            "font_pressed_color",
+            new Color("E7EAF0")
+        );
+
+        editButton.AddThemeColorOverride(
+            "font_focus_color",
+            new Color("E7EAF0")
+        );
 
 
         string characterId =
@@ -221,8 +312,16 @@ public partial class RelationshipListView : Control
         );
 
 
-        relationshipList.AddChild(
+        margin.AddChild(
             row
+        );
+
+        rowPanel.AddChild(
+            margin
+        );
+
+        relationshipList.AddChild(
+            rowPanel
         );
     }
 

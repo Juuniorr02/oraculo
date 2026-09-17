@@ -1,8 +1,47 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/editor/relationships/RelationshipEditor.cs" id="1_relationship_editor"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_editor"]
+bg_color = Color(0.133333, 0.152941, 0.188235, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.192157, 0.215686, 0.262745, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_list"]
+bg_color = Color(0.062745, 0.070588, 0.086275, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_bottom = 1
+border_color = Color(0.192157, 0.215686, 0.262745, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_line_edit"]
+bg_color = Color(0.113725, 0.129412, 0.156863, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_bottom = 1
+border_color = Color(0.243137, 0.266667, 0.305882, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 10.0
+content_margin_right = 10.0
+
 [node name="RelationshipEditor" type="Control"]
+
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -12,103 +51,153 @@ grow_vertical = 2
 script = ExtResource("1_relationship_editor")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
+
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+
 layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
-text = "Editor de relación"
+
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+theme_override_font_sizes/font_size = 20
+
+text = "EDITOR DE RELACIÓN"
+
 horizontal_alignment = 1
 
 [node name="CharacterSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CharacterSection"]
+
 layout_mode = 2
-text = "Personaje"
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 11
+
+text = "PERSONAJE"
 
 [node name="CharacterOption" type="OptionButton" parent="MarginContainer/VBoxContainer/CharacterSection"]
-custom_minimum_size = Vector2(0, 40)
+
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
+
 text = "Seleccionar personaje"
 
 [node name="InitialValueSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="Label" type="Label" parent="MarginContainer/VBoxContainer/InitialValueSection"]
+
 layout_mode = 2
-text = "Valor inicial"
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 11
+
+text = "VALOR INICIAL"
 
 [node name="InitialValueSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/InitialValueSection"]
-custom_minimum_size = Vector2(0, 40)
+
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
+
 min_value = -10.0
 max_value = 10.0
 step = 1.0
 value = 0.0
 
 [node name="TitlesSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6
 
 [node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TitlesSection"]
+
 layout_mode = 2
-text = "Títulos disponibles"
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 11
+
+text = "TÍTULOS DISPONIBLES"
 
 [node name="TitlesList" type="ItemList" parent="MarginContainer/VBoxContainer/TitlesSection"]
+
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_vertical = 3
+
 allow_reselect = true
 
+theme_override_styles/panel = SubResource("StyleBoxFlat_list")
+
 [node name="AddTitleContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TitlesSection"]
+
 layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="TitleLineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/TitlesSection/AddTitleContainer"]
-custom_minimum_size = Vector2(0, 40)
+
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
+
 placeholder_text = "Escribir título..."
 
+theme_override_styles/normal = SubResource("StyleBoxFlat_line_edit")
+
 [node name="AddTitleButton" type="Button" parent="MarginContainer/VBoxContainer/TitlesSection/AddTitleContainer"]
-custom_minimum_size = Vector2(120, 40)
+
+custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
-text = "Añadir título"
+
+text = "+ Añadir"
 
 [node name="RemoveTitleButton" type="Button" parent="MarginContainer/VBoxContainer/TitlesSection"]
-custom_minimum_size = Vector2(120, 40)
+
+custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
+
 text = "Eliminar título"
 
 [node name="Buttons" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 alignment = 2
+
 theme_override_constants/separation = 8
 
 [node name="CancelButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons"]
-custom_minimum_size = Vector2(100, 40)
+
+custom_minimum_size = Vector2(100, 36)
 layout_mode = 2
+
 text = "Cancelar"
 
 [node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons"]
-custom_minimum_size = Vector2(100, 40)
+
+custom_minimum_size = Vector2(100, 36)
 layout_mode = 2
+
 text = "Guardar"

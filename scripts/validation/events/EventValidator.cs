@@ -6,15 +6,44 @@ public class EventValidator
     private readonly ConditionValidator conditionValidator;
     private readonly EffectValidator effectValidator;
 
+    private readonly ChapterRepository chapterRepository;
+    private readonly AttributeRepository attributeRepository;
 
-    public EventValidator()
-    {
-        conditionValidator =
-            new ConditionValidator();
 
-        effectValidator =
-            new EffectValidator();
-    }
+public EventValidator()
+{
+    chapterRepository =
+        null;
+
+    attributeRepository =
+        null;
+
+
+    conditionValidator =
+        new ConditionValidator();
+
+    effectValidator =
+        new EffectValidator();
+}
+
+
+public EventValidator(
+    ChapterRepository chapterRepository,
+    AttributeRepository attributeRepository)
+{
+    this.chapterRepository =
+        chapterRepository;
+
+    this.attributeRepository =
+        attributeRepository;
+
+
+    conditionValidator =
+        new ConditionValidator();
+
+    effectValidator =
+        new EffectValidator();
+}
 
 
     public ValidationResult Validate(
@@ -41,6 +70,12 @@ public class EventValidator
 
 
         ValidatePages(
+            eventData,
+            result
+        );
+
+
+        ValidateCharacterAttributes(
             eventData,
             result
         );
@@ -83,6 +118,13 @@ public class EventValidator
                 eventId
             );
         }
+        else
+        {
+            ValidateChapterExists(
+                eventData,
+                result
+            );
+        }
 
 
         if (eventData.Year < 1)
@@ -115,6 +157,32 @@ public class EventValidator
             result.AddError(
                 "El evento no tiene ninguna página.",
                 eventId
+            );
+        }
+    }
+
+
+    private void ValidateChapterExists(
+        EditorEventData eventData,
+        ValidationResult result)
+    {
+        if (chapterRepository == null)
+        {
+            return;
+        }
+
+
+        ChapterDefinitionData chapter =
+            GetChapterByNumber(
+                eventData.Chapter
+            );
+
+
+        if (chapter == null)
+        {
+            result.AddError(
+                $"El evento referencia el capítulo {eventData.Chapter}, pero ese capítulo no existe.",
+                eventData.Id ?? ""
             );
         }
     }
@@ -408,6 +476,7 @@ public class EventValidator
                 result
             );
 
+
             effectValidator.Validate(
                 decision.Effects,
                 location,
@@ -485,5 +554,382 @@ public class EventValidator
                 }
             }
         }
+    }
+
+
+    private void ValidateCharacterAttributes(
+        EditorEventData eventData,
+        ValidationResult result)
+    {
+        if (
+            chapterRepository == null ||
+            attributeRepository == null)
+        {
+            return;
+        }
+
+
+        ChapterDefinitionData chapter =
+            GetChapterByNumber(
+                eventData.Chapter
+            );
+
+
+        if (chapter == null)
+        {
+            return;
+        }
+
+
+        HashSet<string> chapterAttributeIds =
+            new HashSet<string>(
+                chapter.AttributeIds ??
+                new List<string>(),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+
+        if (eventData.Pages == null)
+        {
+            return;
+        }
+
+
+        for (
+            int pageIndex = 0;
+            pageIndex < eventData.Pages.Count;
+            pageIndex++)
+        {
+            EditorPageData page =
+                eventData.Pages[pageIndex];
+
+
+            if (
+                page == null ||
+                page.Decisions == null)
+            {
+                continue;
+            }
+
+
+            for (
+                int decisionIndex = 0;
+                decisionIndex < page.Decisions.Count;
+                decisionIndex++)
+            {
+                EditorDecisionData decision =
+                    page.Decisions[decisionIndex];
+
+
+                if (decision == null)
+                {
+                    continue;
+                }
+
+
+                ValidateConditionAttributes(
+                    eventData,
+                    page,
+                    pageIndex,
+                    decision,
+                    decisionIndex,
+                    chapterAttributeIds,
+                    result
+                );
+
+
+                ValidateEffectAttributes(
+                    eventData,
+                    page,
+                    pageIndex,
+                    decision,
+                    decisionIndex,
+                    chapterAttributeIds,
+                    result
+                );
+            }
+        }
+    }
+
+
+    private void ValidateConditionAttributes(
+        EditorEventData eventData,
+        EditorPageData page,
+        int pageIndex,
+        EditorDecisionData decision,
+        int decisionIndex,
+        HashSet<string> chapterAttributeIds,
+        ValidationResult result)
+    {
+        if (decision.Conditions == null)
+        {
+            return;
+        }
+
+
+        for (
+            int conditionIndex = 0;
+            conditionIndex < decision.Conditions.Count;
+            conditionIndex++)
+        {
+            EditorConditionData condition =
+                decision.Conditions[conditionIndex];
+
+
+            if (condition == null)
+            {
+                continue;
+            }
+
+
+            if (!string.Equals(
+                condition.TypeId,
+                "characterattribute",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+
+            ValidateAttributeReference(
+                condition.AttributeId,
+                "condición",
+                eventData,
+                page,
+                pageIndex,
+                decision,
+                decisionIndex,
+                conditionIndex,
+                -1,
+                chapterAttributeIds,
+                result
+            );
+        }
+    }
+
+
+    private void ValidateEffectAttributes(
+        EditorEventData eventData,
+        EditorPageData page,
+        int pageIndex,
+        EditorDecisionData decision,
+        int decisionIndex,
+        HashSet<string> chapterAttributeIds,
+        ValidationResult result)
+    {
+        if (decision.Effects == null)
+        {
+            return;
+        }
+
+
+        for (
+            int effectIndex = 0;
+            effectIndex < decision.Effects.Count;
+            effectIndex++)
+        {
+            EditorEffectData effect =
+                decision.Effects[effectIndex];
+
+
+            if (effect == null)
+            {
+                continue;
+            }
+
+
+            if (!string.Equals(
+                effect.TypeId,
+                "characterattribute",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+
+            ValidateAttributeReference(
+                effect.AttributeId,
+                "efecto",
+                eventData,
+                page,
+                pageIndex,
+                decision,
+                decisionIndex,
+                -1,
+                effectIndex,
+                chapterAttributeIds,
+                result
+            );
+        }
+    }
+
+
+    private void ValidateAttributeReference(
+        string attributeId,
+        string sourceType,
+        EditorEventData eventData,
+        EditorPageData page,
+        int pageIndex,
+        EditorDecisionData decision,
+        int decisionIndex,
+        int conditionIndex,
+        int effectIndex,
+        HashSet<string> chapterAttributeIds,
+        ValidationResult result)
+    {
+        string eventId =
+            eventData.Id ?? "";
+
+
+        string decisionId =
+            decision?.Id ?? "";
+
+
+        string safeAttributeId =
+            attributeId ?? "";
+
+
+        if (string.IsNullOrWhiteSpace(
+            safeAttributeId))
+        {
+            string location;
+
+
+            if (conditionIndex >= 0)
+            {
+                location =
+                    $"Página {pageIndex + 1}, opción {decisionIndex + 1}, condición {conditionIndex + 1}";
+            }
+            else
+            {
+                location =
+                    $"Página {pageIndex + 1}, opción {decisionIndex + 1}, efecto {effectIndex + 1}";
+            }
+
+
+            result.AddError(
+                $"{location}: el {sourceType} de atributo de personaje no tiene un atributo seleccionado.",
+                eventId,
+                pageIndex,
+                page?.Id ?? "",
+                decisionIndex,
+                decisionId,
+                conditionIndex,
+                effectIndex
+            );
+
+            return;
+        }
+
+
+        if (!attributeRepository.Exists(
+            safeAttributeId))
+        {
+            string location;
+
+
+            if (conditionIndex >= 0)
+            {
+                location =
+                    $"Página {pageIndex + 1}, opción {decisionIndex + 1}, condición {conditionIndex + 1}";
+            }
+            else
+            {
+                location =
+                    $"Página {pageIndex + 1}, opción {decisionIndex + 1}, efecto {effectIndex + 1}";
+            }
+
+
+            result.AddError(
+                $"{location}: el atributo '{safeAttributeId}' no existe.",
+                eventId,
+                pageIndex,
+                page?.Id ?? "",
+                decisionIndex,
+                decisionId,
+                conditionIndex,
+                effectIndex
+            );
+
+            return;
+        }
+
+
+        if (chapterAttributeIds.Contains(
+            safeAttributeId))
+        {
+            return;
+        }
+
+
+        AttributeDefinitionData attribute =
+            attributeRepository.Load(
+                safeAttributeId
+            );
+
+
+        string attributeName =
+            attribute != null &&
+            !string.IsNullOrWhiteSpace(
+                attribute.DisplayName)
+                ? attribute.DisplayName
+                : safeAttributeId;
+
+
+        string usageLocation;
+
+
+        if (conditionIndex >= 0)
+        {
+            usageLocation =
+                $"Página {pageIndex + 1}, opción {decisionIndex + 1}, condición {conditionIndex + 1}";
+        }
+        else
+        {
+            usageLocation =
+                $"Página {pageIndex + 1}, opción {decisionIndex + 1}, efecto {effectIndex + 1}";
+        }
+
+
+        result.AddError(
+            $"{usageLocation}: el atributo '{attributeName}' no pertenece al capítulo {eventData.Chapter}.",
+            eventId,
+            pageIndex,
+            page?.Id ?? "",
+            decisionIndex,
+            decisionId,
+            conditionIndex,
+            effectIndex
+        );
+    }
+
+
+    private ChapterDefinitionData GetChapterByNumber(
+        int chapterNumber)
+    {
+        if (chapterRepository == null)
+        {
+            return null;
+        }
+
+
+        List<ChapterDefinitionData> chapters =
+            chapterRepository.LoadAll();
+
+
+        foreach (
+            ChapterDefinitionData chapter
+            in chapters)
+        {
+            if (
+                chapter != null &&
+                chapter.Number == chapterNumber)
+            {
+                return chapter;
+            }
+        }
+
+
+        return null;
     }
 }

@@ -3,40 +3,132 @@
 [ext_resource type="Script" path="res://scripts/editor/characters/CharacterListView.cs" id="1_character_list"]
 
 [node name="CharacterListView" type="Control"]
+
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
 script = ExtResource("1_character_list")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
+
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+
 layout_mode = 2
+
 theme_override_constants/separation = 12
 
 [node name="TopBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
+
 theme_override_constants/separation = 10
 
-[node name="NewCharacterButton" type="Button" parent="MarginContainer/VBoxContainer/TopBar"]
-custom_minimum_size = Vector2(0, 40)
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/TopBar"]
+
 layout_mode = 2
-text = "Nuevo personaje"
+size_flags_horizontal = 3
+
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+theme_override_font_sizes/font_size = 20
+
+text = "PERSONAJES"
+
+vertical_alignment = 1
+
+[node name="NewCharacterButton" type="Button" parent="MarginContainer/VBoxContainer/TopBar"]
+
+custom_minimum_size = Vector2(160, 40)
+
+layout_mode = 2
+
+text = "+ Nuevo personaje"
+
+[node name="ColumnHeader" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 28)
+
+layout_mode = 2
+
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="MarginContainer/VBoxContainer/ColumnHeader"]
+
+layout_mode = 2
+size_flags_horizontal = 3
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 11
+
+text = "PERSONAJE"
+
+vertical_alignment = 1
+
+[node name="IdLabel" type="Label" parent="MarginContainer/VBoxContainer/ColumnHeader"]
+
+custom_minimum_size = Vector2(180, 0)
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 11
+
+text = "ID"
+
+vertical_alignment = 1
+
+[node name="AgeLabel" type="Label" parent="MarginContainer/VBoxContainer/ColumnHeader"]
+
+custom_minimum_size = Vector2(100, 0)
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 11
+
+text = "EDAD"
+
+vertical_alignment = 1
+
+[node name="AliveLabel" type="Label" parent="MarginContainer/VBoxContainer/ColumnHeader"]
+
+custom_minimum_size = Vector2(100, 0)
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+theme_override_font_sizes/font_size = 11
+
+text = "ESTADO"
+
+vertical_alignment = 1
+
+[node name="EditLabel" type="Label" parent="MarginContainer/VBoxContainer/ColumnHeader"]
+
+custom_minimum_size = Vector2(90, 0)
+
+layout_mode = 2
+
+text = ""
 
 [node name="CharacterList" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 6
+
+theme_override_constants/separation = 5

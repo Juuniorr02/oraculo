@@ -6,9 +6,33 @@ public class InterludeValidator
     private readonly ConditionValidator conditionValidator;
     private readonly EffectValidator effectValidator;
 
+    private readonly ChapterRepository chapterRepository;
+    private readonly AttributeRepository attributeRepository;
+
 
     public InterludeValidator()
     {
+        chapterRepository = null;
+        attributeRepository = null;
+
+        conditionValidator =
+            new ConditionValidator();
+
+        effectValidator =
+            new EffectValidator();
+    }
+
+
+    public InterludeValidator(
+        ChapterRepository chapterRepository,
+        AttributeRepository attributeRepository)
+    {
+        this.chapterRepository =
+            chapterRepository;
+
+        this.attributeRepository =
+            attributeRepository;
+
         conditionValidator =
             new ConditionValidator();
 
@@ -58,6 +82,12 @@ public class InterludeValidator
         );
 
 
+        ValidateCharacterAttributes(
+            interlude,
+            result
+        );
+
+
         return result;
     }
 
@@ -100,12 +130,11 @@ public class InterludeValidator
                 interludeId
             );
         }
-        else if (interlude.Chapter > 7)
+        else
         {
-            result.AddError(
-                $"El capítulo del interludio no es válido: {interlude.Chapter}.",
-                ValidationResourceType.Interlude,
-                interludeId
+            ValidateChapterExists(
+                interlude,
+                result
             );
         }
 
@@ -136,6 +165,33 @@ public class InterludeValidator
                 "El interludio no tiene ninguna página.",
                 ValidationResourceType.Interlude,
                 interludeId
+            );
+        }
+    }
+
+
+    private void ValidateChapterExists(
+        EditorInterludeData interlude,
+        ValidationResult result)
+    {
+        if (chapterRepository == null)
+        {
+            return;
+        }
+
+
+        ChapterDefinitionData chapter =
+            GetChapterByNumber(
+                interlude.Chapter
+            );
+
+
+        if (chapter == null)
+        {
+            result.AddError(
+                $"El interludio referencia el capítulo {interlude.Chapter}, pero ese capítulo no existe.",
+                ValidationResourceType.Interlude,
+                interlude.Id ?? ""
             );
         }
     }
@@ -358,5 +414,324 @@ public class InterludeValidator
             "",
             result
         );
+    }
+
+
+    private void ValidateCharacterAttributes(
+        EditorInterludeData interlude,
+        ValidationResult result)
+    {
+        if (
+            chapterRepository == null ||
+            attributeRepository == null)
+        {
+            return;
+        }
+
+
+        ChapterDefinitionData chapter =
+            GetChapterByNumber(
+                interlude.Chapter
+            );
+
+
+        if (chapter == null)
+        {
+            return;
+        }
+
+
+        HashSet<string> chapterAttributeIds =
+            new HashSet<string>(
+                chapter.AttributeIds ??
+                new List<string>(),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+
+        ValidateConditionAttributes(
+            interlude,
+            chapterAttributeIds,
+            result
+        );
+
+
+        ValidateEffectAttributes(
+            interlude,
+            chapterAttributeIds,
+            result
+        );
+    }
+
+
+    private void ValidateConditionAttributes(
+        EditorInterludeData interlude,
+        HashSet<string> chapterAttributeIds,
+        ValidationResult result)
+    {
+        if (interlude.Conditions == null)
+        {
+            return;
+        }
+
+
+        string interludeId =
+            interlude.Id ?? "";
+
+
+        for (
+            int conditionIndex = 0;
+            conditionIndex < interlude.Conditions.Count;
+            conditionIndex++)
+        {
+            EditorConditionData condition =
+                interlude.Conditions[conditionIndex];
+
+
+            if (condition == null)
+            {
+                continue;
+            }
+
+
+            if (!string.Equals(
+                condition.TypeId,
+                "characterattribute",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+
+            ValidateAttributeReference(
+                condition.AttributeId,
+                "condición",
+                interlude,
+                -1,
+                conditionIndex,
+                -1,
+                chapterAttributeIds,
+                result
+            );
+        }
+    }
+
+
+    private void ValidateEffectAttributes(
+        EditorInterludeData interlude,
+        HashSet<string> chapterAttributeIds,
+        ValidationResult result)
+    {
+        if (interlude.Effects == null)
+        {
+            return;
+        }
+
+
+        string interludeId =
+            interlude.Id ?? "";
+
+
+        for (
+            int effectIndex = 0;
+            effectIndex < interlude.Effects.Count;
+            effectIndex++)
+        {
+            EditorEffectData effect =
+                interlude.Effects[effectIndex];
+
+
+            if (effect == null)
+            {
+                continue;
+            }
+
+
+            if (!string.Equals(
+                effect.TypeId,
+                "characterattribute",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+
+            ValidateAttributeReference(
+                effect.AttributeId,
+                "efecto",
+                interlude,
+                -1,
+                -1,
+                effectIndex,
+                chapterAttributeIds,
+                result
+            );
+        }
+    }
+
+
+    private void ValidateAttributeReference(
+        string attributeId,
+        string sourceType,
+        EditorInterludeData interlude,
+        int pageIndex,
+        int conditionIndex,
+        int effectIndex,
+        HashSet<string> chapterAttributeIds,
+        ValidationResult result)
+    {
+        string interludeId =
+            interlude.Id ?? "";
+
+
+        string safeAttributeId =
+            attributeId ?? "";
+
+
+        if (string.IsNullOrWhiteSpace(
+            safeAttributeId))
+        {
+            string location;
+
+
+            if (conditionIndex >= 0)
+            {
+                location =
+                    $"Condición {conditionIndex + 1}";
+            }
+            else
+            {
+                location =
+                    $"Efecto {effectIndex + 1}";
+            }
+
+
+            result.AddError(
+                $"{location}: el {sourceType} de atributo de personaje no tiene un atributo seleccionado.",
+                ValidationResourceType.Interlude,
+                interludeId,
+                pageIndex,
+                "",
+                -1,
+                "",
+                conditionIndex,
+                effectIndex
+            );
+
+            return;
+        }
+
+
+        if (!attributeRepository.Exists(
+            safeAttributeId))
+        {
+            string location;
+
+
+            if (conditionIndex >= 0)
+            {
+                location =
+                    $"Condición {conditionIndex + 1}";
+            }
+            else
+            {
+                location =
+                    $"Efecto {effectIndex + 1}";
+            }
+
+
+            result.AddError(
+                $"{location}: el atributo '{safeAttributeId}' no existe.",
+                ValidationResourceType.Interlude,
+                interludeId,
+                pageIndex,
+                "",
+                -1,
+                "",
+                conditionIndex,
+                effectIndex
+            );
+
+            return;
+        }
+
+
+        if (chapterAttributeIds.Contains(
+            safeAttributeId))
+        {
+            return;
+        }
+
+
+        AttributeDefinitionData attribute =
+            attributeRepository.Load(
+                safeAttributeId
+            );
+
+
+        string attributeName =
+            attribute != null &&
+            !string.IsNullOrWhiteSpace(
+                attribute.DisplayName)
+                ? attribute.DisplayName
+                : safeAttributeId;
+
+
+        string usageLocation;
+
+
+        if (conditionIndex >= 0)
+        {
+            usageLocation =
+                $"Condición {conditionIndex + 1}";
+        }
+        else
+        {
+            usageLocation =
+                $"Efecto {effectIndex + 1}";
+        }
+
+
+        result.AddError(
+            $"{usageLocation}: el atributo '{attributeName}' no pertenece al capítulo {interlude.Chapter}.",
+            ValidationResourceType.Interlude,
+            interludeId,
+            pageIndex,
+            "",
+            -1,
+            "",
+            conditionIndex,
+            effectIndex
+        );
+    }
+
+
+    private ChapterDefinitionData GetChapterByNumber(
+        int chapterNumber)
+    {
+        if (chapterRepository == null)
+        {
+            return null;
+        }
+
+
+        List<ChapterDefinitionData> chapters =
+            chapterRepository.LoadAll();
+
+
+        foreach (
+            ChapterDefinitionData chapter
+            in chapters)
+        {
+            if (
+                chapter != null &&
+                chapter.Number == chapterNumber)
+            {
+                return chapter;
+            }
+        }
+
+
+        return null;
     }
 }

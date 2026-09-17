@@ -1,0 +1,401 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/attributes/AttributeEditor.cs" id="1_attribute_editor"]
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info"]
+
+bg_color = Color(0.113725, 0.129412, 0.14902, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+border_color = Color(0.192157, 0.215686, 0.243137, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_save"]
+
+bg_color = Color(0.309804, 0.65098, 0.65098, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_bottom_width = 1
+
+border_color = Color(0.309804, 0.65098, 0.65098, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel"]
+
+bg_color = Color(0.133333, 0.14902, 0.168627, 1)
+
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_bottom_width = 1
+
+border_color = Color(0.243137, 0.266667, 0.305882, 1)
+
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+
+[node name="AttributeEditor" type="Control"]
+
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+script = ExtResource("1_attribute_editor")
+
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+theme_override_constants/separation = 10
+
+
+[node name="Header" type="HBoxContainer" parent="VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 44)
+
+layout_mode = 2
+
+theme_override_constants/separation = 8
+
+
+[node name="Title" type="Label" parent="VBoxContainer/Header"]
+
+layout_mode = 2
+
+size_flags_horizontal = 3
+
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+
+theme_override_font_sizes/font_size = 20
+
+text = "Editor de atributo"
+
+vertical_alignment = 1
+
+
+[node name="DeleteButton" type="Button" parent="VBoxContainer/Header"]
+
+custom_minimum_size = Vector2(100, 38)
+
+layout_mode = 2
+
+text = "Eliminar"
+
+
+[node name="CloseButton" type="Button" parent="VBoxContainer/Header"]
+
+custom_minimum_size = Vector2(40, 0)
+
+layout_mode = 2
+
+text = "×"
+
+
+[node name="Separator" type="HSeparator" parent="VBoxContainer"]
+
+layout_mode = 2
+
+
+[node name="AttributeInfo" type="VBoxContainer" parent="VBoxContainer"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 8
+
+
+[node name="IdContainer" type="VBoxContainer" parent="VBoxContainer/AttributeInfo"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 4
+
+
+[node name="IdLabel" type="Label" parent="VBoxContainer/AttributeInfo/IdContainer"]
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 12
+
+text = "ID"
+
+
+[node name="Id" type="Label" parent="VBoxContainer/AttributeInfo/IdContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.717647, 0.741176, 0.788235, 1)
+
+vertical_alignment = 1
+
+
+[node name="DisplayNameContainer" type="VBoxContainer" parent="VBoxContainer/AttributeInfo"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 4
+
+
+[node name="DisplayNameLabel" type="Label" parent="VBoxContainer/AttributeInfo/DisplayNameContainer"]
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 12
+
+text = "NOMBRE MOSTRADO"
+
+
+[node name="DisplayNameEdit" type="LineEdit" parent="VBoxContainer/AttributeInfo/DisplayNameContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
+
+
+[node name="DescriptionContainer" type="VBoxContainer" parent="VBoxContainer/AttributeInfo"]
+
+layout_mode = 2
+
+size_flags_vertical = 3
+
+theme_override_constants/separation = 4
+
+
+[node name="DescriptionLabel" type="Label" parent="VBoxContainer/AttributeInfo/DescriptionContainer"]
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 12
+
+text = "DESCRIPCIÓN"
+
+
+[node name="DescriptionEdit" type="TextEdit" parent="VBoxContainer/AttributeInfo/DescriptionContainer"]
+
+custom_minimum_size = Vector2(0, 80)
+
+layout_mode = 2
+
+size_flags_vertical = 3
+
+theme_override_styles/normal = SubResource("StyleBoxFlat_info")
+
+theme_override_styles/focus = SubResource("StyleBoxFlat_info")
+
+wrap_mode = 1
+
+
+[node name="Values" type="VBoxContainer" parent="VBoxContainer"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 6
+
+
+[node name="ValuesLabel" type="Label" parent="VBoxContainer/Values"]
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 12
+
+text = "VALORES DEL ATRIBUTO"
+
+
+[node name="NegativeContainer" type="VBoxContainer" parent="VBoxContainer/Values"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 4
+
+
+[node name="NegativeLabel" type="Label" parent="VBoxContainer/Values/NegativeContainer"]
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 11
+
+text = "EXTREMO NEGATIVO"
+
+
+[node name="NegativeEdit" type="LineEdit" parent="VBoxContainer/Values/NegativeContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+
+layout_mode = 2
+
+
+[node name="LowContainer" type="VBoxContainer" parent="VBoxContainer/Values"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 4
+
+
+[node name="LowLabel" type="Label" parent="VBoxContainer/Values/LowContainer"]
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 11
+
+text = "BAJO"
+
+
+[node name="LowEdit" type="LineEdit" parent="VBoxContainer/Values/LowContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+
+layout_mode = 2
+
+
+[node name="NeutralContainer" type="VBoxContainer" parent="VBoxContainer/Values"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 4
+
+
+[node name="NeutralLabel" type="Label" parent="VBoxContainer/Values/NeutralContainer"]
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 11
+
+text = "NEUTRAL"
+
+
+[node name="NeutralEdit" type="LineEdit" parent="VBoxContainer/Values/NeutralContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+
+layout_mode = 2
+
+text = "Neutral"
+
+
+[node name="HighContainer" type="VBoxContainer" parent="VBoxContainer/Values"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 4
+
+
+[node name="HighLabel" type="Label" parent="VBoxContainer/Values/HighContainer"]
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 11
+
+text = "ALTO"
+
+
+[node name="HighEdit" type="LineEdit" parent="VBoxContainer/Values/HighContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+
+layout_mode = 2
+
+
+[node name="PositiveContainer" type="VBoxContainer" parent="VBoxContainer/Values"]
+
+layout_mode = 2
+
+theme_override_constants/separation = 4
+
+
+[node name="PositiveLabel" type="Label" parent="VBoxContainer/Values/PositiveContainer"]
+
+layout_mode = 2
+
+theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
+
+theme_override_font_sizes/font_size = 11
+
+text = "EXTREMO POSITIVO"
+
+
+[node name="PositiveEdit" type="LineEdit" parent="VBoxContainer/Values/PositiveContainer"]
+
+custom_minimum_size = Vector2(0, 35)
+
+layout_mode = 2
+
+
+[node name="Buttons" type="HBoxContainer" parent="VBoxContainer"]
+
+custom_minimum_size = Vector2(0, 40)
+
+layout_mode = 2
+
+alignment = 2
+
+theme_override_constants/separation = 8
+
+
+[node name="CancelButton" type="Button" parent="VBoxContainer/Buttons"]
+
+custom_minimum_size = Vector2(110, 0)
+
+layout_mode = 2
+
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel")
+
+text = "Cancelar"
+
+
+[node name="SaveButton" type="Button" parent="VBoxContainer/Buttons"]
+
+custom_minimum_size = Vector2(110, 0)
+
+layout_mode = 2
+
+theme_override_styles/normal = SubResource("StyleBoxFlat_save")
+
+text = "Guardar"

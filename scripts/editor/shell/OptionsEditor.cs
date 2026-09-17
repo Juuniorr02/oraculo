@@ -847,24 +847,20 @@ public partial class OptionsEditor : Control
 
 
     public void SetChapter(
-        int eventChapter)
-    {
-        chapter =
-            Mathf.Clamp(
-                eventChapter,
-                1,
-                7
-            );
+    int eventChapter)
+{
+    chapter =
+        eventChapter;
 
 
-        decisionEditor.SetChapter(
-            chapter
-        );
+    decisionEditor.SetChapter(
+        chapter
+    );
 
 
-        GD.Print(
-            "OptionsEditor: capítulo establecido: ",
-            chapter
-        );
-    }
+    GD.Print(
+        "OptionsEditor: capítulo establecido: ",
+        chapter
+    );
+}
 }

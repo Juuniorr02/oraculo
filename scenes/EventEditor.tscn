@@ -12,15 +12,21 @@
 bg_color = Color(0.113725, 0.129412, 0.149020, 1)
 
 border_width_left = 1
+
 border_width_top = 1
+
 border_width_right = 1
+
 border_width_bottom = 1
 
 border_color = Color(0.192157, 0.211765, 0.243137, 1)
 
 corner_radius_top_left = 3
+
 corner_radius_top_right = 3
+
 corner_radius_bottom_right = 3
+
 corner_radius_bottom_left = 3
 
 
@@ -29,15 +35,21 @@ corner_radius_bottom_left = 3
 bg_color = Color(0.309804, 0.650980, 0.650980, 1)
 
 border_width_left = 1
+
 border_width_top = 1
+
 border_width_right = 1
-border_width_bottom = 1
+
+border_bottom_width = 1
 
 border_color = Color(0.309804, 0.650980, 0.650980, 1)
 
 corner_radius_top_left = 3
+
 corner_radius_top_right = 3
+
 corner_radius_bottom_right = 3
+
 corner_radius_bottom_left = 3
 
 
@@ -46,15 +58,21 @@ corner_radius_bottom_left = 3
 bg_color = Color(0.133333, 0.149020, 0.168627, 1)
 
 border_width_left = 1
+
 border_width_top = 1
+
 border_width_right = 1
+
 border_width_bottom = 1
 
 border_color = Color(0.243137, 0.266667, 0.305882, 1)
 
 corner_radius_top_left = 3
+
 corner_radius_top_right = 3
+
 corner_radius_bottom_right = 3
+
 corner_radius_bottom_left = 3
 
 
@@ -233,31 +251,6 @@ text = "CAPÍTULO"
 custom_minimum_size = Vector2(200, 35)
 
 layout_mode = 2
-
-selected = 0
-
-item_count = 7
-
-popup/item_0/text = "Capítulo I"
-popup/item_0/id = 0
-
-popup/item_1/text = "Capítulo II"
-popup/item_1/id = 1
-
-popup/item_2/text = "Capítulo III"
-popup/item_2/id = 2
-
-popup/item_3/text = "Capítulo IV"
-popup/item_3/id = 3
-
-popup/item_4/text = "Capítulo V"
-popup/item_4/id = 4
-
-popup/item_5/text = "Capítulo VI"
-popup/item_5/id = 5
-
-popup/item_6/text = "Capítulo VII"
-popup/item_6/id = 6
 
 
 [node name="YearContainer" type="VBoxContainer" parent="VBoxContainer/EventInfo/BasicInfo" unique_id=1216131568]

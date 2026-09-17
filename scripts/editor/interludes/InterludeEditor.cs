@@ -598,6 +598,10 @@ public partial class InterludeEditor : Control
 
         pendingPageId = "";
     }
+    public void SaveCurrentInterlude()
+{
+    OnSavePressed();
+}
 
 
     private void OnSavePressed()
