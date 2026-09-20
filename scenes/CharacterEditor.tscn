@@ -1,138 +1,218 @@
-[gd_scene format=3 uid="uid://b1ovo7hb4xm1y"]
+[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://4tmlq23l5emq" path="res://scripts/editor/chapters/ChaptersListView.cs" id="1_hqiuk"]
+[ext_resource type="Script" path="res://scripts/editor/characters/CharacterEditor.cs" id="1_character"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_id"]
+
 content_margin_left = 10.0
 content_margin_top = 6.0
 content_margin_right = 10.0
 content_margin_bottom = 6.0
+
 bg_color = Color(0.113725, 0.129412, 0.156863, 1)
+
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
+
 border_color = Color(0.192157, 0.215686, 0.262745, 1)
+
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
-[node name="CharacterEditor" type="Control" unique_id=989872831]
+
+[node name="CharacterEditor" type="Control"]
+
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_hqiuk")
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=356132338]
+script = ExtResource("1_character")
+
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+
 layout_mode = 1
 anchors_preset = 15
+
 anchor_right = 1.0
 anchor_bottom = 1.0
+
 grow_horizontal = 2
 grow_vertical = 2
+
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=546667523]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1976396893]
+
+[node name="Title" type="Label" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
+
 theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
 theme_override_font_sizes/font_size = 20
+
 text = "EDITOR DE PERSONAJE"
+
 horizontal_alignment = 1
 
-[node name="IdSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1305455678]
+
+[node name="IdSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/IdSection" unique_id=1567311982]
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/IdSection"]
+
 layout_mode = 2
+
 theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
 theme_override_font_sizes/font_size = 11
+
 text = "ID INTERNO"
 
-[node name="IdValueLabel" type="Label" parent="MarginContainer/VBoxContainer/IdSection" unique_id=1637029256]
+
+[node name="IdValueLabel" type="Label" parent="MarginContainer/VBoxContainer/IdSection"]
+
 layout_mode = 2
+
 theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
 theme_override_font_sizes/font_size = 12
+
 theme_override_styles/normal = SubResource("StyleBoxFlat_id")
+
 text = "Se generará automáticamente"
 
-[node name="NameSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1341529487]
+
+[node name="NameSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/NameSection" unique_id=1111985854]
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/NameSection"]
+
 layout_mode = 2
+
 theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
 theme_override_font_sizes/font_size = 11
+
 text = "NOMBRE"
 
-[node name="NameLineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/NameSection" unique_id=79072762]
+
+[node name="NameLineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/NameSection"]
+
 custom_minimum_size = Vector2(0, 36)
+
 layout_mode = 2
+
 placeholder_text = "Nombre del personaje"
 
-[node name="AgeSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=2048810023]
+
+[node name="AgeSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/AgeSection" unique_id=1613632330]
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/AgeSection"]
+
 layout_mode = 2
+
 theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
 theme_override_font_sizes/font_size = 11
+
 text = "EDAD"
 
-[node name="AgeSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/AgeSection" unique_id=1528161639]
+
+[node name="AgeSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/AgeSection"]
+
 custom_minimum_size = Vector2(0, 36)
+
 layout_mode = 2
+
 max_value = 200.0
 
-[node name="GenderSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1582599512]
+
+[node name="GenderSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GenderSection" unique_id=711267597]
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GenderSection"]
+
 layout_mode = 2
+
 theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
 theme_override_font_sizes/font_size = 11
+
 text = "GÉNERO"
 
-[node name="GenderOption" type="OptionButton" parent="MarginContainer/VBoxContainer/GenderSection" unique_id=938938721]
+
+[node name="GenderOption" type="OptionButton" parent="MarginContainer/VBoxContainer/GenderSection"]
+
 custom_minimum_size = Vector2(0, 36)
+
 layout_mode = 2
 
-[node name="AliveSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1896806488]
+
+[node name="AliveSection" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="AliveCheckButton" type="CheckButton" parent="MarginContainer/VBoxContainer/AliveSection" unique_id=1903743214]
+
+[node name="AliveCheckButton" type="CheckButton" parent="MarginContainer/VBoxContainer/AliveSection"]
+
 custom_minimum_size = Vector2(0, 36)
 custom_maximum_size = Vector2(150, -1)
+
 layout_mode = 2
+
 button_pressed = true
+
 text = "Está vivo"
 
-[node name="Buttons" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1191192020]
+
+[node name="Buttons" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+
 layout_mode = 2
+
 theme_override_constants/separation = 8
+
 alignment = 2
 
-[node name="CancelButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons" unique_id=977747066]
+
+[node name="CancelButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons"]
+
 custom_minimum_size = Vector2(100, 36)
+
 layout_mode = 2
+
 text = "Cancelar"
 
-[node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons" unique_id=196488366]
+
+[node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons"]
+
 custom_minimum_size = Vector2(100, 36)
+
 layout_mode = 2
+
 text = "Guardar"
