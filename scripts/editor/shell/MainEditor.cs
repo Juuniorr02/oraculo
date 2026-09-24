@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Godot;
+
 
 public partial class MainEditor : Control
 {
@@ -12,6 +14,7 @@ public partial class MainEditor : Control
     private Button settingsButton;
     private Button exitButton;
     private Button validateButton;
+    private Button saveButton;
 
 
     private Control workspaceContent;
@@ -62,10 +65,17 @@ public partial class MainEditor : Control
     private ProjectManager projectManager;
     private EventRepository eventRepository;
     private InterludeRepository interludeRepository;
-private Button saveButton;
+
 
     private bool returnToChapterEditor = false;
     private string chapterEditorId = "";
+
+
+    private Action pendingNavigationAction;
+    private ConfirmationDialog navigationDialog;
+
+
+    private bool keepEditorOpenAfterGlobalSave = false;
 
 
     public override void _Ready()
@@ -144,10 +154,12 @@ private Button saveButton;
             GetNode<Button>(
                 "MainLayout/TopBar/MarginContainer/HBoxContainer/ExitButton"
             );
-            saveButton =
-    GetNode<Button>(
-        "MainLayout/TopBar/MarginContainer/HBoxContainer/SaveButton"
-    );
+
+
+        saveButton =
+            GetNode<Button>(
+                "MainLayout/TopBar/MarginContainer/HBoxContainer/SaveButton"
+            );
 
 
         validateButton =
@@ -301,8 +313,11 @@ private Button saveButton;
         exitButton.Pressed +=
             OnExitPressed;
 
-saveButton.Pressed +=
-    OnSavePressed;
+
+        saveButton.Pressed +=
+            OnSavePressed;
+
+
         validateButton.Pressed +=
             OnValidatePressed;
 
@@ -331,283 +346,701 @@ saveButton.Pressed +=
         Theme =
             theme;
     }
+
+
     private void OnSavePressed()
-{
-    if (currentView is EventEditor eventEditor)
     {
-        eventEditor.SaveCurrentEvent();
-        return;
-    }
+        keepEditorOpenAfterGlobalSave =
+            true;
 
 
-    if (currentView is InterludeEditor interludeEditor)
-    {
-        interludeEditor.SaveCurrentInterlude();
-        return;
-    }
-
-
-    if (currentView is ChapterEditor chapterEditorView)
-    {
-        chapterEditorView.SaveCurrentChapter();
-        return;
-    }
-
-
-    if (currentView is ChapterPageEditor)
-    {
-        SaveChapterFromPageEditor();
-        return;
-    }
-
-
-    if (currentView is AttributeEditor attributeEditorView)
-    {
-        attributeEditorView.SaveCurrentAttribute();
-        return;
-    }
-
-
-    if (currentView is CharacterEditor characterEditorView)
-    {
-        characterEditorView.SaveCurrentCharacter();
-        return;
-    }
-
-
-    if (currentView is RelationshipEditor relationshipEditorView)
-    {
-        relationshipEditorView.SaveCurrentRelationship();
-        return;
-    }
-
-
-    GD.Print(
-        "MainEditor: no hay nada que guardar en la vista actual."
-    );
-}
-private void SaveChapterFromPageEditor()
-{
-    if (chapterPageEditor == null)
-    {
-        GD.PrintErr(
-            "MainEditor: ChapterPageEditor no está disponible."
+        CallDeferred(
+            nameof(ClearGlobalSaveFlag)
         );
 
-        return;
-    }
+
+        if (currentView is EventEditor eventEditor)
+        {
+            eventEditor.SaveCurrentEvent();
+
+            return;
+        }
 
 
-    if (chapterEditor == null)
-    {
-        GD.PrintErr(
-            "MainEditor: ChapterEditor no está disponible."
-        );
+        if (currentView is InterludeEditor interludeEditor)
+        {
+            interludeEditor.SaveCurrentInterlude();
 
-        return;
-    }
+            return;
+        }
 
 
-    List<ChapterPageDefinitionData> pages =
-        chapterPageEditor.GetPages();
+        if (currentView is ChapterEditor chapterEditorView)
+        {
+            chapterEditorView.SaveCurrentChapter();
+
+            return;
+        }
 
 
-    chapterEditor.SetPages(
-        pages
-    );
+        if (currentView is ChapterPageEditor)
+        {
+            SaveChapterFromPageEditor();
+
+            return;
+        }
 
 
-    chapterEditor.SaveCurrentChapter();
-}
+        if (currentView is AttributeEditor attributeEditorView)
+        {
+            attributeEditorView.SaveCurrentAttribute();
+
+            return;
+        }
 
 
-private void OnValidatePressed()
-{
-    GD.Print(
-        "MainEditor: validación manual iniciada."
-    );
+        if (currentView is CharacterEditor characterEditorView)
+        {
+            characterEditorView.SaveCurrentCharacter();
+
+            return;
+        }
 
 
-    EventEditor eventEditor =
-        currentView as EventEditor;
+        if (currentView is RelationshipEditor relationshipEditorView)
+        {
+            relationshipEditorView.SaveCurrentRelationship();
+
+            return;
+        }
 
 
-    if (eventEditor != null)
-    {
-        ValidationResult result =
-            eventEditor.ValidateCurrentEvent();
-
-
-        UpdateValidationStatus(
-            result
-        );
+        keepEditorOpenAfterGlobalSave =
+            false;
 
 
         GD.Print(
-            $"MainEditor: validación del evento actual completada. " +
-            $"{result.GetErrorCount()} errores, " +
-            $"{result.GetWarningCount()} advertencias."
+            "MainEditor: no hay nada que guardar en la vista actual."
+        );
+    }
+
+
+    private void ClearGlobalSaveFlag()
+    {
+        keepEditorOpenAfterGlobalSave =
+            false;
+    }
+
+
+    private void SaveChapterFromPageEditor()
+    {
+        if (chapterPageEditor == null)
+        {
+            GD.PrintErr(
+                "MainEditor: ChapterPageEditor no está disponible."
+            );
+
+            return;
+        }
+
+
+        if (chapterEditor == null)
+        {
+            GD.PrintErr(
+                "MainEditor: ChapterEditor no está disponible."
+            );
+
+            return;
+        }
+
+
+        List<ChapterPageDefinitionData> pages =
+            chapterPageEditor.GetPages();
+
+
+        chapterEditor.SetPages(
+            pages
         );
 
 
-        return;
+        chapterEditor.SaveCurrentChapter();
     }
 
 
-    UpdateValidationStatus();
-}
-
-
-   private void UpdateValidationStatus()
-{
-    if (validationStatusLabel == null)
+    private void OnValidatePressed()
     {
-        return;
-    }
-
-
-    if (
-        projectManager == null ||
-        !projectManager.HasProject() ||
-        eventRepository == null)
-    {
-        validationStatusLabel.Text =
-            "✕ No hay proyecto cargado";
-
-
-        return;
-    }
-
-
-    validationStatusLabel.Text =
-        "⟳ Validando proyecto...";
-
-
-    ProjectValidator projectValidator =
-        new ProjectValidator(
-            eventRepository,
-            interludeRepository,
-            projectManager.GetProjectPath()
-        );
-
-
-    ValidationResult result =
-        projectValidator.ValidateProject();
-
-
-    int errorCount =
-        result.GetErrorCount();
-
-
-    int warningCount =
-        result.GetWarningCount();
-
-
-    if (errorCount > 0)
-    {
-        validationStatusLabel.Text =
-            $"✕ Proyecto con errores · " +
-            $"{errorCount} errores · " +
-            $"{warningCount} advertencias";
-
-
         GD.Print(
-            $"MainEditor: validación completada. {errorCount} errores, {warningCount} advertencias."
+            "MainEditor: validación manual iniciada."
         );
 
 
-        return;
-    }
+        if (currentView is EventEditor eventEditor)
+        {
+            ValidationResult result =
+                eventEditor.ValidateCurrentEvent();
 
 
-    if (warningCount > 0)
-    {
-        validationStatusLabel.Text =
-            $"⚠ Proyecto válido con advertencias · " +
-            $"{warningCount} advertencias";
+            UpdateValidationStatus(
+                result
+            );
 
 
-        GD.Print(
-            $"MainEditor: validación completada. 0 errores, {warningCount} advertencias."
-        );
+            GD.Print(
+                $"MainEditor: validación del evento actual completada. " +
+                $"{result.GetErrorCount()} errores, " +
+                $"{result.GetWarningCount()} advertencias."
+            );
 
 
-        return;
-    }
+            return;
+        }
 
 
-    validationStatusLabel.Text =
-        "✓ Proyecto válido · 0 errores · 0 advertencias";
-
-
-    GD.Print(
-        "MainEditor: validación completada. Proyecto válido."
-    );
-}
-private void UpdateValidationStatus(
-    ValidationResult result)
-{
-    if (validationStatusLabel == null)
-    {
-        return;
-    }
-
-
-    if (result == null)
-    {
         UpdateValidationStatus();
-
-        return;
     }
 
 
-    int errorCount =
-        result.GetErrorCount();
-
-
-    int warningCount =
-        result.GetWarningCount();
-
-
-    if (errorCount > 0)
+    private void UpdateValidationStatus()
     {
+        if (validationStatusLabel == null)
+        {
+            return;
+        }
+
+
+        if (
+            projectManager == null ||
+            !projectManager.HasProject() ||
+            eventRepository == null)
+        {
+            validationStatusLabel.Text =
+                "✕ No hay proyecto cargado";
+
+
+            return;
+        }
+
+
         validationStatusLabel.Text =
-            $"✕ Proyecto con errores · " +
-            $"{errorCount} errores · " +
-            $"{warningCount} advertencias";
+            "⟳ Validando proyecto...";
 
 
-        return;
+        ProjectValidator projectValidator =
+            new ProjectValidator(
+                eventRepository,
+                interludeRepository,
+                projectManager.GetProjectPath()
+            );
+
+
+        ValidationResult result =
+            projectValidator.ValidateProject();
+
+
+        int errorCount =
+            result.GetErrorCount();
+
+
+        int warningCount =
+            result.GetWarningCount();
+
+
+        if (errorCount > 0)
+        {
+            validationStatusLabel.Text =
+                $"✕ Proyecto con errores · " +
+                $"{errorCount} errores · " +
+                $"{warningCount} advertencias";
+
+
+            GD.Print(
+                $"MainEditor: validación completada. " +
+                $"{errorCount} errores, {warningCount} advertencias."
+            );
+
+
+            return;
+        }
+
+
+        if (warningCount > 0)
+        {
+            validationStatusLabel.Text =
+                $"⚠ Proyecto válido con advertencias · " +
+                $"{warningCount} advertencias";
+
+
+            GD.Print(
+                $"MainEditor: validación completada. " +
+                $"0 errores, {warningCount} advertencias."
+            );
+
+
+            return;
+        }
+
+
+        validationStatusLabel.Text =
+            "✓ Proyecto válido · 0 errores · 0 advertencias";
+
+
+        GD.Print(
+            "MainEditor: validación completada. Proyecto válido."
+        );
     }
 
 
-    if (warningCount > 0)
+    private void UpdateValidationStatus(
+        ValidationResult result)
     {
+        if (validationStatusLabel == null)
+        {
+            return;
+        }
+
+
+        if (result == null)
+        {
+            UpdateValidationStatus();
+
+            return;
+        }
+
+
+        int errorCount =
+            result.GetErrorCount();
+
+
+        int warningCount =
+            result.GetWarningCount();
+
+
+        if (errorCount > 0)
+        {
+            validationStatusLabel.Text =
+                $"✕ Proyecto con errores · " +
+                $"{errorCount} errores · " +
+                $"{warningCount} advertencias";
+
+            return;
+        }
+
+
+        if (warningCount > 0)
+        {
+            validationStatusLabel.Text =
+                $"⚠ Proyecto válido con advertencias · " +
+                $"{warningCount} advertencias";
+
+            return;
+        }
+
+
         validationStatusLabel.Text =
-            $"⚠ Proyecto válido con advertencias · " +
-            $"{warningCount} advertencias";
-
-
-        return;
+            "✓ Proyecto válido · 0 errores · 0 advertencias";
     }
 
 
-    validationStatusLabel.Text =
-        "✓ Proyecto válido · 0 errores · 0 advertencias";
-}
+    private void RequestNavigation(
+        Action navigationAction)
+    {
+        if (navigationAction == null)
+        {
+            return;
+        }
+
+
+        if (!CurrentViewHasUnsavedChanges())
+        {
+            navigationAction.Invoke();
+
+            return;
+        }
+
+
+        pendingNavigationAction =
+            navigationAction;
+
+
+        ShowUnsavedChangesDialog();
+    }
+
+
+    private bool CurrentViewHasUnsavedChanges()
+    {
+        if (currentView is EventEditor eventEditor)
+        {
+            return eventEditor.HasUnsavedChanges();
+        }
+
+
+        if (currentView is InterludeEditor interludeEditor)
+        {
+            return interludeEditor.HasUnsavedChanges();
+        }
+
+
+        if (currentView is ChapterEditor chapterEditorView)
+        {
+            return chapterEditorView.HasUnsavedChanges();
+        }
+
+
+        if (currentView is ChapterPageEditor chapterPageEditorView)
+        {
+            bool pageChanges =
+                chapterPageEditorView.HasUnsavedChanges();
+
+
+            bool chapterChanges =
+                chapterEditor != null &&
+                chapterEditor.HasUnsavedChanges();
+
+
+            return pageChanges ||
+                   chapterChanges;
+        }
+
+
+        if (currentView is AttributeEditor attributeEditorView)
+        {
+            return attributeEditorView.HasUnsavedChanges();
+        }
+
+
+        if (currentView is CharacterEditor characterEditorView)
+        {
+            return characterEditorView.HasUnsavedChanges();
+        }
+
+
+        if (currentView is RelationshipEditor relationshipEditorView)
+        {
+            return relationshipEditorView.HasUnsavedChanges();
+        }
+
+
+        return false;
+    }
+
+
+    private string GetCurrentEditorName()
+    {
+        if (currentView is EventEditor)
+        {
+            return "el evento actual";
+        }
+
+
+        if (currentView is InterludeEditor)
+        {
+            return "el interludio actual";
+        }
+
+
+        if (currentView is ChapterEditor ||
+            currentView is ChapterPageEditor)
+        {
+            return "el capítulo actual";
+        }
+
+
+        if (currentView is AttributeEditor)
+        {
+            return "el atributo actual";
+        }
+
+
+        if (currentView is CharacterEditor)
+        {
+            return "el personaje actual";
+        }
+
+
+        if (currentView is RelationshipEditor)
+        {
+            return "la relación actual";
+        }
+
+
+        return "el elemento actual";
+    }
+
+
+    private void ShowUnsavedChangesDialog()
+    {
+        if (navigationDialog != null)
+        {
+            navigationDialog.QueueFree();
+
+            navigationDialog = null;
+        }
+
+
+        navigationDialog =
+            new ConfirmationDialog();
+
+
+        navigationDialog.Title =
+            "Cambios sin guardar";
+
+
+        navigationDialog.DialogText =
+            $"Hay cambios sin guardar en {GetCurrentEditorName()}.\n\n" +
+            "¿Quieres guardarlos antes de continuar?";
+
+
+        navigationDialog.OkButtonText =
+            "Guardar";
+
+
+        navigationDialog.CancelButtonText =
+            "Cancelar";
+
+
+        navigationDialog.AddButton(
+            "No guardar",
+            false,
+            "discard"
+        );
+
+
+        navigationDialog.Confirmed +=
+            OnNavigationSaveConfirmed;
+
+
+        navigationDialog.Canceled +=
+            OnNavigationCancelled;
+
+
+        navigationDialog.CustomAction +=
+            OnNavigationCustomAction;
+
+
+        AddChild(
+            navigationDialog
+        );
+
+
+        navigationDialog.PopupCentered();
+    }
+
+
+    private void OnNavigationSaveConfirmed()
+    {
+        if (navigationDialog != null)
+        {
+            navigationDialog.QueueFree();
+
+            navigationDialog = null;
+        }
+
+
+        SaveCurrentEditorForNavigation();
+    }
+
+
+    private void OnNavigationCustomAction(
+        StringName action)
+    {
+        if (action != "discard")
+        {
+            return;
+        }
+
+
+        if (navigationDialog != null)
+        {
+            navigationDialog.QueueFree();
+
+            navigationDialog = null;
+        }
+
+
+        Action actionToExecute =
+            pendingNavigationAction;
+
+
+        pendingNavigationAction =
+            null;
+
+
+        CleanupCurrentEditorWithoutSaving();
+
+
+        actionToExecute?.Invoke();
+    }
+
+
+    private void OnNavigationCancelled()
+    {
+        if (navigationDialog != null)
+        {
+            navigationDialog.QueueFree();
+
+            navigationDialog = null;
+        }
+
+
+        pendingNavigationAction =
+            null;
+    }
+
+
+    private void SaveCurrentEditorForNavigation()
+    {
+        keepEditorOpenAfterGlobalSave =
+            false;
+
+
+        if (currentView is EventEditor eventEditor)
+        {
+            eventEditor.SaveCurrentEvent();
+
+            return;
+        }
+
+
+        if (currentView is InterludeEditor interludeEditor)
+        {
+            interludeEditor.SaveCurrentInterlude();
+
+            return;
+        }
+
+
+        if (currentView is ChapterEditor chapterEditorView)
+        {
+            chapterEditorView.SaveCurrentChapter();
+
+            return;
+        }
+
+
+        if (currentView is ChapterPageEditor)
+        {
+            SaveChapterFromPageEditor();
+
+            return;
+        }
+
+
+        if (currentView is AttributeEditor attributeEditorView)
+        {
+            attributeEditorView.SaveCurrentAttribute();
+
+            return;
+        }
+
+
+        if (currentView is CharacterEditor characterEditorView)
+        {
+            characterEditorView.SaveCurrentCharacter();
+
+            return;
+        }
+
+
+        if (currentView is RelationshipEditor relationshipEditorView)
+        {
+            relationshipEditorView.SaveCurrentRelationship();
+
+            return;
+        }
+    }
+
+
+    private void CompletePendingNavigation()
+    {
+        Action action =
+            pendingNavigationAction;
+
+
+        pendingNavigationAction =
+            null;
+
+
+        CleanupCurrentEditorAfterNavigation();
+
+
+        action?.Invoke();
+    }
+
+
+    private void CleanupCurrentEditorWithoutSaving()
+    {
+        if (currentView is ChapterPageEditor)
+        {
+            if (chapterPageEditor != null)
+            {
+                chapterPageEditor.QueueFree();
+
+                chapterPageEditor =
+                    null;
+            }
+
+
+            if (chapterEditor != null)
+            {
+                chapterEditor.QueueFree();
+
+                chapterEditor =
+                    null;
+            }
+
+
+            currentView =
+                null;
+
+            return;
+        }
+    }
+
+
+    private void CleanupCurrentEditorAfterNavigation()
+    {
+        if (currentView is ChapterPageEditor)
+        {
+            if (chapterPageEditor != null)
+            {
+                chapterPageEditor.QueueFree();
+
+                chapterPageEditor =
+                    null;
+            }
+
+
+            if (chapterEditor != null)
+            {
+                chapterEditor.QueueFree();
+
+                chapterEditor =
+                    null;
+            }
+
+
+            currentView =
+                null;
+        }
+    }
 
 
     private void OnEventsPressed()
     {
-        returnToChapterEditor =
-            false;
+        RequestNavigation(
+            () =>
+            {
+                returnToChapterEditor =
+                    false;
 
 
-        chapterEditorId =
-            "";
+                chapterEditorId =
+                    "";
 
 
-        ShowEventList();
+                ShowEventList();
+            }
+        );
     }
 
 
@@ -654,15 +1087,20 @@ private void UpdateValidationStatus(
 
     private void OnInterludesPressed()
     {
-        returnToChapterEditor =
-            false;
+        RequestNavigation(
+            () =>
+            {
+                returnToChapterEditor =
+                    false;
 
 
-        chapterEditorId =
-            "";
+                chapterEditorId =
+                    "";
 
 
-        ShowInterludeList();
+                ShowInterludeList();
+            }
+        );
     }
 
 
@@ -776,9 +1214,8 @@ private void UpdateValidationStatus(
         );
 
 
-        if (
-            string.IsNullOrWhiteSpace(
-                interludeId))
+        if (string.IsNullOrWhiteSpace(
+            interludeId))
         {
             editor.CreateNewInterlude();
         }
@@ -799,6 +1236,23 @@ private void UpdateValidationStatus(
 
 
         UpdateValidationStatus();
+
+
+        if (keepEditorOpenAfterGlobalSave)
+        {
+            keepEditorOpenAfterGlobalSave =
+                false;
+
+            return;
+        }
+
+
+        if (pendingNavigationAction != null)
+        {
+            CompletePendingNavigation();
+
+            return;
+        }
 
 
         if (returnToChapterEditor)
@@ -864,15 +1318,20 @@ private void UpdateValidationStatus(
 
     private void OnChaptersPressed()
     {
-        returnToChapterEditor =
-            false;
+        RequestNavigation(
+            () =>
+            {
+                returnToChapterEditor =
+                    false;
 
 
-        chapterEditorId =
-            "";
+                chapterEditorId =
+                    "";
 
 
-        ShowChapterList();
+                ShowChapterList();
+            }
+        );
     }
 
 
@@ -1003,7 +1462,8 @@ private void UpdateValidationStatus(
         );
 
 
-        if (string.IsNullOrWhiteSpace(chapterId))
+        if (string.IsNullOrWhiteSpace(
+            chapterId))
         {
             editor.CreateNewChapter();
         }
@@ -1151,16 +1611,25 @@ private void UpdateValidationStatus(
         }
 
 
-        returnToChapterEditor =
-            true;
-
-
-        chapterEditorId =
+        string targetChapterId =
             chapterEditor.GetChapterId();
 
 
-        OnEventSelected(
-            eventId
+        RequestNavigation(
+            () =>
+            {
+                returnToChapterEditor =
+                    true;
+
+
+                chapterEditorId =
+                    targetChapterId;
+
+
+                OnEventSelected(
+                    eventId
+                );
+            }
         );
     }
 
@@ -1179,28 +1648,59 @@ private void UpdateValidationStatus(
         }
 
 
-        returnToChapterEditor =
-            true;
-
-
-        chapterEditorId =
+        string targetChapterId =
             chapterEditor.GetChapterId();
 
 
-        OnInterludeSelected(
-            interludeId
+        RequestNavigation(
+            () =>
+            {
+                returnToChapterEditor =
+                    true;
+
+
+                chapterEditorId =
+                    targetChapterId;
+
+
+                OnInterludeSelected(
+                    interludeId
+                );
+            }
         );
     }
 
 
     private void OnChapterEditorSaved()
     {
+        if (keepEditorOpenAfterGlobalSave)
+        {
+            keepEditorOpenAfterGlobalSave =
+                false;
+
+            UpdateValidationStatus();
+
+            return;
+        }
+
+
         returnToChapterEditor =
             false;
 
 
         chapterEditorId =
             "";
+
+
+        UpdateValidationStatus();
+
+
+        if (pendingNavigationAction != null)
+        {
+            CompletePendingNavigation();
+
+            return;
+        }
 
 
         chapterEditor =
@@ -1249,15 +1749,20 @@ private void UpdateValidationStatus(
 
     private void OnAttributesPressed()
     {
-        returnToChapterEditor =
-            false;
+        RequestNavigation(
+            () =>
+            {
+                returnToChapterEditor =
+                    false;
 
 
-        chapterEditorId =
-            "";
+                chapterEditorId =
+                    "";
 
 
-        ShowAttributeList();
+                ShowAttributeList();
+            }
+        );
     }
 
 
@@ -1380,9 +1885,8 @@ private void UpdateValidationStatus(
         );
 
 
-        if (
-            string.IsNullOrWhiteSpace(
-                attributeId))
+        if (string.IsNullOrWhiteSpace(
+            attributeId))
         {
             editor.CreateNewAttribute();
         }
@@ -1397,8 +1901,30 @@ private void UpdateValidationStatus(
 
     private void OnAttributeEditorSaved()
     {
+        if (keepEditorOpenAfterGlobalSave)
+        {
+            keepEditorOpenAfterGlobalSave =
+                false;
+
+            UpdateValidationStatus();
+
+            return;
+        }
+
+
         attributeEditor =
             null;
+
+
+        UpdateValidationStatus();
+
+
+        if (pendingNavigationAction != null)
+        {
+            CompletePendingNavigation();
+
+            return;
+        }
 
 
         ShowAttributeList();
@@ -1421,13 +1947,29 @@ private void UpdateValidationStatus(
             null;
 
 
+        UpdateValidationStatus();
+
+
         ShowAttributeList();
     }
 
 
     private void OnCharactersPressed()
     {
-        ShowCharacterList();
+        RequestNavigation(
+            () =>
+            {
+                returnToChapterEditor =
+                    false;
+
+
+                chapterEditorId =
+                    "";
+
+
+                ShowCharacterList();
+            }
+        );
     }
 
 
@@ -1542,9 +2084,8 @@ private void UpdateValidationStatus(
         );
 
 
-        if (
-            string.IsNullOrWhiteSpace(
-                characterId))
+        if (string.IsNullOrWhiteSpace(
+            characterId))
         {
             editor.CreateNewCharacter();
         }
@@ -1559,19 +2100,62 @@ private void UpdateValidationStatus(
 
     private void OnCharacterEditorSaved()
     {
+        if (keepEditorOpenAfterGlobalSave)
+        {
+            keepEditorOpenAfterGlobalSave =
+                false;
+
+            UpdateValidationStatus();
+
+            return;
+        }
+
+
+        characterEditor =
+            null;
+
+
+        UpdateValidationStatus();
+
+
+        if (pendingNavigationAction != null)
+        {
+            CompletePendingNavigation();
+
+            return;
+        }
+
+
         ShowCharacterList();
     }
 
 
     private void OnCharacterEditorCancelled()
     {
+        characterEditor =
+            null;
+
+
         ShowCharacterList();
     }
 
 
     private void OnRelationshipsPressed()
     {
-        ShowRelationshipList();
+        RequestNavigation(
+            () =>
+            {
+                returnToChapterEditor =
+                    false;
+
+
+                chapterEditorId =
+                    "";
+
+
+                ShowRelationshipList();
+            }
+        );
     }
 
 
@@ -1686,9 +2270,8 @@ private void UpdateValidationStatus(
         );
 
 
-        if (
-            string.IsNullOrWhiteSpace(
-                characterId))
+        if (string.IsNullOrWhiteSpace(
+            characterId))
         {
             editor.CreateNewRelationship();
         }
@@ -1703,17 +2286,66 @@ private void UpdateValidationStatus(
 
     private void OnRelationshipEditorSaved()
     {
+        if (keepEditorOpenAfterGlobalSave)
+        {
+            keepEditorOpenAfterGlobalSave =
+                false;
+
+            UpdateValidationStatus();
+
+            return;
+        }
+
+
+        relationshipEditor =
+            null;
+
+
+        UpdateValidationStatus();
+
+
+        if (pendingNavigationAction != null)
+        {
+            CompletePendingNavigation();
+
+            return;
+        }
+
+
         ShowRelationshipList();
     }
 
 
     private void OnRelationshipEditorCancelled()
     {
+        relationshipEditor =
+            null;
+
+
         ShowRelationshipList();
     }
 
 
     private void OnValidationDetailsPressed()
+    {
+        RequestNavigation(
+            () =>
+            {
+                returnToChapterEditor =
+                    false;
+
+
+                chapterEditorId =
+                    "";
+
+
+                OpenValidationPanel();
+            }
+        );
+    }
+
+
+    private void OpenValidationPanel()
     {
         if (validationPanelScene == null)
         {
@@ -2033,9 +2665,8 @@ private void UpdateValidationStatus(
         );
 
 
-        if (
-            string.IsNullOrWhiteSpace(
-                eventId))
+        if (string.IsNullOrWhiteSpace(
+            eventId))
         {
             eventEditor.CreateNewEvent();
         }
@@ -2056,6 +2687,23 @@ private void UpdateValidationStatus(
 
 
         UpdateValidationStatus();
+
+
+        if (keepEditorOpenAfterGlobalSave)
+        {
+            keepEditorOpenAfterGlobalSave =
+                false;
+
+            return;
+        }
+
+
+        if (pendingNavigationAction != null)
+        {
+            CompletePendingNavigation();
+
+            return;
+        }
 
 
         if (returnToChapterEditor)
@@ -2200,6 +2848,30 @@ private void UpdateValidationStatus(
         if (attributeEditorView != null)
         {
             attributeEditorView.RequestApplicationClose();
+
+            return;
+        }
+
+
+        CharacterEditor characterEditorView =
+            currentView as CharacterEditor;
+
+
+        if (characterEditorView != null)
+        {
+            characterEditorView.RequestApplicationClose();
+
+            return;
+        }
+
+
+        RelationshipEditor relationshipEditorView =
+            currentView as RelationshipEditor;
+
+
+        if (relationshipEditorView != null)
+        {
+            relationshipEditorView.RequestApplicationClose();
 
             return;
         }

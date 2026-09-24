@@ -1,15 +1,17 @@
 using Godot;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+
 
 public partial class EventEditor : Control
 {
     [Signal]
     public delegate void EventSavedEventHandler();
 
-
     [Signal]
     public delegate void EventCancelledEventHandler();
-
 
     [Signal]
     public delegate void ApplicationCloseConfirmedEventHandler();
@@ -26,12 +28,22 @@ public partial class EventEditor : Control
     private SpinBox worldYearSpinBox;
 
     private TabBar tabBar;
+
     private EventPageEditor pageEditor;
     private OptionsEditor optionsEditor;
 
+    private Button eventConditionsButton;
     private Button closeButton;
     private Button cancelButton;
     private Button saveButton;
+
+    private Window eventConditionsWindow;
+    private ConditionListEditor eventConditionsEditor;
+
+    private Control contentContainer;
+
+    private Control eventInfoContainer;
+    private Control buttonsContainer;
 
     private EditorEventData eventData;
 
@@ -45,7 +57,8 @@ public partial class EventEditor : Control
     private bool updatingYears = false;
     private bool creatingNewEvent = false;
 
-    private UnsavedChangesGuard<EditorEventData> unsavedChangesGuard;
+    private UnsavedChangesGuard<EditorEventData>
+        unsavedChangesGuard;
 
     private const int BaseWorldYear = 1134;
     private const int BaseYear = 1;
@@ -56,6 +69,10 @@ public partial class EventEditor : Control
     private bool applicationCloseRequested = false;
 
 
+    // ============================================================
+    // READY
+    // ============================================================
+
     public override void _Ready()
     {
         titleLabel =
@@ -63,66 +80,75 @@ public partial class EventEditor : Control
                 "VBoxContainer/Header/Title"
             );
 
-
         idEdit =
             GetNode<LineEdit>(
                 "VBoxContainer/EventInfo/IdContainer/IdEdit"
             );
 
-
         titleEdit =
             GetNode<LineEdit>(
-                "VBoxContainer/EventInfo/TitleContainer/TitleEdit"
+                "VBoxContainer/EventInfo/TitleContainer/TitleEditRow/TitleEdit"
             );
-
 
         chapterOption =
             GetNode<OptionButton>(
                 "VBoxContainer/EventInfo/BasicInfo/ChapterContainer/ChapterOption"
             );
 
-
         yearSpinBox =
             GetNode<SpinBox>(
                 "VBoxContainer/EventInfo/BasicInfo/YearContainer/YearSpinBox"
             );
-
 
         worldYearSpinBox =
             GetNode<SpinBox>(
                 "VBoxContainer/EventInfo/BasicInfo/WorldYearContainer/WorldYearSpinBox"
             );
 
-
         tabBar =
             GetNode<TabBar>(
                 "VBoxContainer/TabBar"
             );
 
+        contentContainer =
+            GetNode<Control>(
+                "VBoxContainer/Content"
+            );
+
+        eventInfoContainer =
+            GetNode<Control>(
+                "VBoxContainer/EventInfo"
+            );
+
+        buttonsContainer =
+            GetNode<Control>(
+                "VBoxContainer/Buttons"
+            );
 
         pageEditor =
             GetNode<EventPageEditor>(
                 "VBoxContainer/Content/EventPageEditor"
             );
 
-
         optionsEditor =
             GetNode<OptionsEditor>(
                 "VBoxContainer/Content/OptionsEditor"
             );
 
+        eventConditionsButton =
+            GetNode<Button>(
+                "VBoxContainer/EventInfo/TitleContainer/TitleEditRow/EventConditionsButton"
+            );
 
         closeButton =
             GetNode<Button>(
                 "VBoxContainer/Header/CloseButton"
             );
 
-
         cancelButton =
             GetNode<Button>(
                 "VBoxContainer/Buttons/CancelButton"
             );
-
 
         saveButton =
             GetNode<Button>(
@@ -130,32 +156,61 @@ public partial class EventEditor : Control
             );
 
 
+        eventConditionsButton.Pressed +=
+            OnEventConditionsPressed;
+
         closeButton.Pressed +=
             OnClosePressed;
-
 
         cancelButton.Pressed +=
             OnCancelPressed;
 
-
         saveButton.Pressed +=
             OnSavePressed;
 
+        titleEdit.TextChanged +=
+            OnTitleChanged;
 
         yearSpinBox.ValueChanged +=
             OnYearChanged;
 
-
         worldYearSpinBox.ValueChanged +=
             OnWorldYearChanged;
-
 
         chapterOption.ItemSelected +=
             OnChapterSelected;
 
-
         tabBar.TabChanged +=
             OnTabChanged;
+
+
+        idEdit.Editable =
+            false;
+
+
+        // --------------------------------------------------------
+        // WORKSPACE
+        // --------------------------------------------------------
+
+        contentContainer.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+        contentContainer.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
+
+
+        pageEditor.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+        pageEditor.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
+
+
+        optionsEditor.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+        optionsEditor.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
 
 
         unsavedChangesGuard =
@@ -180,6 +235,62 @@ public partial class EventEditor : Control
     }
 
 
+    // ============================================================
+    // WORKSPACE MODE
+    // ============================================================
+
+    private void ApplyNarrativeWorkspaceMode(
+    bool narrative)
+{
+    if (eventInfoContainer != null)
+    {
+        eventInfoContainer.Visible =
+            !narrative;
+    }
+
+
+    if (buttonsContainer != null)
+    {
+        buttonsContainer.Visible =
+            !narrative;
+    }
+
+
+    if (contentContainer != null)
+    {
+        contentContainer.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+        contentContainer.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
+    }
+
+
+    if (pageEditor != null)
+    {
+        pageEditor.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+        pageEditor.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
+    }
+
+
+    if (optionsEditor != null)
+    {
+        optionsEditor.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+        optionsEditor.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
+    }
+}
+
+
+    // ============================================================
+    // CONFIGURATION
+    // ============================================================
+
     public void SetRepository(
         EventRepository repository)
     {
@@ -187,12 +298,9 @@ public partial class EventEditor : Control
             repository;
 
 
-        if (optionsEditor != null)
-        {
-            optionsEditor.SetRepository(
-                eventRepository
-            );
-        }
+        optionsEditor.SetRepository(
+            eventRepository
+        );
     }
 
 
@@ -203,12 +311,9 @@ public partial class EventEditor : Control
             path ?? "";
 
 
-        if (optionsEditor != null)
-        {
-            optionsEditor.SetProjectPath(
-                projectPath
-            );
-        }
+        optionsEditor.SetProjectPath(
+            projectPath
+        );
 
 
         if (string.IsNullOrWhiteSpace(
@@ -223,10 +328,6 @@ public partial class EventEditor : Control
             chapterOption.Clear();
 
 
-            GD.PrintErr(
-                "EventEditor: la ruta del proyecto está vacía."
-            );
-
             return;
         }
 
@@ -236,7 +337,6 @@ public partial class EventEditor : Control
                 projectPath
             );
 
-
         attributeRepository =
             new AttributeRepository(
                 projectPath
@@ -244,12 +344,6 @@ public partial class EventEditor : Control
 
 
         PopulateChapterOptions();
-
-
-        GD.Print(
-            "EventEditor: ruta del proyecto establecida: ",
-            projectPath
-        );
     }
 
 
@@ -260,16 +354,22 @@ public partial class EventEditor : Control
         pendingPageId =
             pageId ?? "";
 
-
         pendingDecisionIndex =
             decisionIndex;
     }
 
 
+    // ============================================================
+    // CREATE / LOAD
+    // ============================================================
+
     public void CreateNewEvent()
     {
-        creatingNewEvent = true;
-        eventId = "";
+        creatingNewEvent =
+            true;
+
+        eventId =
+            "";
 
 
         int defaultChapter =
@@ -284,7 +384,10 @@ public partial class EventEditor : Control
                 Chapter = defaultChapter,
                 Year = 1,
                 WorldYear = BaseWorldYear,
-                Pages = new List<EditorPageData>()
+                Conditions =
+                    new List<EditorConditionData>(),
+                Pages =
+                    new List<EditorPageData>()
             };
 
 
@@ -292,28 +395,21 @@ public partial class EventEditor : Control
 
 
         SaveOriginalState();
-
-
-        GD.Print(
-            "EventEditor: creando evento nuevo."
-        );
     }
 
 
     public void LoadEvent(
         string id)
     {
-        if (string.IsNullOrWhiteSpace(id))
+        if (string.IsNullOrWhiteSpace(
+            id))
         {
-            GD.PrintErr(
-                "EventEditor: ID de evento vacío."
-            );
-
             return;
         }
 
 
-        creatingNewEvent = false;
+        creatingNewEvent =
+            false;
 
         eventId =
             id;
@@ -321,10 +417,6 @@ public partial class EventEditor : Control
 
         if (eventRepository == null)
         {
-            GD.PrintErr(
-                "EventEditor: no se ha configurado EventRepository."
-            );
-
             return;
         }
 
@@ -337,13 +429,8 @@ public partial class EventEditor : Control
 
         if (loadedEvent == null)
         {
-            GD.Print(
-                "EventEditor: el evento no existe. Creando evento nuevo: ",
-                id
-            );
-
-
-            creatingNewEvent = true;
+            creatingNewEvent =
+                true;
 
 
             int defaultChapter =
@@ -358,7 +445,10 @@ public partial class EventEditor : Control
                     Chapter = defaultChapter,
                     Year = 1,
                     WorldYear = BaseWorldYear,
-                    Pages = new List<EditorPageData>()
+                    Conditions =
+                        new List<EditorConditionData>(),
+                    Pages =
+                        new List<EditorPageData>()
                 };
         }
         else
@@ -367,17 +457,18 @@ public partial class EventEditor : Control
                 loadedEvent;
 
 
+            if (eventData.Conditions == null)
+            {
+                eventData.Conditions =
+                    new List<EditorConditionData>();
+            }
+
+
             if (eventData.Pages == null)
             {
                 eventData.Pages =
                     new List<EditorPageData>();
             }
-
-
-            GD.Print(
-                "EventEditor: evento cargado correctamente: ",
-                eventData.Id
-            );
         }
 
 
@@ -386,11 +477,17 @@ public partial class EventEditor : Control
 
         SaveOriginalState();
     }
-    public void SaveCurrentEvent()
-{
-    OnSavePressed();
-}
 
+
+    public void SaveCurrentEvent()
+    {
+        OnSavePressed();
+    }
+
+
+    // ============================================================
+    // LOAD
+    // ============================================================
 
     private void LoadEventIntoEditor()
     {
@@ -400,8 +497,18 @@ public partial class EventEditor : Control
         }
 
 
-        eventId =
-            eventData.Id;
+        if (eventData.Conditions == null)
+        {
+            eventData.Conditions =
+                new List<EditorConditionData>();
+        }
+
+
+        if (eventData.Pages == null)
+        {
+            eventData.Pages =
+                new List<EditorPageData>();
+        }
 
 
         idEdit.Text =
@@ -412,17 +519,11 @@ public partial class EventEditor : Control
             eventData.Title;
 
 
-        if (creatingNewEvent)
-        {
-            titleLabel.Text =
-                "Nuevo evento";
-        }
-        else
-        {
-            titleLabel.Text =
-                "Editor de evento: " +
-                eventData.Id;
-        }
+        titleLabel.Text =
+            creatingNewEvent
+                ? "Nuevo evento"
+                : "Editor de evento: " +
+                  eventData.Id;
 
 
         LoadChapter(
@@ -430,30 +531,123 @@ public partial class EventEditor : Control
         );
 
 
-        updatingYears = true;
+        updatingYears =
+            true;
 
 
         yearSpinBox.Value =
             eventData.Year;
 
-
         worldYearSpinBox.Value =
             eventData.WorldYear;
 
 
-        updatingYears = false;
+        updatingYears =
+            false;
 
 
         pageEditor.SetPages(
-            eventData.Pages
+            new List<EditorPageData>(
+                eventData.Pages
+            )
         );
 
+
+        optionsEditor.SetRepository(
+            eventRepository
+        );
+
+        optionsEditor.SetProjectPath(
+            projectPath
+        );
+
+        optionsEditor.SetChapter(
+            eventData.Chapter
+        );
 
         optionsEditor.SetPages(
-            eventData.Pages
+            new List<EditorPageData>(
+                eventData.Pages
+            )
         );
 
 
+        SelectValidationTarget();
+    }
+
+
+    // ============================================================
+    // TAB
+    // ============================================================
+
+    private void OnTabChanged(
+    long tab)
+{
+    bool showingNarrative =
+        tab == 0;
+
+
+    // Durante _Ready todavía no existe eventData.
+    // En ese momento solo cambiamos la visibilidad,
+    // sin intentar sincronizar ni recargar páginas.
+    if (eventData == null)
+    {
+        ApplyNarrativeWorkspaceMode(
+            showingNarrative
+        );
+
+
+        if (pageEditor != null)
+        {
+            pageEditor.Visible =
+                showingNarrative;
+        }
+
+
+        if (optionsEditor != null)
+        {
+            optionsEditor.Visible =
+                !showingNarrative;
+        }
+
+
+        return;
+    }
+
+
+    SynchronizeNarrativeAndOptions();
+
+
+    ApplyNarrativeWorkspaceMode(
+        showingNarrative
+    );
+
+
+    if (pageEditor != null)
+    {
+        pageEditor.Visible =
+            showingNarrative;
+    }
+
+
+    if (optionsEditor != null)
+    {
+        optionsEditor.Visible =
+            !showingNarrative;
+    }
+
+
+    if (showingNarrative)
+    {
+        pageEditor.SetPages(
+            new List<EditorPageData>(
+                eventData.Pages ??
+                new List<EditorPageData>()
+            )
+        );
+    }
+    else
+    {
         optionsEditor.SetRepository(
             eventRepository
         );
@@ -469,516 +663,62 @@ public partial class EventEditor : Control
         );
 
 
-        SelectValidationTarget();
-
-
-        GD.Print(
-            "EventEditor: datos cargados en la interfaz."
+        optionsEditor.SetPages(
+            new List<EditorPageData>(
+                eventData.Pages ??
+                new List<EditorPageData>()
+            )
         );
-
-
-        if (!creatingNewEvent)
-        {
-            TestValidator();
-        }
     }
+}
 
 
-    private EditorEventData GetCurrentEventState()
+    private void SynchronizeNarrativeAndOptions()
     {
-        UpdateEventDataFromEditor();
-
-        return eventData;
-    }
-
-
-    private void SaveOriginalState()
-    {
-        if (unsavedChangesGuard == null)
+        if (eventData == null)
         {
             return;
         }
 
 
-        unsavedChangesGuard.SaveOriginalState(
-            eventData
-        );
-    }
-
-
-    public bool HasUnsavedChanges()
-    {
-        if (unsavedChangesGuard == null)
+        if (optionsEditor != null)
         {
-            return false;
+            optionsEditor.GetPages();
         }
 
 
-        return unsavedChangesGuard.HasUnsavedChanges();
-    }
-
-
-    public void RequestApplicationClose()
-    {
-        applicationCloseRequested = true;
-
-
-        if (unsavedChangesGuard == null)
+        if (pageEditor != null)
         {
-            EmitSignal(
-                SignalName.ApplicationCloseConfirmed
-            );
-
-            return;
-        }
-
-
-        unsavedChangesGuard.RequestClose();
-    }
-
-
-    private void CloseEditor()
-    {
-        if (applicationCloseRequested)
-        {
-            applicationCloseRequested = false;
-
-
-            EmitSignal(
-                SignalName.ApplicationCloseConfirmed
-            );
-
-            return;
-        }
-
-
-        EmitSignal(
-            SignalName.EventCancelled
-        );
-    }
-
-
-    private void PopulateChapterOptions()
-    {
-        chapterOption.Clear();
-
-
-        if (chapterRepository == null)
-        {
-            return;
-        }
-
-
-        List<ChapterDefinitionData> chapters =
-            chapterRepository.LoadAll();
-
-
-        chapters.Sort(
-            (a, b) =>
-                a.Number.CompareTo(
-                    b.Number
-                )
-        );
-
-
-        foreach (
-            ChapterDefinitionData chapter
-            in chapters)
-        {
-            if (chapter == null)
-            {
-                continue;
-            }
-
-
-            if (chapter.Number <= 0)
-            {
-                continue;
-            }
-
-
-            string displayName =
-                chapter.Number +
-                ". " +
-                chapter.Title;
-
-
-            int index =
-                chapterOption.ItemCount;
-
-
-            chapterOption.AddItem(
-                displayName
-            );
-
-
-            chapterOption.SetItemMetadata(
-                index,
-                chapter.Number
-            );
-        }
-
-
-        GD.Print(
-            "EventEditor: capítulos cargados: ",
-            chapterOption.ItemCount
-        );
-    }
-
-
-    private int GetDefaultChapterNumber()
-    {
-        if (chapterRepository == null)
-        {
-            return 1;
-        }
-
-
-        List<ChapterDefinitionData> chapters =
-            chapterRepository.LoadAll();
-
-
-        chapters.Sort(
-            (a, b) =>
-                a.Number.CompareTo(
-                    b.Number
-                )
-        );
-
-
-        foreach (
-            ChapterDefinitionData chapter
-            in chapters)
-        {
-            if (chapter == null)
-            {
-                continue;
-            }
-
-
-            if (chapter.Number > 0)
-            {
-                return chapter.Number;
-            }
-        }
-
-
-        return 1;
-    }
-
-
-    private void LoadChapter(
-        int chapter)
-    {
-        if (chapterOption.ItemCount == 0)
-        {
-            return;
-        }
-
-
-        for (
-            int i = 0;
-            i < chapterOption.ItemCount;
-            i++)
-        {
-            Variant metadata =
-                chapterOption.GetItemMetadata(
-                    i
-                );
-
-
-            int chapterNumber =
-                metadata.AsInt32();
-
-
-            if (chapterNumber == chapter)
-            {
-                chapterOption.Select(
-                    i
-                );
-
-                return;
-            }
-        }
-
-
-        GD.PrintErr(
-            "EventEditor: no se encontró el capítulo: ",
-            chapter
-        );
-
-
-        chapterOption.Select(
-            0
-        );
-    }
-
-
-    private void OnChapterSelected(
-        long index)
-    {
-        if (
-            index < 0 ||
-            index >= chapterOption.ItemCount)
-        {
-            return;
-        }
-
-
-        Variant metadata =
-            chapterOption.GetItemMetadata(
-                (int)index
-            );
-
-
-        int chapter =
-            metadata.AsInt32();
-
-
-        if (chapter <= 0)
-        {
-            return;
-        }
-
-
-        if (eventData != null)
-        {
-            eventData.Chapter =
-                chapter;
-        }
-
-
-        optionsEditor.SetChapter(
-            chapter
-        );
-
-
-        GD.Print(
-            "EventEditor: capítulo cambiado a: ",
-            chapter
-        );
-    }
-
-
-    private void InitializeYears()
-    {
-        updatingYears = true;
-
-
-        yearSpinBox.MinValue =
-            1;
-
-
-        yearSpinBox.Step =
-            1;
-
-
-        yearSpinBox.Value =
-            BaseYear;
-
-
-        worldYearSpinBox.MinValue =
-            1;
-
-
-        worldYearSpinBox.Step =
-            1;
-
-
-        worldYearSpinBox.Value =
-            BaseWorldYear;
-
-
-        updatingYears = false;
-    }
-
-
-    private void OnYearChanged(
-        double value)
-    {
-        if (updatingYears)
-        {
-            return;
-        }
-
-
-        updatingYears = true;
-
-
-        int year =
-            Mathf.RoundToInt(
-                (float)value
-            );
-
-
-        int worldYear =
-            BaseWorldYear +
-            (year - BaseYear);
-
-
-        worldYearSpinBox.Value =
-            worldYear;
-
-
-        updatingYears = false;
-    }
-
-
-    private void OnWorldYearChanged(
-        double value)
-    {
-        if (updatingYears)
-        {
-            return;
-        }
-
-
-        updatingYears = true;
-
-
-        int worldYear =
-            Mathf.RoundToInt(
-                (float)value
-            );
-
-
-        int year =
-            BaseYear +
-            (worldYear - BaseWorldYear);
-
-
-        if (year < 1)
-        {
-            year = 1;
-        }
-
-
-        yearSpinBox.Value =
-            year;
-
-
-        updatingYears = false;
-    }
-
-
-    private void OnTabChanged(
-        long tab)
-    {
-        bool showingNarrative =
-            tab == 0;
-
-
-        pageEditor.Visible =
-            showingNarrative;
-
-
-        optionsEditor.Visible =
-            !showingNarrative;
-
-
-        if (!showingNarrative)
-        {
-            List<EditorPageData> pages =
+            List<EditorPageData> narrativePages =
                 pageEditor.GetPages();
 
 
-            optionsEditor.SetPages(
-                pages
-            );
-
-
-            optionsEditor.SetRepository(
-                eventRepository
-            );
-
-
-            optionsEditor.SetProjectPath(
-                projectPath
-            );
-
-
-            optionsEditor.SetChapter(
-                eventData != null
-                    ? eventData.Chapter
-                    : GetDefaultChapterNumber()
-            );
-        }
-    }
-
-
-    private void SelectValidationTarget()
-    {
-        if (string.IsNullOrWhiteSpace(
-            pendingPageId))
-        {
-            return;
-        }
-
-
-        bool pageSelected =
-            pageEditor.SelectPageById(
-                pendingPageId
-            );
-
-
-        bool optionsPageSelected =
-            optionsEditor.SelectPageById(
-                pendingPageId
-            );
-
-
-        if (
-            !pageSelected &&
-            !optionsPageSelected)
-        {
-            GD.PrintErr(
-                "EventEditor: no se encontró la página de validación: ",
-                pendingPageId
-            );
-
-
-            return;
-        }
-
-
-        if (pendingDecisionIndex >= 0)
-        {
-            bool decisionSelected =
-                optionsEditor.SelectDecisionByIndex(
-                    pendingDecisionIndex
-                );
-
-
-            if (!decisionSelected)
+            if (narrativePages != null)
             {
-                GD.PrintErr(
-                    "EventEditor: no se encontró la opción de validación: ",
-                    pendingDecisionIndex + 1
-                );
-
-
-                return;
+                eventData.Pages =
+                    new List<EditorPageData>(
+                        narrativePages
+                    );
             }
-
-
-            tabBar.CurrentTab =
-                1;
         }
-        else
+
+
+        if (eventData.Pages == null)
         {
-            tabBar.CurrentTab =
-                0;
+            eventData.Pages =
+                new List<EditorPageData>();
         }
 
 
-        pendingPageId =
-            "";
-
-
-        pendingDecisionIndex =
-            -1;
+        NormalizePageTree(
+            eventData.Pages
+        );
     }
 
+
+    // ============================================================
+    // UPDATE
+    // ============================================================
 
     private void UpdateEventDataFromEditor()
     {
@@ -1029,122 +769,34 @@ public partial class EventEditor : Control
             );
 
 
-        List<EditorPageData> narrativePages =
-            pageEditor.GetPages();
+        SynchronizeNarrativeAndOptions();
+    }
 
 
-        List<EditorPageData> optionPages =
-            optionsEditor.GetPages();
-
-
-        if (narrativePages == null)
+    private void NormalizePageTree(
+        List<EditorPageData> collection)
+    {
+        if (collection == null)
         {
-            narrativePages =
-                new List<EditorPageData>();
+            return;
         }
-
-
-        if (optionPages == null)
-        {
-            optionPages =
-                new List<EditorPageData>();
-        }
-
-
-        foreach (
-            EditorPageData optionPage
-            in optionPages)
-        {
-            if (optionPage == null)
-            {
-                continue;
-            }
-
-
-            foreach (
-                EditorPageData narrativePage
-                in narrativePages)
-            {
-                if (
-                    narrativePage == null ||
-                    narrativePage.Id != optionPage.Id)
-                {
-                    continue;
-                }
-
-
-                narrativePage.Decisions =
-                    optionPage.Decisions;
-
-
-                break;
-            }
-        }
-
-
-        eventData.Pages =
-            narrativePages;
-
-
-        GD.Print(
-            "EventEditor: modelo actualizado desde la interfaz."
-        );
-
-
-        GD.Print(
-            "  ID: ",
-            eventData.Id
-        );
-
-
-        GD.Print(
-            "  Título: ",
-            eventData.Title
-        );
-
-
-        GD.Print(
-            "  Capítulo: ",
-            eventData.Chapter
-        );
-
-
-        GD.Print(
-            "  Año: ",
-            eventData.Year
-        );
-
-
-        GD.Print(
-            "  Año mundial: ",
-            eventData.WorldYear
-        );
-
-
-        GD.Print(
-            "  Páginas: ",
-            eventData.Pages.Count
-        );
 
 
         foreach (
             EditorPageData page
-            in eventData.Pages)
+            in collection)
         {
-            if (
-                page == null ||
-                page.Decisions == null)
+            if (page == null)
             {
                 continue;
             }
 
 
-            GD.Print(
-                "  Página ",
-                page.Id,
-                " | Decisiones: ",
-                page.Decisions.Count
-            );
+            if (page.Decisions == null)
+            {
+                page.Decisions =
+                    new List<EditorDecisionData>();
+            }
 
 
             foreach (
@@ -1157,33 +809,406 @@ public partial class EventEditor : Control
                 }
 
 
-                GD.Print(
-                    "    Decisión: ",
-                    decision.Text,
-                    " | Condiciones: ",
-                    decision.Conditions.Count,
-                    " | Efectos: ",
-                    decision.Effects.Count
+                if (decision.Conditions == null)
+                {
+                    decision.Conditions =
+                        new List<EditorConditionData>();
+                }
+
+
+                if (decision.Effects == null)
+                {
+                    decision.Effects =
+                        new List<EditorEffectData>();
+                }
+
+
+                if (decision.Pages == null)
+                {
+                    decision.Pages =
+                        new List<EditorPageData>();
+                }
+
+
+                NormalizePageTree(
+                    decision.Pages
                 );
             }
         }
     }
 
 
+    // ============================================================
+    // CHAPTERS
+    // ============================================================
+
+    private void PopulateChapterOptions()
+    {
+        chapterOption.Clear();
+
+
+        if (chapterRepository == null)
+        {
+            return;
+        }
+
+
+        List<ChapterDefinitionData> chapters =
+            chapterRepository.LoadAll();
+
+
+        chapters.Sort(
+            (a, b) =>
+                a.Number.CompareTo(
+                    b.Number
+                )
+        );
+
+
+        foreach (
+            ChapterDefinitionData chapter
+            in chapters)
+        {
+            if (chapter == null)
+            {
+                continue;
+            }
+
+
+            int index =
+                chapterOption.ItemCount;
+
+
+            chapterOption.AddItem(
+                chapter.Number +
+                ". " +
+                chapter.Title
+            );
+
+
+            chapterOption.SetItemMetadata(
+                index,
+                chapter.Number
+            );
+        }
+    }
+
+
+    private int GetDefaultChapterNumber()
+    {
+        if (chapterRepository == null)
+        {
+            return 1;
+        }
+
+
+        List<ChapterDefinitionData> chapters =
+            chapterRepository.LoadAll();
+
+
+        chapters.Sort(
+            (a, b) =>
+                a.Number.CompareTo(
+                    b.Number
+                )
+        );
+
+
+        foreach (
+            ChapterDefinitionData chapter
+            in chapters)
+        {
+            if (
+                chapter != null &&
+                chapter.Number > 0)
+            {
+                return chapter.Number;
+            }
+        }
+
+
+        return 1;
+    }
+
+
+    private void LoadChapter(
+        int chapter)
+    {
+        for (
+            int i = 0;
+            i < chapterOption.ItemCount;
+            i++)
+        {
+            Variant metadata =
+                chapterOption.GetItemMetadata(
+                    i
+                );
+
+
+            if (metadata.AsInt32() == chapter)
+            {
+                chapterOption.Select(
+                    i
+                );
+
+
+                return;
+            }
+        }
+    }
+
+
+    private void OnChapterSelected(
+        long index)
+    {
+        if (
+            index < 0 ||
+            index >= chapterOption.ItemCount)
+        {
+            return;
+        }
+
+
+        Variant metadata =
+            chapterOption.GetItemMetadata(
+                (int)index
+            );
+
+
+        int chapter =
+            metadata.AsInt32();
+
+
+        eventData.Chapter =
+            chapter;
+
+
+        optionsEditor.SetChapter(
+            chapter
+        );
+    }
+
+
+    // ============================================================
+    // YEARS
+    // ============================================================
+
+    private void InitializeYears()
+    {
+        updatingYears =
+            true;
+
+
+        yearSpinBox.MinValue =
+            1;
+
+        yearSpinBox.Step =
+            1;
+
+        yearSpinBox.Value =
+            1;
+
+
+        worldYearSpinBox.MinValue =
+            1;
+
+        worldYearSpinBox.Step =
+            1;
+
+        worldYearSpinBox.Value =
+            BaseWorldYear;
+
+
+        updatingYears =
+            false;
+    }
+
+
+    private void OnYearChanged(
+        double value)
+    {
+        if (updatingYears)
+        {
+            return;
+        }
+
+
+        updatingYears =
+            true;
+
+
+        int year =
+            Mathf.RoundToInt(
+                (float)value
+            );
+
+
+        worldYearSpinBox.Value =
+            BaseWorldYear +
+            year -
+            BaseYear;
+
+
+        updatingYears =
+            false;
+    }
+
+
+    private void OnWorldYearChanged(
+        double value)
+    {
+        if (updatingYears)
+        {
+            return;
+        }
+
+
+        updatingYears =
+            true;
+
+
+        int worldYear =
+            Mathf.RoundToInt(
+                (float)value
+            );
+
+
+        int year =
+            BaseYear +
+            worldYear -
+            BaseWorldYear;
+
+
+        if (year < 1)
+        {
+            year = 1;
+        }
+
+
+        yearSpinBox.Value =
+            year;
+
+
+        updatingYears =
+            false;
+    }
+
+
+    // ============================================================
+    // VALIDATION TARGET
+    // ============================================================
+
+    private void SelectValidationTarget()
+{
+    if (string.IsNullOrWhiteSpace(
+        pendingPageId))
+    {
+        return;
+    }
+
+
+    bool selectingDecision =
+        pendingDecisionIndex >= 0;
+
+
+    if (selectingDecision)
+    {
+        // Primero cambiamos de pestaña.
+        // OnTabChanged puede reconstruir OptionsEditor,
+        // así que la selección concreta debe hacerse DESPUÉS.
+        tabBar.CurrentTab =
+            1;
+
+
+        bool pageSelected =
+            optionsEditor.SelectPageById(
+                pendingPageId
+            );
+
+
+        if (!pageSelected)
+        {
+            GD.PrintErr(
+                "EventEditor: no se encontró la página de decisión: ",
+                pendingPageId
+            );
+
+
+            pendingPageId =
+                "";
+
+            pendingDecisionIndex =
+                -1;
+
+
+            return;
+        }
+
+
+        bool decisionSelected =
+            optionsEditor.SelectDecisionByIndex(
+                pendingDecisionIndex
+            );
+
+
+        if (!decisionSelected)
+        {
+            GD.PrintErr(
+                "EventEditor: no se encontró la opción de decisión: ",
+                pendingDecisionIndex + 1
+            );
+        }
+    }
+    else
+    {
+        // Para páginas normales hacemos lo mismo:
+        // primero cambiamos de pestaña y luego seleccionamos.
+        tabBar.CurrentTab =
+            0;
+
+
+        bool pageSelected =
+            pageEditor.SelectPageById(
+                pendingPageId
+            );
+
+
+        if (!pageSelected)
+        {
+            GD.PrintErr(
+                "EventEditor: no se encontró la página: ",
+                pendingPageId
+            );
+        }
+    }
+
+
+    pendingPageId =
+        "";
+
+    pendingDecisionIndex =
+        -1;
+}
+
+
+    // ============================================================
+    // VALIDATION
+    // ============================================================
+
     public ValidationResult ValidateCurrentEvent()
     {
         if (eventData == null)
         {
-            ValidationResult emptyResult =
+            ValidationResult result =
                 new ValidationResult();
 
 
-            emptyResult.AddError(
+            result.AddError(
                 "No hay ningún evento cargado para validar."
             );
 
 
-            return emptyResult;
+            return result;
         }
 
 
@@ -1203,12 +1228,16 @@ public partial class EventEditor : Control
     }
 
 
+    // ============================================================
+    // SAVE
+    // ============================================================
+
     private void OnSavePressed()
     {
         if (eventRepository == null)
         {
             GD.PrintErr(
-                "EventEditor: no se puede guardar porque no hay EventRepository."
+                "EventEditor: no existe EventRepository."
             );
 
 
@@ -1220,14 +1249,28 @@ public partial class EventEditor : Control
 
 
         if (string.IsNullOrWhiteSpace(
-            eventData.Id))
+            eventData.Title))
         {
             GD.PrintErr(
-                "EventEditor: no se puede guardar un evento sin ID."
+                "EventEditor: el evento necesita un título."
             );
 
 
             return;
+        }
+
+
+        if (string.IsNullOrWhiteSpace(
+            eventData.Id))
+        {
+            eventData.Id =
+                GenerateEventIdFromTitle(
+                    eventData.Title
+                );
+
+
+            idEdit.Text =
+                eventData.Id;
         }
 
 
@@ -1237,9 +1280,8 @@ public partial class EventEditor : Control
                 eventData.Id))
         {
             GD.PrintErr(
-                "EventEditor: ya existe un evento con el ID '",
-                eventData.Id,
-                "'."
+                "EventEditor: ya existe el ID ",
+                eventData.Id
             );
 
 
@@ -1247,28 +1289,24 @@ public partial class EventEditor : Control
         }
 
 
-        bool saved =
-            eventRepository.Save(
-                eventData
-            );
-
-
-        if (!saved)
+        if (!eventRepository.Save(
+            eventData))
         {
             GD.PrintErr(
-                "EventEditor: error guardando el evento."
+                "EventEditor: error guardando."
             );
 
 
             return;
         }
+
+
+        creatingNewEvent =
+            false;
 
 
         eventId =
             eventData.Id;
-
-
-        creatingNewEvent = false;
 
 
         titleLabel.Text =
@@ -1279,13 +1317,493 @@ public partial class EventEditor : Control
         SaveOriginalState();
 
 
-        GD.Print(
-            "EventEditor: evento guardado correctamente."
+        EmitSignal(
+            SignalName.EventSaved
+        );
+    }
+
+
+    // ============================================================
+    // EVENT CONDITIONS
+    // ============================================================
+
+    private void OnEventConditionsPressed()
+    {
+        if (eventData == null)
+        {
+            eventData =
+                new EditorEventData();
+        }
+
+
+        if (eventData.Conditions == null)
+        {
+            eventData.Conditions =
+                new List<EditorConditionData>();
+        }
+
+
+        CloseEventConditionsWindow();
+
+
+        eventConditionsWindow =
+            new Window
+            {
+                Title =
+                    "Condiciones del evento",
+
+                Size =
+                    new Vector2I(
+                        650,
+                        560
+                    ),
+
+                MinSize =
+                    new Vector2I(
+                        550,
+                        450
+                    ),
+
+                Exclusive =
+                    true,
+
+                Unresizable =
+                    false
+            };
+
+
+        eventConditionsWindow.CloseRequested +=
+            CloseEventConditionsWindow;
+
+
+        AddChild(
+            eventConditionsWindow
         );
 
 
+        VBoxContainer root =
+            new VBoxContainer();
+
+        root.SetAnchorsAndOffsetsPreset(
+            LayoutPreset.FullRect
+        );
+
+        root.AddThemeConstantOverride(
+            "separation",
+            10
+        );
+
+        eventConditionsWindow.AddChild(
+            root
+        );
+
+
+        eventConditionsEditor =
+            new ConditionListEditor();
+
+        eventConditionsEditor.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
+
+        eventConditionsEditor.CustomMinimumSize =
+            new Vector2(
+                0,
+                400
+            );
+
+
+        HBoxContainer conditionsHeader =
+            new HBoxContainer
+            {
+                Name =
+                    "ConditionsHeader"
+            };
+
+
+        Button addConditionButton =
+            new Button
+            {
+                Name =
+                    "AddConditionButton",
+
+                Text =
+                    "Añadir condición",
+
+                CustomMinimumSize =
+                    new Vector2(
+                        150,
+                        35
+                    )
+            };
+
+        conditionsHeader.AddChild(
+            addConditionButton
+        );
+
+
+        VBoxContainer conditionsList =
+            new VBoxContainer
+            {
+                Name =
+                    "ConditionsList",
+
+                SizeFlagsVertical =
+                    Control.SizeFlags.ExpandFill
+            };
+
+
+        eventConditionsEditor.AddChild(
+            conditionsHeader
+        );
+
+        eventConditionsEditor.AddChild(
+            conditionsList
+        );
+
+
+        root.AddChild(
+            eventConditionsEditor
+        );
+
+
+        eventConditionsEditor.SetRepository(
+            eventRepository
+        );
+
+        eventConditionsEditor.SetProjectPath(
+            projectPath
+        );
+
+        eventConditionsEditor.SetChapter(
+            eventData.Chapter
+        );
+
+        eventConditionsEditor.SetConditions(
+            new List<EditorConditionData>(
+                eventData.Conditions
+            )
+        );
+
+
+        HBoxContainer buttons =
+            new HBoxContainer
+            {
+                Alignment =
+                    BoxContainer.AlignmentMode.End
+            };
+
+
+        Button cancelButton =
+            new Button
+            {
+                Text =
+                    "Cancelar",
+
+                CustomMinimumSize =
+                    new Vector2(
+                        110,
+                        35
+                    )
+            };
+
+
+        Button saveButton =
+            new Button
+            {
+                Text =
+                    "Guardar",
+
+                CustomMinimumSize =
+                    new Vector2(
+                        110,
+                        35
+                    )
+            };
+
+
+        buttons.AddChild(
+            cancelButton
+        );
+
+        buttons.AddChild(
+            saveButton
+        );
+
+        root.AddChild(
+            buttons
+        );
+
+
+        cancelButton.Pressed +=
+            CloseEventConditionsWindow;
+
+        saveButton.Pressed +=
+            SaveEventConditions;
+
+
+        eventConditionsWindow.PopupCentered();
+    }
+
+
+    private void SaveEventConditions()
+    {
+        if (
+            eventData == null ||
+            eventConditionsEditor == null)
+        {
+            CloseEventConditionsWindow();
+
+            return;
+        }
+
+
+        eventData.Conditions =
+            eventConditionsEditor.GetConditions();
+
+
+        GD.Print(
+            "Condiciones del evento guardadas: ",
+            eventData.Conditions.Count
+        );
+
+
+        CloseEventConditionsWindow();
+    }
+
+
+    private void CloseEventConditionsWindow()
+    {
+        if (eventConditionsWindow == null)
+        {
+            return;
+        }
+
+
+        Window window =
+            eventConditionsWindow;
+
+
+        eventConditionsWindow =
+            null;
+
+        eventConditionsEditor =
+            null;
+
+
+        window.QueueFree();
+    }
+
+
+    // ============================================================
+    // AUTOMATIC ID
+    // ============================================================
+
+    private void OnTitleChanged(
+        string newText)
+    {
+        if (!creatingNewEvent)
+        {
+            return;
+        }
+
+
+        idEdit.Text =
+            GenerateEventIdFromTitle(
+                newText
+            );
+    }
+
+
+    private string GenerateEventIdFromTitle(
+        string title)
+    {
+        if (string.IsNullOrWhiteSpace(
+            title))
+        {
+            return "";
+        }
+
+
+        string normalized =
+            title.Trim().Normalize(
+                NormalizationForm.FormD
+            );
+
+
+        StringBuilder builder =
+            new StringBuilder();
+
+
+        bool previousWasSeparator =
+            false;
+
+
+        foreach (
+            char character
+            in normalized)
+        {
+            UnicodeCategory category =
+                CharUnicodeInfo.GetUnicodeCategory(
+                    character
+                );
+
+
+            if (
+                category ==
+                UnicodeCategory.NonSpacingMark)
+            {
+                continue;
+            }
+
+
+            char lower =
+                char.ToLowerInvariant(
+                    character
+                );
+
+
+            if (
+                char.IsLetterOrDigit(
+                    lower))
+            {
+                builder.Append(
+                    lower
+                );
+
+
+                previousWasSeparator =
+                    false;
+
+
+                continue;
+            }
+
+
+            if (
+                !previousWasSeparator &&
+                builder.Length > 0)
+            {
+                builder.Append(
+                    '_'
+                );
+
+
+                previousWasSeparator =
+                    true;
+            }
+        }
+
+
+        string baseId =
+            builder.ToString().Trim(
+                '_'
+            );
+
+
+        if (string.IsNullOrWhiteSpace(
+            baseId))
+        {
+            return "";
+        }
+
+
+        string candidate =
+            baseId;
+
+
+        if (eventRepository == null)
+        {
+            return candidate;
+        }
+
+
+        int suffix =
+            2;
+
+
+        while (
+            eventRepository.Exists(
+                candidate))
+        {
+            candidate =
+                $"{baseId}_{suffix}";
+
+
+            suffix++;
+        }
+
+
+        return candidate;
+    }
+
+
+    // ============================================================
+    // UNSAVED
+    // ============================================================
+
+    private EditorEventData GetCurrentEventState()
+    {
+        UpdateEventDataFromEditor();
+
+        return eventData;
+    }
+
+
+    private void SaveOriginalState()
+    {
+        unsavedChangesGuard?.SaveOriginalState(
+            eventData
+        );
+    }
+
+
+    public bool HasUnsavedChanges()
+    {
+        return
+            unsavedChangesGuard != null &&
+            unsavedChangesGuard.HasUnsavedChanges();
+    }
+
+
+    public void RequestApplicationClose()
+    {
+        applicationCloseRequested =
+            true;
+
+
+        if (unsavedChangesGuard == null)
+        {
+            EmitSignal(
+                SignalName.ApplicationCloseConfirmed
+            );
+
+
+            return;
+        }
+
+
+        unsavedChangesGuard.RequestClose();
+    }
+
+
+    private void CloseEditor()
+    {
+        if (applicationCloseRequested)
+        {
+            applicationCloseRequested =
+                false;
+
+
+            EmitSignal(
+                SignalName.ApplicationCloseConfirmed
+            );
+
+
+            return;
+        }
+
+
         EmitSignal(
-            SignalName.EventSaved
+            SignalName.EventCancelled
         );
     }
 
@@ -1313,98 +1831,5 @@ public partial class EventEditor : Control
 
 
         unsavedChangesGuard.RequestClose();
-    }
-
-
-    private void TestValidator()
-    {
-        if (eventData == null)
-        {
-            GD.PrintErr(
-                "EventEditor: no hay evento cargado para validar."
-            );
-
-
-            return;
-        }
-
-
-        ValidationResult result =
-            ValidateCurrentEvent();
-
-
-        GD.Print(
-            "========================================"
-        );
-
-
-        GD.Print(
-            "VALIDACIÓN DEL EVENTO: ",
-            eventData.Id
-        );
-
-
-        GD.Print(
-            "========================================"
-        );
-
-
-        if (result.IsValid)
-        {
-            GD.Print(
-                "✓ El evento no tiene errores."
-            );
-        }
-        else
-        {
-            GD.Print(
-                "✗ El evento contiene ",
-                result.Errors.Count,
-                " errores."
-            );
-
-
-            foreach (
-                string error
-                in result.Errors)
-            {
-                GD.PrintErr(
-                    "ERROR: ",
-                    error
-                );
-            }
-        }
-
-
-        if (result.Warnings.Count == 0)
-        {
-            GD.Print(
-                "✓ El evento no tiene advertencias."
-            );
-        }
-        else
-        {
-            GD.Print(
-                "⚠ El evento contiene ",
-                result.Warnings.Count,
-                " advertencias."
-            );
-
-
-            foreach (
-                string warning
-                in result.Warnings)
-            {
-                GD.Print(
-                    "ADVERTENCIA: ",
-                    warning
-                );
-            }
-        }
-
-
-        GD.Print(
-            "========================================"
-        );
     }
 }

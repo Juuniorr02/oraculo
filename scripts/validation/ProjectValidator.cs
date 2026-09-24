@@ -40,11 +40,12 @@ public class ProjectValidator
         }
 
 
-        eventValidator =
-            new EventValidator(
-                chapterRepository,
-                attributeRepository
-            );
+eventValidator =
+    new EventValidator(
+        eventRepository,
+        chapterRepository,
+        attributeRepository
+    );
 
 
 interludeValidator =

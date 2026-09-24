@@ -2,30 +2,55 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
+
 public partial class EventPageEditor : Control
 {
-    private const string DragDataPrefix = "event_page_editor:";
+    private const string DragDataPrefix =
+        "event_page_editor:";
+
 
     private VBoxContainer pageList;
     private Button addPageButton;
     private Button deletePageButton;
 
-    private Label pageTitle;
+    private LineEdit pageTitle;
     private OptionButton pageTypeOption;
     private TextEdit textEdit;
 
     private Button addIllustrationButton;
     private VBoxContainer illustrationSection;
+
     private TextureRect illustrationPreview;
     private Button changeIllustrationButton;
     private Button removeIllustrationButton;
+
     private FileDialog illustrationFileDialog;
 
-    private readonly List<EditorPageData> pages = new();
+    private ScrollContainer pageScroll;
+    private ScrollContainer editorScroll;
+
+    private VBoxContainer editorContent;
+
+    private PanelContainer pagesPanel;
+    private PanelContainer editorPanel;
+
+
+    private readonly List<EditorPageData> pages =
+        new();
+
 
     private int selectedPage = -1;
-    private bool isLoadingPage;
 
+    private EditorDecisionData selectedDecision;
+
+    private List<EditorPageData> selectedPageOwnerList;
+
+    private bool isLoadingPage = false;
+
+
+    // ============================================================
+    // READY
+    // ============================================================
 
     public override void _Ready()
     {
@@ -44,8 +69,9 @@ public partial class EventPageEditor : Control
                 "HBoxContainer/PagesPanel/MarginContainer/VBoxContainer/DeletePageButton"
             );
 
+
         pageTitle =
-            GetNode<Label>(
+            GetNode<LineEdit>(
                 "HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/PageTitle"
             );
 
@@ -59,6 +85,7 @@ public partial class EventPageEditor : Control
                 "HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/TextEdit"
             );
 
+
         addIllustrationButton =
             GetNode<Button>(
                 "HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/AddIllustrationButton"
@@ -68,6 +95,7 @@ public partial class EventPageEditor : Control
             GetNode<VBoxContainer>(
                 "HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection"
             );
+
 
         illustrationPreview =
             GetNode<TextureRect>(
@@ -84,9 +112,28 @@ public partial class EventPageEditor : Control
                 "HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection/IllustrationButtons/RemoveIllustrationButton"
             );
 
+
+        // El FileDialog está directamente bajo EventPageEditor.
         illustrationFileDialog =
             GetNode<FileDialog>(
                 "IllustrationFileDialog"
+            );
+
+
+        pagesPanel =
+            GetNode<PanelContainer>(
+                "HBoxContainer/PagesPanel"
+            );
+
+        editorPanel =
+            GetNode<PanelContainer>(
+                "HBoxContainer/EditorPanel"
+            );
+
+
+        editorContent =
+            GetNode<VBoxContainer>(
+                "HBoxContainer/EditorPanel/MarginContainer/VBoxContainer"
             );
 
 
@@ -96,6 +143,9 @@ public partial class EventPageEditor : Control
         deletePageButton.Pressed +=
             OnDeletePagePressed;
 
+        pageTitle.TextChanged +=
+            OnPageTitleChanged;
+
         pageTypeOption.ItemSelected +=
             OnPageTypeSelected;
 
@@ -103,23 +153,25 @@ public partial class EventPageEditor : Control
             OnTextChanged;
 
         addIllustrationButton.Pressed +=
-            OpenIllustrationPicker;
+            OnAddIllustrationPressed;
 
         changeIllustrationButton.Pressed +=
-            OpenIllustrationPicker;
+            OnChangeIllustrationPressed;
 
         removeIllustrationButton.Pressed +=
             OnRemoveIllustrationPressed;
 
         illustrationFileDialog.FileSelected +=
-            OnIllustrationFileSelected;
-
-        illustrationFileDialog.AddFilter(
-            "*.png, *.jpg, *.jpeg, *.webp ; Archivos de imagen"
-        );
+            OnIllustrationSelected;
 
 
-        CreateInitialPage();
+        PopulatePageTypes();
+
+        selectedPageOwnerList =
+            pages;
+
+
+        SetupWorkspaceLayout();
 
 
         GD.Print(
@@ -128,51 +180,241 @@ public partial class EventPageEditor : Control
     }
 
 
+    // ============================================================
+    // LAYOUT
+    // ============================================================
+
+    private void SetupWorkspaceLayout()
+    {
+        pagesPanel.SizeFlagsHorizontal =
+            Control.SizeFlags.Fill;
+
+        pagesPanel.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
+
+        pagesPanel.CustomMinimumSize =
+            new Vector2(
+                360,
+                0
+            );
+
+
+        editorPanel.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+        editorPanel.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
+
+
+        // --------------------------------------------------------
+        // ÁRBOL
+        // --------------------------------------------------------
+
+        if (
+            pageList.GetParent()
+            is VBoxContainer pageParent)
+        {
+            pageScroll =
+                new ScrollContainer();
+
+
+            pageScroll.Name =
+                "PageScroll";
+
+
+            pageScroll.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
+
+            pageScroll.SizeFlagsVertical =
+                Control.SizeFlags.ExpandFill;
+
+
+            pageScroll.HorizontalScrollMode =
+                ScrollContainer.ScrollMode.Disabled;
+
+
+            int index =
+                pageList.GetIndex();
+
+
+            pageParent.RemoveChild(
+                pageList
+            );
+
+
+            pageParent.AddChild(
+                pageScroll
+            );
+
+
+            pageParent.MoveChild(
+                pageScroll,
+                index
+            );
+
+
+            pageScroll.AddChild(
+                pageList
+            );
+
+
+            pageList.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
+
+            pageList.SizeFlagsVertical =
+                Control.SizeFlags.Fill;
+        }
+
+
+        // --------------------------------------------------------
+        // EDITOR
+        // --------------------------------------------------------
+
+        if (
+            editorContent.GetParent()
+            is MarginContainer editorMargin)
+        {
+            editorScroll =
+                new ScrollContainer();
+
+
+            editorScroll.Name =
+                "EditorScroll";
+
+
+            editorScroll.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
+
+            editorScroll.SizeFlagsVertical =
+                Control.SizeFlags.ExpandFill;
+
+
+            editorScroll.HorizontalScrollMode =
+                ScrollContainer.ScrollMode.Disabled;
+
+
+            int index =
+                editorContent.GetIndex();
+
+
+            editorMargin.RemoveChild(
+                editorContent
+            );
+
+
+            editorMargin.AddChild(
+                editorScroll
+            );
+
+
+            editorMargin.MoveChild(
+                editorScroll,
+                index
+            );
+
+
+            editorScroll.AddChild(
+                editorContent
+            );
+
+
+            editorContent.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
+        }
+
+
+        textEdit.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+        textEdit.SizeFlagsVertical =
+            Control.SizeFlags.ExpandFill;
+    }
+
+
+    // ============================================================
+    // TYPES
+    // ============================================================
+
+    private void PopulatePageTypes()
+    {
+        pageTypeOption.Clear();
+
+
+        pageTypeOption.AddItem(
+            "Normal"
+        );
+
+        pageTypeOption.AddItem(
+            "Decisión"
+        );
+    }
+
+
+    // ============================================================
+    // DATA
+    // ============================================================
+
     public void SetPages(
         List<EditorPageData> newPages)
     {
         SaveCurrentPage();
 
+
+        List<EditorPageData> incomingPages =
+            newPages != null
+                ? new List<EditorPageData>(
+                    newPages
+                )
+                : new List<EditorPageData>();
+
+
         pages.Clear();
 
 
-        if (newPages != null)
-        {
-            foreach (
-                EditorPageData page
-                in newPages)
-            {
-                if (page == null)
-                {
-                    continue;
-                }
+        pages.AddRange(
+            incomingPages
+        );
 
-                pages.Add(
-                    page
-                );
-            }
-        }
+
+        selectedPage =
+            -1;
+
+        selectedDecision =
+            null;
+
+        selectedPageOwnerList =
+            pages;
 
 
         if (pages.Count == 0)
         {
-            CreateInitialPage();
+            EditorPageData initialPage =
+                new EditorPageData();
+
+
+            pages.Add(
+                initialPage
+            );
+
+
+            selectedPage =
+                0;
+
 
             GD.Print(
                 "EventPageEditor: no había páginas. Se creó una página inicial."
             );
-
-            return;
         }
 
 
-        selectedPage =
-            0;
+        RenderPageList();
 
 
-        RefreshPageList();
-
-        LoadSelectedPage();
+        SelectPage(
+            selectedPage,
+            pages,
+            null
+        );
 
 
         GD.Print(
@@ -195,52 +437,52 @@ public partial class EventPageEditor : Control
         );
 
 
-        for (
-            int i = 0;
-            i < pages.Count;
-            i++)
-        {
-            GD.Print(
-                "Página ",
-                i + 1,
-                " | ID: ",
-                pages[i].Id,
-                " | Tipo: ",
-                pages[i].Type
-            );
-        }
-
-
         return pages;
     }
-public bool SelectPageById(
-    string pageId)
-{
-    if (string.IsNullOrWhiteSpace(pageId))
+
+
+    public bool SelectPageById(
+        string pageId)
     {
-        return false;
-    }
-
-
-    for (
-        int i = 0;
-        i < pages.Count;
-        i++)
-    {
-        EditorPageData page =
-            pages[i];
-
-
-        if (
-            page == null ||
-            page.Id != pageId)
+        if (string.IsNullOrWhiteSpace(
+            pageId))
         {
-            continue;
+            return false;
         }
+
+
+        PageLocation location =
+            FindPageLocation(
+                pages,
+                pageId
+            );
+
+
+        if (location == null)
+        {
+            return false;
+        }
+
+
+        selectedPage =
+            location.Index;
+
+
+        selectedPageOwnerList =
+            location.OwnerList;
+
+
+        selectedDecision =
+            location.ParentDecision;
+
+
+        RenderPageList();
 
 
         SelectPage(
-            i
+            selectedPage,
+            selectedPageOwnerList,
+            selectedDecision
         );
 
 
@@ -248,56 +490,109 @@ public bool SelectPageById(
     }
 
 
-    return false;
-}
-
-
-
-    private void CreateInitialPage()
-    {
-        if (pages.Count == 0)
-        {
-            pages.Add(
-                new EditorPageData()
-            );
-        }
-
-
-        RefreshPageList();
-
-        SelectPage(0);
-    }
-
+    // ============================================================
+    // ADD PAGE
+    // ============================================================
 
     private void OnAddPagePressed()
     {
         SaveCurrentPage();
 
 
+        List<EditorPageData> targetList;
+
+
+        if (selectedDecision != null)
+        {
+            if (selectedDecision.Pages == null)
+            {
+                selectedDecision.Pages =
+                    new List<EditorPageData>();
+            }
+
+
+            targetList =
+                selectedDecision.Pages;
+        }
+        else
+        {
+            targetList =
+                selectedPageOwnerList ?? pages;
+        }
+
+
         EditorPageData newPage =
             new EditorPageData();
 
+if (selectedDecision != null)
+{
+    targetList.Add(
+        newPage
+    );
+}
+else
+{
+    int insertIndex =
+        selectedPage >= 0 &&
+        selectedPage < targetList.Count
+            ? selectedPage + 1
+            : targetList.Count;
 
-        pages.Add(
-            newPage
-        );
+
+    targetList.Insert(
+        insertIndex,
+        newPage
+    );
+}
 
 
-        RefreshPageList();
+newPage.Title =
+    GetDefaultPageTitle(
+        newPage
+    );
+
+
+        selectedPageOwnerList =
+            targetList;
+
+        selectedPage =
+            targetList.IndexOf(
+                newPage
+            );
+
+        selectedDecision =
+            null;
+
+
+        RenderPageList();
 
 
         SelectPage(
-            pages.Count - 1
+            selectedPage,
+            selectedPageOwnerList,
+            null
         );
     }
 
 
+    // ============================================================
+    // DELETE PAGE
+    // ============================================================
+
     private void OnDeletePagePressed()
     {
         if (
-            pages.Count <= 1 ||
+            selectedPageOwnerList == null ||
             selectedPage < 0 ||
-            selectedPage >= pages.Count)
+            selectedPage >= selectedPageOwnerList.Count)
+        {
+            return;
+        }
+
+
+        if (
+            selectedPageOwnerList == pages &&
+            pages.Count <= 1)
         {
             return;
         }
@@ -306,29 +601,56 @@ public bool SelectPageById(
         SaveCurrentPage();
 
 
-        int deletedPage =
-            selectedPage;
-
-
-        pages.RemoveAt(
-            deletedPage
+        selectedPageOwnerList.RemoveAt(
+            selectedPage
         );
 
 
+        if (selectedPageOwnerList.Count == 0)
+        {
+            selectedPage =
+                -1;
+
+            selectedDecision =
+                null;
+
+
+            RenderPageList();
+            ClearPageEditor();
+
+
+            return;
+        }
+
+
         selectedPage =
-            Math.Min(
-                deletedPage,
-                pages.Count - 1
+            Mathf.Clamp(
+                selectedPage,
+                0,
+                selectedPageOwnerList.Count - 1
             );
 
 
-        RefreshPageList();
+        selectedDecision =
+            null;
 
-        LoadSelectedPage();
+
+        RenderPageList();
+
+
+        SelectPage(
+            selectedPage,
+            selectedPageOwnerList,
+            null
+        );
     }
 
 
-    private void RefreshPageList()
+    // ============================================================
+    // TREE
+    // ============================================================
+
+    private void RenderPageList()
     {
         foreach (
             Node child
@@ -343,682 +665,1805 @@ public bool SelectPageById(
             i < pages.Count;
             i++)
         {
-            PageDragButton pageButton =
-                new PageDragButton
-                {
-                    Text =
-                        $"Página {i + 1}",
-
-                    PageIndex =
-                        i,
-
-                    CustomMinimumSize =
-                        new Vector2(
-                            0,
-                            38
-                        ),
-
-                    Alignment =
-                        HorizontalAlignment.Left,
-
-                    ToggleMode =
-                        true,
-
-                    ButtonPressed =
-                        i == selectedPage
-                };
-
-
-            pageButton.Pressed +=
-                () =>
-                {
-                    SelectPage(
-                        pageButton.PageIndex
-                    );
-                };
-
-
-            pageButton.DragStarted +=
-                OnPageDragStarted;
-
-            pageButton.PageDropped +=
-                OnPageDropped;
-
-
-            pageList.AddChild(
-                pageButton
+            RenderPageRecursive(
+                pages[i],
+                pages,
+                i,
+                0
             );
         }
 
 
         deletePageButton.Disabled =
-            pages.Count <= 1;
+            selectedPage < 0 ||
+            selectedPageOwnerList == null ||
+            (
+                selectedPageOwnerList == pages &&
+                pages.Count <= 1
+            );
     }
 
 
-    private void SelectPage(
-        int index)
+    private void RenderPageRecursive(
+        EditorPageData page,
+        List<EditorPageData> ownerList,
+        int index,
+        int depth)
     {
-        if (
-            index < 0 ||
-            index >= pages.Count)
+        if (page == null)
         {
             return;
         }
 
 
-        SaveCurrentPage();
+        HBoxContainer row =
+            CreateRow();
 
+
+        Label prefix =
+            new Label();
+
+
+        prefix.Text =
+            BuildRootPrefix(
+                depth
+            );
+
+
+        prefix.VerticalAlignment =
+            VerticalAlignment.Center;
+
+
+        prefix.CustomMinimumSize =
+            new Vector2(
+                Mathf.Max(
+                    0,
+                    depth * 22
+                ),
+                36
+            );
+
+
+        row.AddChild(
+            prefix
+        );
+
+
+        PageTreeButton pageButton =
+            new PageTreeButton(
+                page.Id
+            );
+
+
+        pageButton.Text =
+            $"{BuildTreeNumber(ownerList, index)} · {GetPageDisplayName(page, ownerList, index)}";
+
+
+        pageButton.Alignment =
+            HorizontalAlignment.Left;
+
+
+        pageButton.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+
+        pageButton.CustomMinimumSize =
+            new Vector2(
+                0,
+                36
+            );
+
+
+        pageButton.TooltipText =
+            page.Type == EditorPageType.Decision
+                ? $"Decisión · {page.Decisions?.Count ?? 0} opciones"
+                : "Página narrativa";
+
+
+        pageButton.Pressed += () =>
+        {
+            SaveCurrentPage();
+
+
+            selectedPageOwnerList =
+                ownerList;
+
+            selectedPage =
+                index;
+
+            selectedDecision =
+                null;
+
+
+            LoadPageEditor(
+                page
+            );
+        };
+
+
+        pageButton.PageDropped +=
+            OnPageDropped;
+
+
+        row.AddChild(
+            pageButton
+        );
+
+
+        pageList.AddChild(
+            row
+        );
+
+
+        RenderDecisionTree(
+            page,
+            depth,
+            new List<bool>()
+        );
+    }
+
+
+    private void RenderDecisionTree(
+        EditorPageData page,
+        int depth,
+        List<bool> ancestorHasNext)
+    {
+        if (page.Decisions == null)
+        {
+            return;
+        }
+
+
+        for (
+            int d = 0;
+            d < page.Decisions.Count;
+            d++)
+        {
+            EditorDecisionData decision =
+                page.Decisions[d];
+
+
+            if (decision == null)
+            {
+                continue;
+            }
+
+
+            bool isLastDecision =
+                d == page.Decisions.Count - 1;
+
+
+            List<bool> currentPath =
+                new List<bool>(
+                    ancestorHasNext
+                );
+
+
+            currentPath.Add(
+                !isLastDecision
+            );
+
+
+            HBoxContainer decisionRow =
+                CreateRow();
+
+
+            Label prefix =
+                new Label();
+
+
+            prefix.Text =
+                BuildTreeBranchPrefix(
+                    currentPath,
+                    false
+                );
+
+
+            prefix.VerticalAlignment =
+                VerticalAlignment.Center;
+
+
+            prefix.CustomMinimumSize =
+                new Vector2(
+                    0,
+                    32
+                );
+
+
+            decisionRow.AddChild(
+                prefix
+            );
+
+
+            Button decisionButton =
+                new Button();
+
+
+            string decisionText =
+                string.IsNullOrWhiteSpace(
+                    decision.Text)
+                    ? "Opción sin texto"
+                    : decision.Text.Trim();
+
+
+            decisionButton.Text =
+                $"{GetDecisionLetter(d)} · {decisionText}";
+
+
+            decisionButton.Alignment =
+                HorizontalAlignment.Left;
+
+
+            decisionButton.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
+
+
+            decisionButton.CustomMinimumSize =
+                new Vector2(
+                    0,
+                    32
+                );
+
+
+            decisionButton.TooltipText =
+                $"Opción {GetDecisionLetter(d)} · {decision.Pages?.Count ?? 0} páginas";
+
+
+            int capturedDecisionIndex =
+                d;
+
+
+            EditorPageData capturedPage =
+                page;
+
+
+            decisionButton.Pressed += () =>
+            {
+                SaveCurrentPage();
+
+
+                selectedPageOwnerList =
+                    FindOwnerList(
+                        capturedPage
+                    );
+
+
+                selectedPage =
+                    selectedPageOwnerList != null
+                        ? selectedPageOwnerList.IndexOf(
+                            capturedPage
+                        )
+                        : -1;
+
+
+                selectedDecision =
+                    capturedPage.Decisions[
+                        capturedDecisionIndex
+                    ];
+
+
+                LoadPageEditor(
+                    capturedPage
+                );
+            };
+
+
+            decisionRow.AddChild(
+                decisionButton
+            );
+
+
+            pageList.AddChild(
+                decisionRow
+            );
+
+
+            if (decision.Pages == null)
+            {
+                continue;
+            }
+
+
+            for (
+                int p = 0;
+                p < decision.Pages.Count;
+                p++)
+            {
+                EditorPageData branchPage =
+                    decision.Pages[p];
+
+
+                if (branchPage == null)
+                {
+                    continue;
+                }
+
+
+                bool isLastPage =
+                    p == decision.Pages.Count - 1;
+
+
+                List<bool> branchPath =
+                    new List<bool>(
+                        currentPath
+                    );
+
+
+                branchPath.Add(
+                    !isLastPage
+                );
+
+
+                RenderBranchPageRecursive(
+                    branchPage,
+                    decision.Pages,
+                    p,
+                    branchPath,
+                    decision
+                );
+            }
+        }
+    }
+
+
+    private void RenderBranchPageRecursive(
+        EditorPageData page,
+        List<EditorPageData> ownerList,
+        int index,
+        List<bool> path,
+        EditorDecisionData parentDecision)
+    {
+        if (page == null)
+        {
+            return;
+        }
+
+
+        HBoxContainer row =
+            CreateRow();
+
+
+        Label prefix =
+            new Label();
+
+
+        prefix.Text =
+            BuildTreeBranchPrefix(
+                path,
+                true
+            );
+
+
+        prefix.VerticalAlignment =
+            VerticalAlignment.Center;
+
+
+        prefix.CustomMinimumSize =
+            new Vector2(
+                0,
+                36
+            );
+
+
+        row.AddChild(
+            prefix
+        );
+
+
+        PageTreeButton pageButton =
+            new PageTreeButton(
+                page.Id
+            );
+
+
+        pageButton.Text =
+            $"{BuildTreeNumber(ownerList, index)} · {GetPageDisplayName(page, ownerList, index)}";
+
+
+        pageButton.Alignment =
+            HorizontalAlignment.Left;
+
+
+        pageButton.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+
+        pageButton.CustomMinimumSize =
+            new Vector2(
+                0,
+                36
+            );
+
+
+        pageButton.TooltipText =
+            page.Type == EditorPageType.Decision
+                ? $"Decisión · {page.Decisions?.Count ?? 0} opciones"
+                : "Página narrativa";
+
+
+        int capturedIndex =
+            index;
+
+
+        List<EditorPageData> capturedOwnerList =
+            ownerList;
+
+
+        EditorDecisionData capturedParentDecision =
+            parentDecision;
+
+
+        pageButton.Pressed += () =>
+        {
+            SaveCurrentPage();
+
+
+            selectedPageOwnerList =
+                capturedOwnerList;
+
+
+            selectedPage =
+                capturedIndex;
+
+
+            selectedDecision =
+                null;
+
+
+            LoadPageEditor(
+                page
+            );
+        };
+
+
+        pageButton.PageDropped +=
+            OnPageDropped;
+
+
+        row.AddChild(
+            pageButton
+        );
+
+
+        pageList.AddChild(
+            row
+        );
+
+
+        RenderNestedDecisions(
+            page,
+            path
+        );
+    }
+
+
+    private void RenderNestedDecisions(
+        EditorPageData page,
+        List<bool> parentPath)
+    {
+        if (page.Decisions == null)
+        {
+            return;
+        }
+
+
+        for (
+            int d = 0;
+            d < page.Decisions.Count;
+            d++)
+        {
+            EditorDecisionData decision =
+                page.Decisions[d];
+
+
+            if (decision == null)
+            {
+                continue;
+            }
+
+
+            bool isLastDecision =
+                d == page.Decisions.Count - 1;
+
+
+            List<bool> decisionPath =
+                new List<bool>(
+                    parentPath
+                );
+
+
+            decisionPath.Add(
+                !isLastDecision
+            );
+
+
+            HBoxContainer row =
+                CreateRow();
+
+
+            Label prefix =
+                new Label();
+
+
+            prefix.Text =
+                BuildTreeBranchPrefix(
+                    decisionPath,
+                    false
+                );
+
+
+            prefix.VerticalAlignment =
+                VerticalAlignment.Center;
+
+
+            row.AddChild(
+                prefix
+            );
+
+
+            Button decisionButton =
+                new Button();
+
+
+            string decisionText =
+                string.IsNullOrWhiteSpace(
+                    decision.Text)
+                    ? "Opción sin texto"
+                    : decision.Text.Trim();
+
+
+            decisionButton.Text =
+                $"{GetDecisionLetter(d)} · {decisionText}";
+
+
+            decisionButton.Alignment =
+                HorizontalAlignment.Left;
+
+
+            decisionButton.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
+
+
+            decisionButton.CustomMinimumSize =
+                new Vector2(
+                    0,
+                    32
+                );
+
+
+            row.AddChild(
+                decisionButton
+            );
+
+
+            EditorPageData capturedPage =
+                page;
+
+
+            int capturedDecisionIndex =
+                d;
+
+
+            decisionButton.Pressed += () =>
+            {
+                SaveCurrentPage();
+
+
+                selectedPageOwnerList =
+                    FindOwnerList(
+                        capturedPage
+                    );
+
+
+                selectedPage =
+                    selectedPageOwnerList?.IndexOf(
+                        capturedPage
+                    ) ?? -1;
+
+
+                selectedDecision =
+                    capturedPage.Decisions[
+                        capturedDecisionIndex
+                    ];
+
+
+                LoadPageEditor(
+                    capturedPage
+                );
+            };
+
+
+            pageList.AddChild(
+                row
+            );
+
+
+            if (decision.Pages == null)
+            {
+                continue;
+            }
+
+
+            for (
+                int p = 0;
+                p < decision.Pages.Count;
+                p++)
+            {
+                EditorPageData branchPage =
+                    decision.Pages[p];
+
+
+                bool isLastPage =
+                    p == decision.Pages.Count - 1;
+
+
+                List<bool> branchPath =
+                    new List<bool>(
+                        decisionPath
+                    );
+
+
+                branchPath.Add(
+                    !isLastPage
+                );
+
+
+                RenderBranchPageRecursive(
+                    branchPage,
+                    decision.Pages,
+                    p,
+                    branchPath,
+                    decision
+                );
+            }
+        }
+    }
+
+
+    private HBoxContainer CreateRow()
+    {
+        HBoxContainer row =
+            new HBoxContainer();
+
+
+        row.SizeFlagsHorizontal =
+            Control.SizeFlags.ExpandFill;
+
+
+        row.AddThemeConstantOverride(
+            "separation",
+            0
+        );
+
+
+        return row;
+    }
+
+
+    private string BuildRootPrefix(
+        int depth)
+    {
+        if (depth <= 0)
+        {
+            return "";
+        }
+
+
+        return new string(
+            ' ',
+            depth * 2
+        );
+    }
+
+
+    private string BuildTreeBranchPrefix(
+        List<bool> path,
+        bool page)
+    {
+        string result = "";
+
+
+        for (
+            int i = 0;
+            i < path.Count - 1;
+            i++)
+        {
+            result +=
+                path[i]
+                    ? "│   "
+                    : "    ";
+        }
+
+
+        if (path.Count > 0)
+        {
+            result +=
+                page
+                    ? (path[^1]
+                        ? "├─ "
+                        : "└─ ")
+                    : (path[^1]
+                        ? "├─ "
+                        : "└─ ");
+        }
+
+
+        return result;
+    }
+
+
+    // ============================================================
+    // SELECTION / EDITOR
+    // ============================================================
+
+    private void SelectPage(
+        int index,
+        List<EditorPageData> ownerList,
+        EditorDecisionData parentDecision)
+    {
+        if (
+            ownerList == null ||
+            index < 0 ||
+            index >= ownerList.Count)
+        {
+            DisablePageEditor();
+
+
+            return;
+        }
+
+
+        selectedPageOwnerList =
+            ownerList;
 
         selectedPage =
             index;
 
+        selectedDecision =
+            parentDecision;
 
-        RefreshPageList();
 
-        LoadSelectedPage();
+        LoadPageEditor(
+            ownerList[index]
+        );
     }
 
 
-    private void LoadSelectedPage()
+    private void LoadPageEditor(
+    EditorPageData page)
+{
+    if (page == null)
     {
-        if (
-            selectedPage < 0 ||
-            selectedPage >= pages.Count)
-        {
-            return;
-        }
+        DisablePageEditor();
+        return;
+    }
 
 
-        EditorPageData page =
-            pages[selectedPage];
+    isLoadingPage =
+        true;
 
 
+    pageTitle.Editable =
+        true;
+
+    pageTypeOption.Disabled =
+        false;
+
+    textEdit.Editable =
+        true;
+
+    addIllustrationButton.Disabled =
+        false;
+
+    changeIllustrationButton.Disabled =
+        false;
+
+    removeIllustrationButton.Disabled =
+        false;
+
+
+    // Si una página antigua no tiene nombre, le asignamos
+    // inmediatamente uno para que nunca aparezca vacía.
+    if (string.IsNullOrWhiteSpace(page.Title))
+    {
+        page.Title =
+            GetDefaultPageTitle(page);
+    }
+
+
+    pageTitle.Text =
+        page.Title;
+
+
+    pageTypeOption.Select(
+        page.Type == EditorPageType.Decision
+            ? 1
+            : 0
+    );
+
+
+    textEdit.Text =
+        page.Text ?? "";
+
+
+    UpdateIllustrationUI(
+        page
+    );
+
+
+    isLoadingPage =
+        false;
+
+
+    deletePageButton.Disabled =
+        selectedPageOwnerList == null ||
+        (
+            selectedPageOwnerList == pages &&
+            pages.Count <= 1
+        );
+}
+private string GetDefaultPageTitle(
+    EditorPageData page)
+{
+    if (page == null)
+    {
+        return "Página";
+    }
+
+
+    int index =
+        selectedPageOwnerList != null
+            ? selectedPageOwnerList.IndexOf(page)
+            : -1;
+
+
+    if (
+        selectedPageOwnerList == pages &&
+        index == 0)
+    {
+        return "Introducción";
+    }
+
+
+    if (index >= 0)
+    {
+        return $"Página {index + 1}";
+    }
+
+
+    return "Página";
+}
+
+
+    private void ClearPageEditor()
+    {
         isLoadingPage =
             true;
 
 
         pageTitle.Text =
-            $"Página {selectedPage + 1}";
+            "";
 
+        pageTypeOption.Select(
+            0
+        );
 
         textEdit.Text =
-            page.Text;
+            "";
 
+        illustrationPreview.Texture =
+            null;
 
-        LoadPageType(
-            page.Type
-        );
+        illustrationSection.Visible =
+            false;
 
 
         isLoadingPage =
             false;
 
 
-        UpdateIllustrationUi(
-            page
-        );
+        deletePageButton.Disabled =
+            true;
     }
 
 
-    private void LoadPageType(
-        EditorPageType type)
+    private void DisablePageEditor()
     {
-        switch (type)
+        ClearPageEditor();
+
+
+        pageTitle.Editable =
+            false;
+
+        pageTypeOption.Disabled =
+            true;
+
+        textEdit.Editable =
+            false;
+
+        addIllustrationButton.Disabled =
+            true;
+
+        changeIllustrationButton.Disabled =
+            true;
+
+        removeIllustrationButton.Disabled =
+            true;
+    }
+
+
+    // ============================================================
+    // SAVE
+    // ============================================================
+
+    private void SaveCurrentPage()
+    {
+        if (isLoadingPage)
         {
-            case EditorPageType.Normal:
-                pageTypeOption.Select(0);
-                break;
-
-            case EditorPageType.Decision:
-                pageTypeOption.Select(1);
-                break;
-
-            default:
-                pageTypeOption.Select(0);
-                break;
+            return;
         }
+
+
+        if (
+            selectedPageOwnerList == null ||
+            selectedPage < 0 ||
+            selectedPage >= selectedPageOwnerList.Count)
+        {
+            return;
+        }
+
+
+        EditorPageData page =
+            selectedPageOwnerList[
+                selectedPage
+            ];
+
+
+        if (page == null)
+        {
+            return;
+        }
+
+
+        page.Title =
+            pageTitle.Text;
+
+        page.Text =
+            textEdit.Text;
+
+
+        page.Type =
+            pageTypeOption.Selected == 1
+                ? EditorPageType.Decision
+                : EditorPageType.Normal;
+
+
+        if (page.Decisions == null)
+        {
+            page.Decisions =
+                new List<EditorDecisionData>();
+        }
+    }
+
+
+    // ============================================================
+    // CHANGES
+    // ============================================================
+
+    private void OnPageTitleChanged(
+        string newText)
+    {
+        if (isLoadingPage)
+        {
+            return;
+        }
+
+
+        if (
+            selectedPageOwnerList == null ||
+            selectedPage < 0 ||
+            selectedPage >= selectedPageOwnerList.Count)
+        {
+            return;
+        }
+
+
+        EditorPageData page =
+            selectedPageOwnerList[
+                selectedPage
+            ];
+
+
+        if (page == null)
+        {
+            return;
+        }
+
+
+        page.Title =
+            newText;
+
+
+        RenderPageList();
     }
 
 
     private void OnPageTypeSelected(
         long index)
     {
+        if (isLoadingPage)
+        {
+            return;
+        }
+
+
         if (
-            isLoadingPage ||
+            selectedPageOwnerList == null ||
             selectedPage < 0 ||
-            selectedPage >= pages.Count)
+            selectedPage >= selectedPageOwnerList.Count)
         {
             return;
         }
 
 
         EditorPageData page =
-            pages[selectedPage];
+            selectedPageOwnerList[
+                selectedPage
+            ];
 
 
-        switch (index)
-        {
-            case 0:
-                page.Type =
-                    EditorPageType.Normal;
-                break;
-
-            case 1:
-                page.Type =
-                    EditorPageType.Decision;
-                break;
-        }
-    }
-
-
-    private void SaveCurrentPage()
-    {
-        if (
-            selectedPage < 0 ||
-            selectedPage >= pages.Count)
+        if (page == null)
         {
             return;
         }
 
 
-        EditorPageData page =
-            pages[selectedPage];
+        page.Type =
+            index == 1
+                ? EditorPageType.Decision
+                : EditorPageType.Normal;
 
 
-        page.Text =
-            textEdit.Text;
+        if (page.Decisions == null)
+        {
+            page.Decisions =
+                new List<EditorDecisionData>();
+        }
+
+
+        RenderPageList();
     }
 
 
     private void OnTextChanged()
     {
-        if (!isLoadingPage)
-        {
-            SaveCurrentPage();
-        }
-    }
-
-
-    private void OnPageDragStarted()
-    {
-        SaveCurrentPage();
-    }
-
-
-    private void OnPageDropped(
-        int sourceIndex,
-        int targetIndex)
-    {
-        if (
-            sourceIndex == targetIndex ||
-            sourceIndex < 0 ||
-            targetIndex < 0 ||
-            sourceIndex >= pages.Count ||
-            targetIndex >= pages.Count)
+        if (isLoadingPage)
         {
             return;
         }
 
 
-        EditorPageData movedPage =
-            pages[sourceIndex];
-
-
-        pages.RemoveAt(
-            sourceIndex
-        );
-
-
-        pages.Insert(
-            targetIndex,
-            movedPage
-        );
-
-
         if (
-            selectedPage ==
-            sourceIndex)
-        {
-            selectedPage =
-                targetIndex;
-        }
-        else if (
-            sourceIndex < selectedPage &&
-            selectedPage <= targetIndex)
-        {
-            selectedPage--;
-        }
-        else if (
-            targetIndex <= selectedPage &&
-            selectedPage < sourceIndex)
-        {
-            selectedPage++;
-        }
-
-
-        RefreshPageList();
-
-        LoadSelectedPage();
-    }
-
-
-    private void OpenIllustrationPicker()
-    {
-        if (
-            selectedPage >= 0 &&
-            selectedPage < pages.Count)
-        {
-            illustrationFileDialog.PopupCenteredRatio(
-                0.75f
-            );
-        }
-    }
-
-
-    private void OnIllustrationFileSelected(
-        string path)
-    {
-        if (
+            selectedPageOwnerList == null ||
             selectedPage < 0 ||
-            selectedPage >= pages.Count)
+            selectedPage >= selectedPageOwnerList.Count)
         {
             return;
         }
 
 
-        pages[selectedPage].Illustration =
-            path;
+        EditorPageData page =
+            selectedPageOwnerList[
+                selectedPage
+            ];
 
 
-        UpdateIllustrationUi(
-            pages[selectedPage]
-        );
+        if (page != null)
+        {
+            page.Text =
+                textEdit.Text;
+        }
+    }
+
+
+    // ============================================================
+    // ILLUSTRATION
+    // ============================================================
+
+    private void OnAddIllustrationPressed()
+    {
+        illustrationFileDialog.PopupCentered();
+    }
+
+
+    private void OnChangeIllustrationPressed()
+    {
+        illustrationFileDialog.PopupCentered();
     }
 
 
     private void OnRemoveIllustrationPressed()
     {
         if (
+            selectedPageOwnerList == null ||
             selectedPage < 0 ||
-            selectedPage >= pages.Count)
+            selectedPage >= selectedPageOwnerList.Count)
         {
             return;
         }
 
 
-        pages[selectedPage].Illustration =
-            string.Empty;
+        EditorPageData page =
+            selectedPageOwnerList[
+                selectedPage
+            ];
 
 
-        UpdateIllustrationUi(
-            pages[selectedPage]
+        if (page == null)
+        {
+            return;
+        }
+
+
+        page.Illustration =
+            "";
+
+
+        illustrationPreview.Texture =
+            null;
+
+        illustrationSection.Visible =
+            false;
+    }
+
+
+    private void OnIllustrationSelected(
+        string path)
+    {
+        if (
+            selectedPageOwnerList == null ||
+            selectedPage < 0 ||
+            selectedPage >= selectedPageOwnerList.Count)
+        {
+            return;
+        }
+
+
+        EditorPageData page =
+            selectedPageOwnerList[
+                selectedPage
+            ];
+
+
+        if (page == null)
+        {
+            return;
+        }
+
+
+        page.Illustration =
+            path;
+
+
+        UpdateIllustrationUI(
+            page
         );
     }
 
 
-    private void UpdateIllustrationUi(
+    private void UpdateIllustrationUI(
         EditorPageData page)
     {
-        bool hasIllustration =
-            !string.IsNullOrEmpty(
-                page.Illustration
-            );
+        if (
+            page == null ||
+            string.IsNullOrWhiteSpace(
+                page.Illustration))
+        {
+            illustrationPreview.Texture =
+                null;
+
+            illustrationSection.Visible =
+                false;
 
 
-        addIllustrationButton.Visible =
-            !hasIllustration;
+            return;
+        }
 
 
         illustrationSection.Visible =
-            hasIllustration;
-
-
-        illustrationPreview.Texture =
-            hasIllustration
-                ? LoadPreview(
-                    page.Illustration
-                )
-                : null;
-    }
-
-
-    private static Texture2D LoadPreview(
-        string path)
-    {
-        if (string.IsNullOrEmpty(path))
-        {
-            return null;
-        }
+            true;
 
 
         Image image =
             Image.LoadFromFile(
-                path
+                page.Illustration
+            );
+
+
+        if (image == null)
+        {
+            illustrationPreview.Texture =
+                null;
+
+
+            return;
+        }
+
+
+        illustrationPreview.Texture =
+            ImageTexture.CreateFromImage(
+                image
+            );
+    }
+
+
+    // ============================================================
+    // DRAG / DROP
+    // ============================================================
+
+    private void OnPageDropped(
+        string draggedPageId,
+        string targetPageId)
+    {
+        if (
+            string.IsNullOrWhiteSpace(
+                draggedPageId) ||
+            string.IsNullOrWhiteSpace(
+                targetPageId) ||
+            draggedPageId == targetPageId)
+        {
+            return;
+        }
+
+
+        PageLocation dragged =
+            FindPageLocation(
+                pages,
+                draggedPageId
+            );
+
+
+        PageLocation target =
+            FindPageLocation(
+                pages,
+                targetPageId
             );
 
 
         if (
-            image == null ||
-            image.IsEmpty())
+            dragged == null ||
+            target == null ||
+            dragged.OwnerList != target.OwnerList)
+        {
+            return;
+        }
+
+
+        SaveCurrentPage();
+
+
+        EditorPageData draggedPage =
+            dragged.Page;
+
+
+        int targetIndex =
+            target.Index;
+
+
+        dragged.OwnerList.Remove(
+            draggedPage
+        );
+
+
+        if (dragged.Index < targetIndex)
+        {
+            targetIndex--;
+        }
+
+
+        targetIndex =
+            Mathf.Clamp(
+                targetIndex,
+                0,
+                dragged.OwnerList.Count
+            );
+
+
+        dragged.OwnerList.Insert(
+            targetIndex,
+            draggedPage
+        );
+
+
+        selectedPageOwnerList =
+            dragged.OwnerList;
+
+
+        selectedPage =
+            targetIndex;
+
+
+        selectedDecision =
+            null;
+
+
+        RenderPageList();
+
+
+        LoadPageEditor(
+            draggedPage
+        );
+    }
+
+
+    // ============================================================
+    // RENAME
+    // ============================================================
+
+    // Ya no existe botón de lápiz.
+    // El nombre se edita directamente mediante pageTitle.
+    
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    private string GetPageDisplayName(
+        EditorPageData page,
+        List<EditorPageData> ownerList,
+        int index)
+    {
+        if (
+            page != null &&
+            !string.IsNullOrWhiteSpace(
+                page.Title))
+        {
+            return page.Title.Trim();
+        }
+
+
+        if (
+            ownerList == pages &&
+            index == 0)
+        {
+            return "Introducción";
+        }
+
+
+        return $"Página {index + 1}";
+    }
+
+
+    private string BuildTreeNumber(
+        List<EditorPageData> ownerList,
+        int index)
+    {
+        if (ownerList == null)
+        {
+            return "??";
+        }
+
+
+        return (
+            index + 1
+        ).ToString(
+            "00"
+        );
+    }
+
+
+    private string GetDecisionLetter(
+        int index)
+    {
+        if (index < 26)
+        {
+            return (
+                (char)('A' + index)
+            ).ToString();
+        }
+
+
+        int first =
+            index / 26;
+
+        int second =
+            index % 26;
+
+
+        return
+            ((char)('A' + first - 1)).ToString() +
+            ((char)('A' + second)).ToString();
+    }
+
+
+    private List<EditorPageData> FindOwnerList(
+        EditorPageData target)
+    {
+        if (target == null)
         {
             return null;
         }
 
 
-        return ImageTexture.CreateFromImage(
-            image
-        );
-    }
-
-
-    private sealed partial class PageDragButton : Button
-{
-    public int PageIndex { get; set; }
-
-    public event Action DragStarted;
-
-    public event Action<int, int> PageDropped;
-
-
-    public override void _Ready()
-    {
-        MouseEntered +=
-            OnMouseEntered;
-
-        MouseExited +=
-            OnMouseExited;
-
-        Toggled +=
-            OnToggled;
-
-        ApplyStyle(
-            ButtonPressed
-        );
-    }
-
-
-    private void ApplyStyle(
-        bool selected)
-    {
-        StyleBoxFlat normalStyle =
-            new StyleBoxFlat
-            {
-                BgColor =
-                    new Color(
-                        "222730"
-                    ),
-
-                BorderWidthLeft = 1,
-                BorderWidthTop = 1,
-                BorderWidthRight = 1,
-                BorderWidthBottom = 1,
-
-                BorderColor =
-                    new Color(
-                        "313743"
-                    ),
-
-                CornerRadiusTopLeft = 3,
-                CornerRadiusTopRight = 3,
-                CornerRadiusBottomLeft = 3,
-                CornerRadiusBottomRight = 3,
-
-                ContentMarginLeft = 12,
-                ContentMarginRight = 12,
-                ContentMarginTop = 8,
-                ContentMarginBottom = 8
-            };
-
-
-        StyleBoxFlat hoverStyle =
-            new StyleBoxFlat
-            {
-                BgColor =
-                    new Color(
-                        "252D35"
-                    ),
-
-                BorderWidthLeft = 1,
-                BorderWidthTop = 1,
-                BorderWidthRight = 1,
-                BorderWidthBottom = 1,
-
-                BorderColor =
-                    new Color(
-                        "4FA6A6"
-                    ),
-
-                CornerRadiusTopLeft = 3,
-                CornerRadiusTopRight = 3,
-                CornerRadiusBottomLeft = 3,
-                CornerRadiusBottomRight = 3,
-
-                ContentMarginLeft = 12,
-                ContentMarginRight = 12,
-                ContentMarginTop = 8,
-                ContentMarginBottom = 8
-            };
-
-
-        StyleBoxFlat pressedStyle =
-            new StyleBoxFlat
-            {
-                BgColor =
-                    new Color(
-                        "27343A"
-                    ),
-
-                BorderWidthLeft = 2,
-                BorderWidthTop = 1,
-                BorderWidthRight = 1,
-                BorderWidthBottom = 1,
-
-                BorderColor =
-                    new Color(
-                        "4FA6A6"
-                    ),
-
-                CornerRadiusTopLeft = 3,
-                CornerRadiusTopRight = 3,
-                CornerRadiusBottomLeft = 3,
-                CornerRadiusBottomRight = 3,
-
-                ContentMarginLeft = 11,
-                ContentMarginRight = 12,
-                ContentMarginTop = 8,
-                ContentMarginBottom = 8
-            };
-
-
-        AddThemeStyleboxOverride(
-            "normal",
-            normalStyle
-        );
-
-        AddThemeStyleboxOverride(
-            "hover",
-            hoverStyle
-        );
-
-        AddThemeStyleboxOverride(
-            "pressed",
-            pressedStyle
-        );
-
-
-        AddThemeColorOverride(
-            "font_color",
-            new Color(
-                "A8AFBC"
-            )
-        );
-
-        AddThemeColorOverride(
-            "font_hover_color",
-            new Color(
-                "E7EAF0"
-            )
-        );
-
-        AddThemeColorOverride(
-            "font_pressed_color",
-            new Color(
-                "E7EAF0"
-            )
-        );
-
-        AddThemeColorOverride(
-            "font_focus_color",
-            new Color(
-                "E7EAF0"
-            )
-        );
-
-
-        if (selected)
+        if (pages.Contains(target))
         {
-            AddThemeStyleboxOverride(
-                "normal",
-                pressedStyle
-            );
+            return pages;
         }
-    }
 
 
-    private void OnMouseEntered()
-    {
-        if (!ButtonPressed)
+        foreach (
+            EditorPageData root
+            in pages)
         {
-            ApplyStyle(false);
-        }
-    }
+            List<EditorPageData> result =
+                FindOwnerListRecursive(
+                    root,
+                    target
+                );
 
 
-    private void OnMouseExited()
-    {
-        ApplyStyle(
-            ButtonPressed
-        );
-    }
-
-
-    private void OnToggled(
-        bool pressed)
-    {
-        ApplyStyle(
-            pressed
-        );
-    }
-
-
-    public override Variant _GetDragData(
-        Vector2 atPosition)
-    {
-        DragStarted?.Invoke();
-
-
-        Label preview =
-            new Label
+            if (result != null)
             {
-                Text =
-                    Text
-            };
+                return result;
+            }
+        }
 
 
-        preview.AddThemeColorOverride(
-            "font_color",
-            new Color(
-                "E7EAF0"
-            )
-        );
-
-
-        preview.AddThemeColorOverride(
-            "font_color",
-            new Color(
-                "E7EAF0"
-            )
-        );
-
-        preview.AddThemeFontSizeOverride(
-            "font_size",
-            14
-        );
-
-
-        SetDragPreview(
-            preview
-        );
-
-
-        return
-            EventPageEditor.DragDataPrefix +
-            PageIndex;
+        return null;
     }
 
 
-    public override bool _CanDropData(
-        Vector2 atPosition,
-        Variant data)
-    {
-        return
-            TryGetDraggedPageIndex(
-                data,
-                out int sourceIndex
-            ) &&
-            sourceIndex != PageIndex;
-    }
-
-
-    public override void _DropData(
-        Vector2 atPosition,
-        Variant data)
+    private List<EditorPageData> FindOwnerListRecursive(
+        EditorPageData page,
+        EditorPageData target)
     {
         if (
-            TryGetDraggedPageIndex(
-                data,
-                out int sourceIndex
-            ))
+            page == null ||
+            page.Decisions == null)
         {
-            PageDropped?.Invoke(
-                sourceIndex,
-                PageIndex
-            );
+            return null;
         }
+
+
+        foreach (
+            EditorDecisionData decision
+            in page.Decisions)
+        {
+            if (
+                decision == null ||
+                decision.Pages == null)
+            {
+                continue;
+            }
+
+
+            if (decision.Pages.Contains(
+                target))
+            {
+                return decision.Pages;
+            }
+
+
+            foreach (
+                EditorPageData child
+                in decision.Pages)
+            {
+                List<EditorPageData> result =
+                    FindOwnerListRecursive(
+                        child,
+                        target
+                    );
+
+
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+        }
+
+
+        return null;
     }
 
 
-    private static bool TryGetDraggedPageIndex(
-        Variant data,
-        out int pageIndex)
+    private PageLocation FindPageLocation(
+        List<EditorPageData> collection,
+        string pageId)
     {
-        pageIndex =
-            -1;
-
-
-        if (
-            data.VariantType !=
-            Variant.Type.String)
+        if (collection == null)
         {
-            return false;
+            return null;
         }
 
 
-        string value =
-            data.AsString();
+        for (
+            int i = 0;
+            i < collection.Count;
+            i++)
+        {
+            EditorPageData page =
+                collection[i];
 
 
-        return
-            value.StartsWith(
-                EventPageEditor.DragDataPrefix
-            ) &&
-            int.TryParse(
+            if (page == null)
+            {
+                continue;
+            }
+
+
+            if (page.Id == pageId)
+            {
+                return new PageLocation
+                {
+                    Page = page,
+                    OwnerList = collection,
+                    Index = i,
+                    ParentDecision = null
+                };
+            }
+
+
+            PageLocation nested =
+                FindPageLocationRecursive(
+                    page,
+                    pageId
+                );
+
+
+            if (nested != null)
+            {
+                return nested;
+            }
+        }
+
+
+        return null;
+    }
+
+
+    private PageLocation FindPageLocationRecursive(
+        EditorPageData page,
+        string pageId)
+    {
+        if (
+            page == null ||
+            page.Decisions == null)
+        {
+            return null;
+        }
+
+
+        foreach (
+            EditorDecisionData decision
+            in page.Decisions)
+        {
+            if (
+                decision == null ||
+                decision.Pages == null)
+            {
+                continue;
+            }
+
+
+            for (
+                int i = 0;
+                i < decision.Pages.Count;
+                i++)
+            {
+                EditorPageData child =
+                    decision.Pages[i];
+
+
+                if (child == null)
+                {
+                    continue;
+                }
+
+
+                if (child.Id == pageId)
+                {
+                    return new PageLocation
+                    {
+                        Page = child,
+                        OwnerList = decision.Pages,
+                        Index = i,
+                        ParentDecision = decision
+                    };
+                }
+
+
+                PageLocation nested =
+                    FindPageLocationRecursive(
+                        child,
+                        pageId
+                    );
+
+
+                if (nested != null)
+                {
+                    return nested;
+                }
+            }
+        }
+
+
+        return null;
+    }
+
+
+    private sealed class PageLocation
+    {
+        public EditorPageData Page;
+        public List<EditorPageData> OwnerList;
+        public int Index;
+        public EditorDecisionData ParentDecision;
+    }
+
+
+    // ============================================================
+    // DRAG BUTTON
+    // ============================================================
+
+    private sealed partial class PageTreeButton : Button
+    {
+        public event Action<string, string> PageDropped;
+
+
+        private readonly string pageId;
+
+        private bool pointerDown;
+        private Vector2 pointerStart;
+
+
+        public PageTreeButton(
+            string id)
+        {
+            pageId =
+                id;
+
+
+            MouseDefaultCursorShape =
+                CursorShape.Drag;
+        }
+
+
+        public override void _GuiInput(
+            InputEvent @event)
+        {
+            if (
+                @event is InputEventMouseButton mouseButton &&
+                mouseButton.ButtonIndex ==
+                MouseButton.Left)
+            {
+                if (mouseButton.Pressed)
+                {
+                    pointerDown =
+                        true;
+
+                    pointerStart =
+                        mouseButton.Position;
+                }
+                else
+                {
+                    pointerDown =
+                        false;
+                }
+            }
+
+
+            if (
+                @event is InputEventMouseMotion mouseMotion &&
+                pointerDown)
+            {
+                float distance =
+                    pointerStart.DistanceTo(
+                        mouseMotion.Position
+                    );
+
+
+                if (distance >= 8.0f)
+                {
+                    pointerDown =
+                        false;
+
+
+                    Label preview =
+                        new Label();
+
+
+                    preview.Text =
+                        Text;
+
+
+                    preview.CustomMinimumSize =
+                        new Vector2(
+                            220,
+                            36
+                        );
+
+
+                    ForceDrag(
+                        DragDataPrefix + pageId,
+                        preview
+                    );
+                }
+            }
+        }
+
+
+        public override Variant _GetDragData(
+            Vector2 atPosition)
+        {
+            Label preview =
+                new Label();
+
+
+            preview.Text =
+                Text;
+
+
+            return
+                DragDataPrefix +
+                pageId;
+        }
+
+
+        public override bool _CanDropData(
+            Vector2 atPosition,
+            Variant data)
+        {
+            if (
+                data.VariantType !=
+                Variant.Type.String)
+            {
+                return false;
+            }
+
+
+            string value =
+                data.AsString();
+
+
+            return value.StartsWith(
+                DragDataPrefix
+            );
+        }
+
+
+        public override void _DropData(
+            Vector2 atPosition,
+            Variant data)
+        {
+            if (
+                data.VariantType !=
+                Variant.Type.String)
+            {
+                return;
+            }
+
+
+            string value =
+                data.AsString();
+
+
+            if (!value.StartsWith(
+                DragDataPrefix))
+            {
+                return;
+            }
+
+
+            string draggedPageId =
                 value.Substring(
-                    EventPageEditor.DragDataPrefix.Length
-                ),
-                out pageIndex
+                    DragDataPrefix.Length
+                );
+
+
+            PageDropped?.Invoke(
+                draggedPageId,
+                pageId
             );
+        }
     }
-}
 }

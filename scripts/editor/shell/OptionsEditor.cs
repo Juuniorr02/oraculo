@@ -1,29 +1,48 @@
 using Godot;
+using System;
 using System.Collections.Generic;
+
 
 public partial class OptionsEditor : Control
 {
-    private OptionButton pageOption;
+    private const string DragDataPrefix =
+        "event_option_editor:";
 
+
+    private OptionButton pageOption;
     private VBoxContainer optionList;
+
     private Button addOptionButton;
     private Button deleteOptionButton;
+    private Button addPageToBranchButton;
 
     private DecisionEditor decisionEditor;
 
-    private readonly List<EditorDecisionData> decisions = new();
+
+    private readonly List<EditorDecisionData> decisions =
+        new();
+
 
     private List<EditorPageData> pages =
-        new List<EditorPageData>();
+        new();
+
 
     private EditorPageData selectedPage;
 
     private int selectedDecision = -1;
+
     private int chapter = 1;
 
     private EventRepository eventRepository;
+
     private string projectPath = "";
 
+    private bool isLoadingPage = false;
+
+
+    // ============================================================
+    // READY
+    // ============================================================
 
     public override void _Ready()
     {
@@ -32,20 +51,24 @@ public partial class OptionsEditor : Control
                 "HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer/PageOption"
             );
 
+
         optionList =
             GetNode<VBoxContainer>(
                 "HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer/OptionList"
             );
+
 
         addOptionButton =
             GetNode<Button>(
                 "HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer/Buttons/AddOptionButton"
             );
 
+
         deleteOptionButton =
             GetNode<Button>(
                 "HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer/Buttons/DeleteOptionButton"
             );
+
 
         decisionEditor =
             GetNode<DecisionEditor>(
@@ -53,14 +76,52 @@ public partial class OptionsEditor : Control
             );
 
 
+        // El botón no necesita existir en la escena.
+        // Lo añadimos al contenedor de botones desde código.
+        Node buttonsContainer =
+            GetNode<Node>(
+                "HBoxContainer/OptionsPanel/MarginContainer/VBoxContainer/Buttons"
+            );
+
+
+        addPageToBranchButton =
+            new Button();
+
+
+        addPageToBranchButton.Text =
+            "+ Página en rama";
+
+
+        addPageToBranchButton.TooltipText =
+            "Añadir una nueva página dentro de la opción seleccionada.";
+
+
+        addPageToBranchButton.CustomMinimumSize =
+            new Vector2(
+                150,
+                38
+            );
+
+
+        buttonsContainer.AddChild(
+            addPageToBranchButton
+        );
+
+
         pageOption.ItemSelected +=
             OnPageSelected;
+
 
         addOptionButton.Pressed +=
             OnAddOptionPressed;
 
+
         deleteOptionButton.Pressed +=
             OnDeleteOptionPressed;
+
+
+        addPageToBranchButton.Pressed +=
+            OnAddPageToBranchPressed;
 
 
         GD.Print(
@@ -69,6 +130,10 @@ public partial class OptionsEditor : Control
     }
 
 
+    // ============================================================
+    // CONFIGURATION
+    // ============================================================
+
     public void SetRepository(
         EventRepository repository)
     {
@@ -76,9 +141,12 @@ public partial class OptionsEditor : Control
             repository;
 
 
-        decisionEditor.SetRepository(
-            eventRepository
-        );
+        if (decisionEditor != null)
+        {
+            decisionEditor.SetRepository(
+                eventRepository
+            );
+        }
     }
 
 
@@ -95,70 +163,69 @@ public partial class OptionsEditor : Control
                 projectPath
             );
         }
-
-
-        GD.Print(
-            "OptionsEditor: ruta del proyecto establecida: ",
-            projectPath
-        );
     }
 
 
+    public void SetChapter(
+        int value)
+    {
+        chapter =
+            value;
+
+
+        if (decisionEditor != null)
+        {
+            decisionEditor.SetChapter(
+                chapter
+            );
+        }
+    }
+
+
+    // ============================================================
+    // PAGES
+    // ============================================================
+
     public void SetPages(
-        List<EditorPageData> eventPages)
+        List<EditorPageData> newPages)
     {
         SaveCurrentPageDecisions();
 
 
         pages =
-            eventPages ??
-            new List<EditorPageData>();
+            newPages != null
+                ? new List<EditorPageData>(
+                    newPages
+                )
+                : new List<EditorPageData>();
 
 
-        PopulateDecisionPages();
-    }
-
-
-    public void SetDecisions(
-        List<EditorDecisionData> eventDecisions)
-    {
-        decisions.Clear();
-
-
-        if (eventDecisions != null)
-        {
-            decisions.AddRange(
-                eventDecisions
-            );
-        }
-
-
-        if (decisions.Count == 0)
-        {
-            CreateInitialDecision();
-
-            return;
-        }
+        selectedPage =
+            null;
 
 
         selectedDecision =
-            0;
+            -1;
 
 
-        RefreshOptionList();
-
-        LoadSelectedDecision();
-    }
+        PopulateDecisionPages();
 
 
-    public List<EditorDecisionData> GetDecisions()
-    {
-        SaveCurrentDecision();
+        if (pageOption.ItemCount > 0)
+        {
+            pageOption.Select(
+                0
+            );
 
 
-        return new List<EditorDecisionData>(
-            decisions
-        );
+            LoadPageByIndex(
+                0
+            );
+        }
+        else
+        {
+            ClearEditor();
+        }
     }
 
 
@@ -181,9 +248,213 @@ public partial class OptionsEditor : Control
         }
 
 
-        SaveCurrentPageDecisions();
+        int index =
+            FindDecisionPageIndexById(
+                pageId
+            );
 
 
+        if (index < 0)
+        {
+            return false;
+        }
+
+
+        pageOption.Select(
+            index
+        );
+
+
+        LoadPageByIndex(
+            index
+        );
+
+
+        return true;
+    }
+
+
+    // ============================================================
+    // DECISION PAGES
+    // ============================================================
+
+    private void PopulateDecisionPages()
+    {
+        isLoadingPage =
+            true;
+
+
+        pageOption.Clear();
+
+
+        List<PageEntry> entries =
+            new();
+
+
+        foreach (
+            EditorPageData page
+            in pages)
+        {
+            CollectDecisionPages(
+                page,
+                "",
+                entries
+            );
+        }
+
+
+        foreach (
+            PageEntry entry
+            in entries)
+        {
+            int index =
+                pageOption.ItemCount;
+
+
+            pageOption.AddItem(
+                entry.Path
+            );
+
+
+            pageOption.SetItemMetadata(
+                index,
+                entry.Page.Id
+            );
+        }
+
+
+        isLoadingPage =
+            false;
+
+
+        GD.Print(
+            "OptionsEditor: páginas de decisión encontradas: ",
+            pageOption.ItemCount
+        );
+    }
+
+
+    private void CollectDecisionPages(
+        EditorPageData page,
+        string parentPath,
+        List<PageEntry> result)
+    {
+        if (page == null)
+        {
+            return;
+        }
+
+
+        string pageName =
+            GetPageDisplayName(
+                page
+            );
+
+
+        string currentPath =
+            string.IsNullOrWhiteSpace(
+                parentPath)
+                ? pageName
+                : parentPath +
+                  " / " +
+                  pageName;
+
+
+        // Una página marcada como Decisión aparece aunque
+        // todavía tenga 0 opciones.
+        if (
+            page.Type ==
+            EditorPageType.Decision)
+        {
+            result.Add(
+                new PageEntry(
+                    page,
+                    currentPath
+                )
+            );
+        }
+
+
+        if (page.Decisions == null)
+        {
+            return;
+        }
+
+
+        for (
+            int i = 0;
+            i < page.Decisions.Count;
+            i++)
+        {
+            EditorDecisionData decision =
+                page.Decisions[i];
+
+
+            if (decision == null)
+            {
+                continue;
+            }
+
+
+            if (decision.Pages == null)
+            {
+                decision.Pages =
+                    new List<EditorPageData>();
+            }
+
+
+            string decisionText =
+                string.IsNullOrWhiteSpace(
+                    decision.Text)
+                    ? $"Opción {GetDecisionLetter(i)}"
+                    : decision.Text.Trim();
+
+
+            string decisionPath =
+                currentPath +
+                " / " +
+                GetDecisionLetter(i) +
+                " · " +
+                decisionText;
+
+
+            foreach (
+                EditorPageData branchPage
+                in decision.Pages)
+            {
+                CollectDecisionPages(
+                    branchPage,
+                    decisionPath,
+                    result
+                );
+            }
+        }
+    }
+
+
+    private string GetPageDisplayName(
+        EditorPageData page)
+    {
+        if (page == null)
+        {
+            return "Página";
+        }
+
+
+        if (!string.IsNullOrWhiteSpace(
+            page.Title))
+        {
+            return page.Title.Trim();
+        }
+
+
+        return "Página";
+    }
+
+
+    private int FindDecisionPageIndexById(
+        string pageId)
+    {
         for (
             int i = 0;
             i < pageOption.ItemCount;
@@ -195,200 +466,203 @@ public partial class OptionsEditor : Control
                 );
 
 
-            string optionPageId =
-                metadata.AsString();
-
-
-            if (optionPageId != pageId)
+            if (
+                metadata.VariantType !=
+                Variant.Type.Nil &&
+                metadata.AsString() == pageId)
             {
-                continue;
+                return i;
             }
-
-
-            pageOption.Select(
-                i
-            );
-
-
-            LoadPageFromOption(
-                i
-            );
-
-
-            return true;
         }
 
 
-        return false;
+        return -1;
     }
 
 
-    public bool SelectDecisionByIndex(
-        int index)
+    private EditorPageData FindPageById(
+        string pageId)
     {
-        if (
-            index < 0 ||
-            index >= decisions.Count)
+        if (string.IsNullOrWhiteSpace(
+            pageId))
         {
-            return false;
+            return null;
         }
 
 
-        SelectDecision(
-            index
-        );
+        foreach (
+            EditorPageData page
+            in pages)
+        {
+            EditorPageData found =
+                FindPageByIdRecursive(
+                    page,
+                    pageId
+                );
 
 
-        return true;
+            if (found != null)
+            {
+                return found;
+            }
+        }
+
+
+        return null;
     }
 
 
-    public void LoadPage(
-        EditorPageData page)
+    private EditorPageData FindPageByIdRecursive(
+        EditorPageData page,
+        string pageId)
     {
         if (page == null)
         {
-            selectedPage = null;
-
-            decisions.Clear();
-            selectedDecision = -1;
-
-            RefreshOptionList();
-
-            decisionEditor.Visible = false;
-
-            return;
+            return null;
         }
 
 
-        SaveCurrentPageDecisions();
-
-
-        selectedPage =
-            page;
-
-
-        LoadDecisionsFromPage();
-
-
-        GD.Print(
-            "OptionsEditor: cargada página de decisión."
-        );
-
-        GD.Print(
-            "  Página ID: ",
-            selectedPage.Id
-        );
-
-        GD.Print(
-            "  Decisiones: ",
-            selectedPage.Decisions.Count
-        );
-    }
-
-
-    private void PopulateDecisionPages()
-    {
-        SaveCurrentPageDecisions();
-
-
-        pageOption.Clear();
-
-
-        int firstDecisionPageIndex = -1;
-
-
-        for (
-            int i = 0;
-            i < pages.Count;
-            i++)
+        if (page.Id == pageId)
         {
-            EditorPageData page =
-                pages[i];
+            return page;
+        }
 
 
+        if (page.Decisions == null)
+        {
+            return null;
+        }
+
+
+        foreach (
+            EditorDecisionData decision
+            in page.Decisions)
+        {
             if (
-                page.Type !=
-                EditorPageType.Decision)
+                decision == null ||
+                decision.Pages == null)
             {
                 continue;
             }
 
 
-            pageOption.AddItem(
-                $"Página {i + 1}"
-            );
-
-
-            int itemIndex =
-                pageOption.ItemCount - 1;
-
-
-            pageOption.SetItemMetadata(
-                itemIndex,
-                page.Id
-            );
-
-
-            if (firstDecisionPageIndex < 0)
+            foreach (
+                EditorPageData branchPage
+                in decision.Pages)
             {
-                firstDecisionPageIndex =
-                    itemIndex;
+                EditorPageData found =
+                    FindPageByIdRecursive(
+                        branchPage,
+                        pageId
+                    );
+
+
+                if (found != null)
+                {
+                    return found;
+                }
             }
         }
 
 
-        if (firstDecisionPageIndex < 0)
+        return null;
+    }
+
+
+    // ============================================================
+    // SAVE CURRENT PAGE / DECISION
+    // ============================================================
+
+    private void SaveCurrentPageDecisions()
+    {
+        SaveCurrentDecision();
+    }
+
+
+    private void SaveCurrentDecision()
+    {
+        if (
+            selectedDecision < 0 ||
+            selectedDecision >= decisions.Count ||
+            decisionEditor == null)
         {
-            selectedPage = null;
-
-            decisions.Clear();
-            selectedDecision = -1;
-
-            RefreshOptionList();
-
-            decisionEditor.Visible = false;
-
-
-            GD.Print(
-                "OptionsEditor: no hay páginas de decisión."
-            );
-
-
             return;
         }
 
 
-        pageOption.Select(
-            firstDecisionPageIndex
+        EditorDecisionData decision =
+            decisions[selectedDecision];
+
+
+        EnsureDecisionStructure(
+            decision
         );
 
 
-        LoadPageFromOption(
-            firstDecisionPageIndex
-        );
+        decisionEditor.SaveCurrentDecision();
+
+
+        decision.Text =
+            decisionEditor.GetDecisionText();
+
+
+        decision.Description =
+            decisionEditor.GetDecisionDescription();
+
+
+        decision.Conditions =
+            decisionEditor.GetConditions();
+
+
+        decision.Effects =
+            decisionEditor.GetEffects();
+
+
+        decisions[selectedDecision] =
+            decision;
     }
 
+
+    // ============================================================
+    // PAGE SELECTION
+    // ============================================================
 
     private void OnPageSelected(
         long index)
     {
-        SaveCurrentPageDecisions();
+        if (isLoadingPage)
+        {
+            return;
+        }
 
 
-        LoadPageFromOption(
+        if (
+            index < 0 ||
+            index >= pageOption.ItemCount)
+        {
+            return;
+        }
+
+
+        SaveCurrentDecision();
+
+
+        LoadPageByIndex(
             (int)index
         );
     }
 
 
-    private void LoadPageFromOption(
+    private void LoadPageByIndex(
         int index)
     {
         if (
             index < 0 ||
             index >= pageOption.ItemCount)
         {
+            ClearEditor();
+
+
             return;
         }
 
@@ -403,244 +677,90 @@ public partial class OptionsEditor : Control
             metadata.AsString();
 
 
-        EditorPageData page =
+        selectedPage =
             FindPageById(
                 pageId
             );
 
 
-        if (page == null)
+        if (selectedPage == null)
         {
-            GD.PrintErr(
-                "OptionsEditor: no se encontró la página con ID: ",
-                pageId
-            );
+            ClearEditor();
+
 
             return;
         }
 
 
-        selectedPage =
-            page;
-
-
-        LoadDecisionsFromPage();
+        LoadDecisionsFromPage(
+            selectedPage
+        );
     }
 
 
-    private EditorPageData FindPageById(
-        string pageId)
-    {
-        foreach (
-            EditorPageData page
-            in pages)
-        {
-            if (
-                page.Id ==
-                pageId)
-            {
-                return page;
-            }
-        }
-
-
-        return null;
-    }
-
-
-    private void LoadDecisionsFromPage()
+    private void LoadDecisionsFromPage(
+        EditorPageData page)
     {
         decisions.Clear();
 
 
-        if (
-            selectedPage != null &&
-            selectedPage.Decisions != null)
+        if (page.Decisions == null)
         {
-            decisions.AddRange(
-                selectedPage.Decisions
-            );
-        }
-
-
-        if (decisions.Count == 0)
-        {
-            CreateInitialDecision();
-
-            return;
-        }
-
-
-        selectedDecision =
-            0;
-
-
-        RefreshOptionList();
-
-        LoadSelectedDecision();
-    }
-
-
-    private void SaveCurrentPageDecisions()
-    {
-        if (selectedPage == null)
-        {
-            return;
-        }
-
-
-        SaveCurrentDecision();
-
-
-        if (selectedPage.Decisions == null)
-        {
-            selectedPage.Decisions =
+            page.Decisions =
                 new List<EditorDecisionData>();
         }
 
 
-        selectedPage.Decisions.Clear();
-
-
         foreach (
             EditorDecisionData decision
-            in decisions)
+            in page.Decisions)
         {
-            if (decision != null)
+            if (decision == null)
             {
-                selectedPage.Decisions.Add(
-                    decision
-                );
+                continue;
             }
-        }
 
 
-        GD.Print(
-            "OptionsEditor: guardadas ",
-            selectedPage.Decisions.Count,
-            " decisiones en página ",
-            GetPageNumber(selectedPage)
-        );
-    }
+            EnsureDecisionStructure(
+                decision
+            );
 
 
-    private int GetPageNumber(
-        EditorPageData page)
-    {
-        if (page == null)
-        {
-            return -1;
-        }
-
-
-        for (
-            int i = 0;
-            i < pages.Count;
-            i++)
-        {
-            if (
-                pages[i].Id ==
-                page.Id)
-            {
-                return i + 1;
-            }
-        }
-
-
-        return -1;
-    }
-
-
-    private void CreateInitialDecision()
-    {
-        if (decisions.Count == 0)
-        {
             decisions.Add(
-                new EditorDecisionData
-                {
-                    Text =
-                        "Nueva opción"
-                }
+                decision
             );
         }
 
 
         selectedDecision =
-            0;
+            decisions.Count > 0
+                ? 0
+                : -1;
 
 
         RefreshOptionList();
 
-        LoadSelectedDecision();
-    }
 
-
-    private void OnAddOptionPressed()
-    {
-        SaveCurrentDecision();
-
-
-        EditorDecisionData newDecision =
-            new EditorDecisionData
-            {
-                Text =
-                    $"Nueva opción {decisions.Count + 1}"
-            };
-
-
-        decisions.Add(
-            newDecision
-        );
-
-
-        selectedDecision =
-            decisions.Count - 1;
-
-
-        RefreshOptionList();
-
-        LoadSelectedDecision();
-    }
-
-
-    private void OnDeleteOptionPressed()
-    {
-        if (
-            selectedDecision < 0 ||
-            selectedDecision >= decisions.Count)
+        if (selectedDecision >= 0)
         {
-            return;
+            LoadSelectedDecision();
+        }
+        else
+        {
+            decisionEditor.LoadDecision(
+                -1,
+                ""
+            );
         }
 
 
-        if (decisions.Count <= 1)
-        {
-            return;
-        }
-
-
-        SaveCurrentDecision();
-
-
-        decisions.RemoveAt(
-            selectedDecision
-        );
-
-
-        if (
-            selectedDecision >=
-            decisions.Count)
-        {
-            selectedDecision =
-                decisions.Count - 1;
-        }
-
-
-        RefreshOptionList();
-
-        LoadSelectedDecision();
+        UpdateActionButtons();
     }
 
+
+    // ============================================================
+    // OPTION LIST
+    // ============================================================
 
     private void RefreshOptionList()
     {
@@ -657,44 +777,84 @@ public partial class OptionsEditor : Control
             i < decisions.Count;
             i++)
         {
-            int index =
-                i;
+            EditorDecisionData decision =
+                decisions[i];
 
 
-            Button optionButton =
-                new Button();
+            EnsureDecisionStructure(
+                decision
+            );
+
+
+            OptionDragButton optionButton =
+                new OptionDragButton(
+                    i
+                );
+                optionButton.ToggleMode =
+    true;
+
+
+optionButton.ButtonPressed =
+    i == selectedDecision;
+
+
+            string letter =
+                GetDecisionLetter(i);
+
+
+            string text =
+                string.IsNullOrWhiteSpace(
+                    decision.Text)
+                    ? $"Opción {letter}"
+                    : decision.Text.Trim();
+
+
+            int branchCount =
+                decision.Pages.Count;
 
 
             optionButton.Text =
-                $"Opción {index + 1}";
+                $"{letter} · {text}";
+
+
+            optionButton.TooltipText =
+                branchCount > 0
+                    ? $"{branchCount} página(s) en esta rama."
+                    : "Esta opción todavía no tiene páginas.";
+
+
+            optionButton.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
 
 
             optionButton.CustomMinimumSize =
                 new Vector2(
                     0,
-                    40
+                    38
                 );
 
 
-            optionButton.Alignment =
-                HorizontalAlignment.Left;
+            if (i == selectedDecision)
+            {
+                optionButton.ButtonPressed =
+                    true;
+            }
 
 
-            optionButton.ToggleMode =
-                true;
+            int capturedIndex =
+                i;
 
 
-            optionButton.ButtonPressed =
-                index == selectedDecision;
+            optionButton.Pressed += () =>
+            {
+                SelectDecisionByIndex(
+                    capturedIndex
+                );
+            };
 
 
-            optionButton.Pressed +=
-                () =>
-                {
-                    SelectDecision(
-                        index
-                    );
-                };
+            optionButton.OptionDropped +=
+                OnOptionDropped;
 
 
             optionList.AddChild(
@@ -703,19 +863,31 @@ public partial class OptionsEditor : Control
         }
 
 
-        deleteOptionButton.Disabled =
-            decisions.Count <= 1;
+        UpdateActionButtons();
     }
 
 
-    private void SelectDecision(
+    private void UpdateActionButtons()
+    {
+        deleteOptionButton.Disabled =
+            selectedDecision < 0 ||
+            selectedDecision >= decisions.Count;
+
+
+        addPageToBranchButton.Disabled =
+            selectedDecision < 0 ||
+            selectedDecision >= decisions.Count;
+    }
+
+
+    public bool SelectDecisionByIndex(
         int index)
     {
         if (
             index < 0 ||
             index >= decisions.Count)
         {
-            return;
+            return false;
         }
 
 
@@ -728,7 +900,11 @@ public partial class OptionsEditor : Control
 
         RefreshOptionList();
 
+
         LoadSelectedDecision();
+
+
+        return true;
     }
 
 
@@ -738,19 +914,17 @@ public partial class OptionsEditor : Control
             selectedDecision < 0 ||
             selectedDecision >= decisions.Count)
         {
-            decisionEditor.Visible =
-                false;
-
             return;
         }
 
 
-        decisionEditor.Visible =
-            true;
-
-
         EditorDecisionData decision =
             decisions[selectedDecision];
+
+
+        EnsureDecisionStructure(
+            decision
+        );
 
 
         decisionEditor.SetPages(
@@ -776,18 +950,82 @@ public partial class OptionsEditor : Control
         decisionEditor.LoadDecisionData(
             decision
         );
+    }
+
+
+    // ============================================================
+    // ADD OPTION
+    // ============================================================
+
+    private void OnAddOptionPressed()
+    {
+        if (selectedPage == null)
+        {
+            GD.PrintErr(
+                "OptionsEditor: no hay página de decisión seleccionada."
+            );
+
+
+            return;
+        }
+
+
+        SaveCurrentDecision();
+
+
+        if (selectedPage.Decisions == null)
+        {
+            selectedPage.Decisions =
+                new List<EditorDecisionData>();
+        }
+
+
+        EditorDecisionData newDecision =
+            new EditorDecisionData
+            {
+                Text = "",
+                Description = "",
+                Conditions =
+                    new List<EditorConditionData>(),
+                Effects =
+                    new List<EditorEffectData>(),
+                Pages =
+                    new List<EditorPageData>(),
+                NextPageId = ""
+            };
+
+
+        selectedPage.Decisions.Add(
+            newDecision
+        );
+
+
+        decisions.Add(
+            newDecision
+        );
+
+
+        selectedDecision =
+            decisions.Count - 1;
+
+
+        RefreshOptionList();
+
+
+        LoadSelectedDecision();
 
 
         GD.Print(
-            "OptionsEditor: cargada opción ",
-            selectedDecision + 1,
-            " de página ",
-            GetPageNumber(selectedPage)
+            "OptionsEditor: nueva opción añadida."
         );
     }
 
 
-    private void SaveCurrentDecision()
+    // ============================================================
+    // ADD PAGE TO BRANCH
+    // ============================================================
+
+    private void OnAddPageToBranchPressed()
     {
         if (
             selectedDecision < 0 ||
@@ -797,70 +1035,477 @@ public partial class OptionsEditor : Control
         }
 
 
+        SaveCurrentDecision();
+
+
         EditorDecisionData decision =
             decisions[selectedDecision];
 
 
-        decisionEditor.SaveCurrentDecision();
-
-
-        decision.Text =
-            decisionEditor.GetDecisionText();
-
-
-        decision.Description =
-            decisionEditor.GetDecisionDescription();
-
-
-        decision.NextPageId =
-            decisionEditor.GetNextPageId();
-
-
-        decision.Conditions =
-            decisionEditor.GetConditions();
-
-
-        decision.Effects =
-            decisionEditor.GetEffects();
-
-
-        GD.Print(
-            "OptionsEditor: guardada opción ",
-            selectedDecision + 1
+        EnsureDecisionStructure(
+            decision
         );
 
-        GD.Print(
-            "  Condiciones: ",
-            decision.Conditions.Count
+
+        EditorPageData newPage =
+            new EditorPageData();
+
+
+        decision.Pages.Add(
+            newPage
         );
 
-        GD.Print(
-            "  Efectos: ",
-            decision.Effects.Count
-        );
+
+        // La primera página de la rama es automáticamente
+        // el destino inicial de la opción.
+        if (string.IsNullOrWhiteSpace(
+            decision.NextPageId))
+        {
+            decision.NextPageId =
+                newPage.Id;
+        }
+
+
+        decisions[selectedDecision] =
+            decision;
+
+
+        RefreshOptionList();
+
+
+        LoadSelectedDecision();
+
 
         GD.Print(
-            "  NextPageId: ",
-            decision.NextPageId
+            "OptionsEditor: página añadida a la rama de ",
+            GetDecisionLetter(selectedDecision),
+            "."
         );
     }
 
 
-    public void SetChapter(
-    int eventChapter)
-{
-    chapter =
-        eventChapter;
+    // ============================================================
+    // DELETE OPTION
+    // ============================================================
+
+    private void OnDeleteOptionPressed()
+    {
+        if (
+            selectedPage == null ||
+            selectedDecision < 0 ||
+            selectedDecision >= decisions.Count)
+        {
+            return;
+        }
 
 
-    decisionEditor.SetChapter(
-        chapter
-    );
+        SaveCurrentDecision();
 
 
-    GD.Print(
-        "OptionsEditor: capítulo establecido: ",
-        chapter
-    );
-}
+        EditorDecisionData decision =
+            decisions[selectedDecision];
+
+
+        selectedPage.Decisions.Remove(
+            decision
+        );
+
+
+        decisions.RemoveAt(
+            selectedDecision
+        );
+
+
+        if (decisions.Count == 0)
+        {
+            selectedDecision =
+                -1;
+
+
+            RefreshOptionList();
+
+
+            decisionEditor.LoadDecision(
+                -1,
+                ""
+            );
+
+
+            UpdateActionButtons();
+
+
+            GD.Print(
+                "OptionsEditor: se ha eliminado la última opción."
+            );
+
+
+            return;
+        }
+
+
+        if (
+            selectedDecision >=
+            decisions.Count)
+        {
+            selectedDecision =
+                decisions.Count - 1;
+        }
+
+
+        RefreshOptionList();
+
+
+        LoadSelectedDecision();
+
+
+        GD.Print(
+            "OptionsEditor: opción eliminada."
+        );
+    }
+
+
+    // ============================================================
+    // REORDER OPTIONS
+    // ============================================================
+
+    private void OnOptionDropped(
+        int draggedIndex,
+        int targetIndex)
+    {
+        if (
+            draggedIndex < 0 ||
+            draggedIndex >= decisions.Count ||
+            targetIndex < 0 ||
+            targetIndex >= decisions.Count ||
+            draggedIndex == targetIndex)
+        {
+            return;
+        }
+
+
+        SaveCurrentDecision();
+
+
+        EditorDecisionData draggedDecision =
+            decisions[draggedIndex];
+
+
+        decisions.RemoveAt(
+            draggedIndex
+        );
+
+
+        if (draggedIndex < targetIndex)
+        {
+            targetIndex--;
+        }
+
+
+        targetIndex =
+            Mathf.Clamp(
+                targetIndex,
+                0,
+                decisions.Count
+            );
+
+
+        decisions.Insert(
+            targetIndex,
+            draggedDecision
+        );
+
+
+        if (selectedPage != null)
+        {
+            selectedPage.Decisions =
+                new List<EditorDecisionData>(
+                    decisions
+                );
+        }
+
+
+        selectedDecision =
+            targetIndex;
+
+
+        RefreshOptionList();
+
+
+        LoadSelectedDecision();
+
+
+        GD.Print(
+            "OptionsEditor: opciones reordenadas."
+        );
+    }
+
+
+    // ============================================================
+    // CLEAR
+    // ============================================================
+
+    private void ClearEditor()
+    {
+        decisions.Clear();
+
+
+        selectedPage =
+            null;
+
+
+        selectedDecision =
+            -1;
+
+
+        RefreshOptionList();
+
+
+        decisionEditor.LoadDecision(
+            -1,
+            ""
+        );
+
+
+        UpdateActionButtons();
+    }
+
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    private void EnsureDecisionStructure(
+        EditorDecisionData decision)
+    {
+        if (decision == null)
+        {
+            return;
+        }
+
+
+        if (decision.Conditions == null)
+        {
+            decision.Conditions =
+                new List<EditorConditionData>();
+        }
+
+
+        if (decision.Effects == null)
+        {
+            decision.Effects =
+                new List<EditorEffectData>();
+        }
+
+
+        if (decision.Pages == null)
+        {
+            decision.Pages =
+                new List<EditorPageData>();
+        }
+    }
+
+
+    private string GetDecisionLetter(
+        int index)
+    {
+        if (index < 26)
+        {
+            return (
+                (char)('A' + index)
+            ).ToString();
+        }
+
+
+        int first =
+            index / 26;
+
+        int second =
+            index % 26;
+
+
+        return
+            ((char)('A' + first - 1)).ToString() +
+            ((char)('A' + second)).ToString();
+    }
+
+
+    // ============================================================
+    // INTERNAL ENTRY
+    // ============================================================
+
+    private sealed class PageEntry
+    {
+        public EditorPageData Page { get; }
+
+        public string Path { get; }
+
+
+        public PageEntry(
+            EditorPageData page,
+            string path)
+        {
+            Page =
+                page;
+
+            Path =
+                path;
+        }
+    }
+
+
+    // ============================================================
+    // DRAG BUTTON
+    // ============================================================
+
+    private sealed partial class OptionDragButton : Button
+    {
+        public event Action<int, int> OptionDropped;
+
+
+        private readonly int optionIndex;
+
+
+        private bool pointerDown = false;
+        private Vector2 pointerStart;
+
+
+        public OptionDragButton(
+            int index)
+        {
+            optionIndex =
+                index;
+
+
+            MouseDefaultCursorShape =
+                CursorShape.Drag;
+        }
+
+
+        public override void _GuiInput(
+            InputEvent @event)
+        {
+            if (
+                @event is InputEventMouseButton mouseButton &&
+                mouseButton.ButtonIndex ==
+                MouseButton.Left)
+            {
+                if (mouseButton.Pressed)
+                {
+                    pointerDown =
+                        true;
+
+                    pointerStart =
+                        mouseButton.Position;
+                }
+                else
+                {
+                    pointerDown =
+                        false;
+                }
+            }
+
+
+            if (
+                @event is InputEventMouseMotion motion &&
+                pointerDown)
+            {
+                float distance =
+                    pointerStart.DistanceTo(
+                        motion.Position
+                    );
+
+
+                if (distance >= 8.0f)
+                {
+                    pointerDown =
+                        false;
+
+
+                    Label preview =
+                        new Label();
+
+
+                    preview.Text =
+                        Text;
+
+
+                    preview.CustomMinimumSize =
+                        new Vector2(
+                            220,
+                            36
+                        );
+
+
+                    ForceDrag(
+                        DragDataPrefix +
+                        optionIndex,
+                        preview
+                    );
+                }
+            }
+        }
+
+
+        public override bool _CanDropData(
+            Vector2 atPosition,
+            Variant data)
+        {
+            if (
+                data.VariantType !=
+                Variant.Type.String)
+            {
+                return false;
+            }
+
+
+            return
+                data.AsString().StartsWith(
+                    DragDataPrefix
+                );
+        }
+
+
+        public override void _DropData(
+            Vector2 atPosition,
+            Variant data)
+        {
+            if (
+                data.VariantType !=
+                Variant.Type.String)
+            {
+                return;
+            }
+
+
+            string value =
+                data.AsString();
+
+
+            if (!value.StartsWith(
+                DragDataPrefix))
+            {
+                return;
+            }
+
+
+            string indexText =
+                value.Substring(
+                    DragDataPrefix.Length
+                );
+
+
+            if (!int.TryParse(
+                indexText,
+                out int draggedIndex))
+            {
+                return;
+            }
+
+
+            OptionDropped?.Invoke(
+                draggedIndex,
+                optionIndex
+            );
+        }
+    }
 }

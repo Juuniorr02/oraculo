@@ -1,25 +1,36 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
-public partial class DecisionEditor : VBoxContainer
+
+public partial class DecisionEditor : Control
 {
     private TextEdit decisionTextEdit;
     private TextEdit descriptionTextEdit;
+
     private OptionButton nextPageOption;
 
     private ConditionListEditor conditionListEditor;
     private EffectListEditor effectListEditor;
 
+
     private int chapter = 1;
 
     private List<EditorPageData> pages =
-        new List<EditorPageData>();
+        new();
+
 
     private EditorDecisionData decisionData;
 
+
     private EventRepository eventRepository;
+
     private string projectPath = "";
 
+
+    // ============================================================
+    // READY
+    // ============================================================
 
     public override void _Ready()
     {
@@ -49,6 +60,14 @@ public partial class DecisionEditor : VBoxContainer
             );
 
 
+        // La opción vuelve a estar activa.
+        nextPageOption.Visible =
+            true;
+
+        nextPageOption.Disabled =
+            false;
+
+
         nextPageOption.ItemSelected +=
             OnNextPageSelected;
 
@@ -59,22 +78,21 @@ public partial class DecisionEditor : VBoxContainer
     }
 
 
-    public void SetRepository(
-        EventRepository repository)
-    {
-        eventRepository =
-            repository;
+    // ============================================================
+    // CONFIGURATION
+    // ============================================================
+
+public void SetRepository(
+    EventRepository repository)
+{
+    eventRepository =
+        repository;
 
 
-        conditionListEditor.SetRepository(
-            eventRepository
-        );
-
-
-        effectListEditor.SetRepository(
-            eventRepository
-        );
-    }
+    conditionListEditor.SetRepository(
+        repository
+    );
+}
 
 
     public void SetProjectPath(
@@ -107,59 +125,119 @@ public partial class DecisionEditor : VBoxContainer
     }
 
 
-    public void SetPages(
-        List<EditorPageData> eventPages)
+    public void SetChapter(
+        int value)
     {
-        pages =
-            eventPages ??
-            new List<EditorPageData>();
+        chapter =
+            value;
+
+
+        if (conditionListEditor != null)
+        {
+            conditionListEditor.SetChapter(
+                chapter
+            );
+        }
+
+
+        if (effectListEditor != null)
+        {
+            effectListEditor.SetChapter(
+                chapter
+            );
+        }
 
 
         GD.Print(
-            "DecisionEditor: recibidas ",
-            pages.Count,
-            " páginas."
+            "DecisionEditor: capítulo establecido: ",
+            chapter
         );
+    }
 
 
-        for (
-            int i = 0;
-            i < pages.Count;
-            i++)
-        {
-            if (pages[i] == null)
-            {
-                continue;
-            }
+    // ============================================================
+    // PAGES
+    // ============================================================
 
-            GD.Print(
-                "Página ",
-                i + 1,
-                " | ID: ",
-                pages[i].Id
-            );
-        }
+    public void SetPages(
+        List<EditorPageData> newPages)
+    {
+        pages =
+            newPages != null
+                ? new List<EditorPageData>(
+                    newPages
+                )
+                : new List<EditorPageData>();
 
 
         PopulateNextPages();
     }
 
 
+    // ============================================================
+    // LOAD
+    // ============================================================
+
     public void LoadDecision(
-        int optionNumber,
-        string text)
+    int index,
+    string text)
+{
+    decisionData =
+        new EditorDecisionData
+        {
+            Text =
+                text ?? "",
+
+            Description =
+                "",
+
+            Conditions =
+                new List<EditorConditionData>(),
+
+            Effects =
+                new List<EditorEffectData>(),
+
+            Pages =
+                new List<EditorPageData>(),
+
+            NextPageId =
+                ""
+        };
+
+
+    decisionTextEdit.Text =
+        decisionData.Text;
+
+
+    descriptionTextEdit.Text =
+        decisionData.Description;
+
+
+    conditionListEditor.SetConditions(
+        decisionData.Conditions
+    );
+
+
+    effectListEditor.SetEffects(
+        decisionData.Effects
+    );
+
+
+    // Aquí no intentamos seleccionar nada si todavía
+    // no se han cargado las páginas.
+    if (nextPageOption.ItemCount > 0)
     {
-        decisionTextEdit.Text =
-            text;
-
-        descriptionTextEdit.Text =
-            "";
-
-        GD.Print(
-            "DecisionEditor cargando opción: ",
-            optionNumber
+        SelectNextPage(
+            ""
         );
     }
+
+
+    GD.Print(
+        "DecisionEditor cargando opción: ",
+        index
+    );
+}
 
 
     public void LoadDecisionData(
@@ -167,9 +245,11 @@ public partial class DecisionEditor : VBoxContainer
     {
         if (data == null)
         {
-            GD.PrintErr(
-                "DecisionEditor: se intentó cargar una decisión nula."
+            LoadDecision(
+                -1,
+                ""
             );
+
 
             return;
         }
@@ -179,19 +259,33 @@ public partial class DecisionEditor : VBoxContainer
             data;
 
 
+        if (decisionData.Conditions == null)
+        {
+            decisionData.Conditions =
+                new List<EditorConditionData>();
+        }
+
+
+        if (decisionData.Effects == null)
+        {
+            decisionData.Effects =
+                new List<EditorEffectData>();
+        }
+
+
+        if (decisionData.Pages == null)
+        {
+            decisionData.Pages =
+                new List<EditorPageData>();
+        }
+
+
         decisionTextEdit.Text =
-            decisionData.Text;
+            decisionData.Text ?? "";
+
 
         descriptionTextEdit.Text =
-            decisionData.Description;
-
-
-        PopulateNextPages();
-
-
-        SelectNextPage(
-            decisionData.NextPageId
-        );
+            decisionData.Description ?? "";
 
 
         conditionListEditor.SetConditions(
@@ -204,43 +298,342 @@ public partial class DecisionEditor : VBoxContainer
         );
 
 
-        GD.Print(
-            "DecisionEditor: decisión cargada."
+        PopulateNextPages();
+
+
+        SelectNextPage(
+            decisionData.NextPageId
         );
 
 
         GD.Print(
-            "  Texto: ",
-            decisionData.Text
-        );
-
-        GD.Print(
-            "  Descripción: ",
-            decisionData.Description
-        );
-
-        GD.Print(
-            "  Condiciones: ",
-            decisionData.Conditions.Count
-        );
-
-        GD.Print(
-            "  Efectos: ",
-            decisionData.Effects.Count
-        );
-
-        GD.Print(
-            "  NextPageId: ",
+            "DecisionEditor cargando opción: ",
             decisionData.NextPageId
         );
     }
 
 
+    // ============================================================
+    // NEXT PAGE
+    // ============================================================
+
+    private void PopulateNextPages()
+    {
+        if (nextPageOption == null)
+        {
+            return;
+        }
+
+
+        nextPageOption.Clear();
+
+
+        nextPageOption.AddItem(
+            "Sin página de destino"
+        );
+
+
+        nextPageOption.SetItemMetadata(
+            0,
+            ""
+        );
+
+
+        List<PageEntry> entries =
+            new();
+
+
+        foreach (
+            EditorPageData page
+            in pages)
+        {
+            CollectPages(
+                page,
+                "",
+                entries
+            );
+        }
+
+
+        foreach (
+            PageEntry entry
+            in entries)
+        {
+            int index =
+                nextPageOption.ItemCount;
+
+
+            nextPageOption.AddItem(
+                entry.Path
+            );
+
+
+            nextPageOption.SetItemMetadata(
+                index,
+                entry.Page.Id
+            );
+        }
+
+
+        nextPageOption.Disabled =
+            false;
+
+
+        GD.Print(
+            "DecisionEditor: páginas disponibles como destino: ",
+            entries.Count
+        );
+    }
+
+
+    private void CollectPages(
+        EditorPageData page,
+        string parentPath,
+        List<PageEntry> result)
+    {
+        if (page == null)
+        {
+            return;
+        }
+
+
+        string pageName =
+            GetPageName(
+                page
+            );
+
+
+        string currentPath =
+            string.IsNullOrWhiteSpace(
+                parentPath)
+                ? pageName
+                : parentPath +
+                  " / " +
+                  pageName;
+
+
+        result.Add(
+            new PageEntry(
+                page,
+                currentPath
+            )
+        );
+
+
+        if (page.Decisions == null)
+        {
+            return;
+        }
+
+
+        for (
+            int d = 0;
+            d < page.Decisions.Count;
+            d++)
+        {
+            EditorDecisionData decision =
+                page.Decisions[d];
+
+
+            if (decision == null)
+            {
+                continue;
+            }
+
+
+            string decisionText =
+                string.IsNullOrWhiteSpace(
+                    decision.Text)
+                    ? $"Opción {GetDecisionLetter(d)}"
+                    : decision.Text.Trim();
+
+
+            string decisionPath =
+                currentPath +
+                " / " +
+                GetDecisionLetter(d) +
+                " · " +
+                decisionText;
+
+
+            if (decision.Pages == null)
+            {
+                continue;
+            }
+
+
+            foreach (
+                EditorPageData branchPage
+                in decision.Pages)
+            {
+                CollectPages(
+                    branchPage,
+                    decisionPath,
+                    result
+                );
+            }
+        }
+    }
+
+
+    private string GetPageName(
+        EditorPageData page)
+    {
+        if (
+            page != null &&
+            !string.IsNullOrWhiteSpace(
+                page.Title))
+        {
+            return page.Title.Trim();
+        }
+
+
+        return "Página";
+    }
+
+
+    private void OnNextPageSelected(
+        long index)
+    {
+        if (
+            index < 0 ||
+            index >= nextPageOption.ItemCount)
+        {
+            return;
+        }
+
+
+        Variant metadata =
+            nextPageOption.GetItemMetadata(
+                (int)index
+            );
+
+
+        if (decisionData != null)
+        {
+            decisionData.NextPageId =
+                metadata.AsString();
+        }
+    }
+
+
+    private string GetNextPageId()
+    {
+        if (
+            nextPageOption == null ||
+            nextPageOption.Selected < 0)
+        {
+            return
+                decisionData?.NextPageId ?? "";
+        }
+
+
+        Variant metadata =
+            nextPageOption.GetItemMetadata(
+                nextPageOption.Selected
+            );
+
+
+        return metadata.AsString();
+    }
+
+
+    private void SelectNextPage(
+    string pageId)
+{
+    if (nextPageOption == null)
+    {
+        return;
+    }
+
+
+    if (nextPageOption.ItemCount == 0)
+    {
+        // Todavía no se han cargado las páginas.
+        // No intentamos seleccionar nada.
+        return;
+    }
+
+
+    string targetId =
+        pageId ?? "";
+
+
+    for (
+        int i = 0;
+        i < nextPageOption.ItemCount;
+        i++)
+    {
+        Variant metadata =
+            nextPageOption.GetItemMetadata(
+                i
+            );
+
+
+        if (
+            metadata.VariantType !=
+            Variant.Type.Nil &&
+            metadata.AsString() == targetId)
+        {
+            nextPageOption.Select(
+                i
+            );
+
+
+            return;
+        }
+    }
+
+
+    // Si el destino ya no existe, usamos
+    // "Sin página de destino".
+    nextPageOption.Select(
+        0
+    );
+}
+
+
+    // Compatibilidad con código anterior.
+    private void OnNextPageSelectedLegacy(
+        long index)
+    {
+        OnNextPageSelected(
+            index
+        );
+    }
+
+
+    // ============================================================
+    // SAVE
+    // ============================================================
+
     public void SaveCurrentDecision()
     {
         if (decisionData == null)
         {
-            return;
+            decisionData =
+                new EditorDecisionData();
+        }
+
+
+        if (decisionData.Conditions == null)
+        {
+            decisionData.Conditions =
+                new List<EditorConditionData>();
+        }
+
+
+        if (decisionData.Effects == null)
+        {
+            decisionData.Effects =
+                new List<EditorEffectData>();
+        }
+
+
+        if (decisionData.Pages == null)
+        {
+            decisionData.Pages =
+                new List<EditorPageData>();
         }
 
 
@@ -262,281 +655,114 @@ public partial class DecisionEditor : VBoxContainer
 
         decisionData.Effects =
             effectListEditor.GetEffects();
-
-
-        GD.Print(
-            "DecisionEditor: datos de decisión guardados."
-        );
-
-
-        GD.Print(
-            "  Texto: ",
-            decisionData.Text
-        );
-
-        GD.Print(
-            "  Descripción: ",
-            decisionData.Description
-        );
-
-        GD.Print(
-            "  Condiciones: ",
-            decisionData.Conditions.Count
-        );
-
-        GD.Print(
-            "  Efectos: ",
-            decisionData.Effects.Count
-        );
     }
 
 
+    // ============================================================
+    // GETTERS
+    // ============================================================
+
     public string GetDecisionText()
     {
-        return decisionTextEdit.Text;
+        return
+            decisionTextEdit?.Text ?? "";
     }
 
 
     public string GetDecisionDescription()
     {
-        if (decisionData == null)
-        {
-            return "";
-        }
-
-
-        return descriptionTextEdit.Text;
-    }
-
-
-    public string GetNextPageId()
-    {
-        if (decisionData == null)
-        {
-            return "";
-        }
-
-
-        if (nextPageOption.Selected < 0)
-        {
-            return "";
-        }
-
-
-        if (nextPageOption.Selected == 0)
-        {
-            return "";
-        }
-
-
-        Variant metadata =
-            nextPageOption.GetItemMetadata(
-                nextPageOption.Selected
-            );
-
-
-        return metadata.AsString();
+        return
+            descriptionTextEdit?.Text ?? "";
     }
 
 
     public List<EditorConditionData> GetConditions()
     {
-        return conditionListEditor.GetConditions();
+        return
+            conditionListEditor?.GetConditions()
+            ?? new List<EditorConditionData>();
     }
 
 
     public List<EditorEffectData> GetEffects()
     {
-        return effectListEditor.GetEffects();
+        return
+            effectListEditor?.GetEffects()
+            ?? new List<EditorEffectData>();
     }
 
 
-    private void PopulateNextPages()
+    public string GetNextPageIdValue()
     {
-        GD.Print(
-            "DecisionEditor: rellenando Próxima página con ",
-            pages.Count,
-            " páginas."
-        );
-
-
-        nextPageOption.Clear();
-
-
-        nextPageOption.AddItem(
-            "Ninguna"
-        );
-
-
-        for (
-            int i = 0;
-            i < pages.Count;
-            i++)
-        {
-            EditorPageData page =
-                pages[i];
-
-
-            if (page == null)
-            {
-                continue;
-            }
-
-
-            nextPageOption.AddItem(
-                $"Página {i + 1}"
-            );
-
-
-            int itemIndex =
-                nextPageOption.ItemCount - 1;
-
-
-            nextPageOption.SetItemMetadata(
-                itemIndex,
-                page.Id
-            );
-        }
-
-
-        nextPageOption.Select(
-            0
-        );
+        return
+            GetNextPageId();
     }
 
 
-    private void OnNextPageSelected(
-        long index)
+    public List<EditorPageData> GetBranchPages()
     {
         if (decisionData == null)
         {
-            GD.Print(
-                "DecisionEditor: se seleccionó una página pero no hay decisión cargada."
-            );
-
-            return;
+            return
+                new List<EditorPageData>();
         }
 
 
-        if (index == 0)
+        if (decisionData.Pages == null)
         {
-            decisionData.NextPageId =
-                "";
-
-
-            GD.Print(
-                "DecisionEditor: próxima página establecida en Ninguna."
-            );
-
-
-            return;
+            decisionData.Pages =
+                new List<EditorPageData>();
         }
 
 
-        Variant metadata =
-            nextPageOption.GetItemMetadata(
-                (int)index
-            );
-
-
-        string pageId =
-            metadata.AsString();
-
-
-        decisionData.NextPageId =
-            pageId;
-
-
-        GD.Print(
-            "DecisionEditor: próxima página seleccionada."
-        );
-
-
-        GD.Print(
-            "  Página: ",
-            index,
-            " | ID: ",
-            pageId
-        );
+        return decisionData.Pages;
     }
 
 
-    private void SelectNextPage(
-        string pageId)
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    private string GetDecisionLetter(
+        int index)
     {
-        if (string.IsNullOrEmpty(pageId))
+        if (index < 26)
         {
-            nextPageOption.Select(
-                0
-            );
-
-            return;
+            return (
+                (char)('A' + index)
+            ).ToString();
         }
 
 
-        for (
-            int i = 1;
-            i < nextPageOption.ItemCount;
-            i++)
-        {
-            Variant metadata =
-                nextPageOption.GetItemMetadata(
-                    i
-                );
+        int first =
+            index / 26;
+
+        int second =
+            index % 26;
 
 
-            if (
-                metadata.AsString() ==
-                pageId)
-            {
-                nextPageOption.Select(
-                    i
-                );
-
-
-                GD.Print(
-                    "DecisionEditor: página previamente seleccionada encontrada: Página ",
-                    i
-                );
-
-
-                return;
-            }
-        }
-
-
-        GD.Print(
-            "DecisionEditor: no se encontró la página con ID: ",
-            pageId
-        );
-
-
-        nextPageOption.Select(
-            0
-        );
+        return
+            ((char)('A' + first - 1)).ToString() +
+            ((char)('A' + second)).ToString();
     }
 
 
-    public void SetChapter(
-    int eventChapter)
-{
-    chapter =
-        eventChapter;
+    private sealed class PageEntry
+    {
+        public EditorPageData Page { get; }
+
+        public string Path { get; }
 
 
-    conditionListEditor.SetChapter(
-        chapter
-    );
+        public PageEntry(
+            EditorPageData page,
+            string path)
+        {
+            Page =
+                page;
 
-
-    effectListEditor.SetChapter(
-        chapter
-    );
-
-
-    GD.Print(
-        "DecisionEditor: capítulo establecido: ",
-        chapter
-    );
-}
+            Path =
+                path;
+        }
+    }
 }

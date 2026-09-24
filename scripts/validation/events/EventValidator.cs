@@ -6,44 +6,82 @@ public class EventValidator
     private readonly ConditionValidator conditionValidator;
     private readonly EffectValidator effectValidator;
 
+    private readonly EventRepository eventRepository;
     private readonly ChapterRepository chapterRepository;
     private readonly AttributeRepository attributeRepository;
 
 
-public EventValidator()
-{
-    chapterRepository =
-        null;
+    public EventValidator()
+    {
+        eventRepository =
+            null;
 
-    attributeRepository =
-        null;
+        chapterRepository =
+            null;
 
-
-    conditionValidator =
-        new ConditionValidator();
-
-    effectValidator =
-        new EffectValidator();
-}
+        attributeRepository =
+            null;
 
 
-public EventValidator(
-    ChapterRepository chapterRepository,
-    AttributeRepository attributeRepository)
-{
-    this.chapterRepository =
-        chapterRepository;
+        conditionValidator =
+            new ConditionValidator();
 
-    this.attributeRepository =
-        attributeRepository;
+        effectValidator =
+            new EffectValidator();
+    }
 
 
-    conditionValidator =
-        new ConditionValidator();
+    public EventValidator(
+        ChapterRepository chapterRepository,
+        AttributeRepository attributeRepository)
+    {
+        eventRepository =
+            null;
 
-    effectValidator =
-        new EffectValidator();
-}
+        this.chapterRepository =
+            chapterRepository;
+
+        this.attributeRepository =
+            attributeRepository;
+
+
+        conditionValidator =
+            new ConditionValidator();
+
+        effectValidator =
+            new EffectValidator();
+    }
+
+
+    public EventValidator(
+        EventRepository eventRepository,
+        ChapterRepository chapterRepository,
+        AttributeRepository attributeRepository)
+    {
+        this.eventRepository =
+            eventRepository;
+
+        this.chapterRepository =
+            chapterRepository;
+
+        this.attributeRepository =
+            attributeRepository;
+
+
+        DecisionDatabase decisionDatabase =
+            new DecisionDatabase(
+                eventRepository
+            );
+
+
+        conditionValidator =
+            new ConditionValidator(
+                decisionDatabase
+            );
+
+        effectValidator =
+            new EffectValidator();
+    }
 
 
     public ValidationResult Validate(
@@ -69,6 +107,12 @@ public EventValidator(
         );
 
 
+        ValidateEventConditions(
+            eventData,
+            result
+        );
+
+
         ValidatePages(
             eventData,
             result
@@ -82,6 +126,30 @@ public EventValidator(
 
 
         return result;
+    }
+
+
+    private void ValidateEventConditions(
+        EditorEventData eventData,
+        ValidationResult result)
+    {
+        if (eventData.Conditions == null)
+        {
+            return;
+        }
+
+
+        conditionValidator.Validate(
+            eventData.Conditions,
+            "Condiciones del evento",
+            ValidationResourceType.Event,
+            eventData.Id ?? "",
+            -1,
+            "",
+            -1,
+            "",
+            result
+        );
     }
 
 

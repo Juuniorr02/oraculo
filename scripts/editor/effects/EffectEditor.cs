@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 
+
 public partial class EffectEditor : PanelContainer
 {
     [Signal]
@@ -19,8 +20,6 @@ public partial class EffectEditor : PanelContainer
 
     private EffectDefinitionDatabase effectDatabase;
 
-    private DecisionDatabase decisionDatabase;
-
     private CharacterDatabase characterDatabase;
 
     private RelationshipDatabase relationshipDatabase;
@@ -28,11 +27,12 @@ public partial class EffectEditor : PanelContainer
     private EditorEffectData effectData;
 
     private EventRepository eventRepository;
+
     private AttributeRepository attributeRepository;
 
-private ChapterRepository chapterRepository;
+    private ChapterRepository chapterRepository;
 
-private int chapter = 1;
+    private int chapter = 1;
 
 
     public override void _Ready()
@@ -85,83 +85,73 @@ private int chapter = 1;
     {
         eventRepository =
             repository;
-
-
-        if (eventRepository != null)
-        {
-            decisionDatabase =
-                new DecisionDatabase(
-                    eventRepository
-                );
-        }
-        else
-        {
-            decisionDatabase =
-                null;
-        }
     }
 
 
     public void SetProjectPath(
-    string projectPath)
-{
-    if (string.IsNullOrWhiteSpace(
-        projectPath))
+        string projectPath)
     {
-        characterDatabase = null;
-        relationshipDatabase = null;
-        attributeRepository = null;
-        chapterRepository = null;
+        if (string.IsNullOrWhiteSpace(
+            projectPath))
+        {
+            characterDatabase = null;
+            relationshipDatabase = null;
+            attributeRepository = null;
+            chapterRepository = null;
 
-        GD.PrintErr(
-            "EffectEditor: la ruta del proyecto está vacía."
+
+            GD.PrintErr(
+                "EffectEditor: la ruta del proyecto está vacía."
+            );
+
+
+            return;
+        }
+
+
+        characterDatabase =
+            new CharacterDatabase(
+                projectPath
+            );
+
+
+        relationshipDatabase =
+            new RelationshipDatabase(
+                projectPath
+            );
+
+
+        attributeRepository =
+            new AttributeRepository(
+                projectPath
+            );
+
+
+        chapterRepository =
+            new ChapterRepository(
+                projectPath
+            );
+
+
+        GD.Print(
+            "EffectEditor: ruta del proyecto establecida: ",
+            projectPath
         );
-
-        return;
     }
 
 
-    characterDatabase =
-        new CharacterDatabase(
-            projectPath
+    public void SetChapter(
+        int eventChapter)
+    {
+        chapter =
+            eventChapter;
+
+
+        GD.Print(
+            "EffectEditor: capítulo establecido: ",
+            chapter
         );
-
-
-    relationshipDatabase =
-        new RelationshipDatabase(
-            projectPath
-        );
-
-
-    attributeRepository =
-        new AttributeRepository(
-            projectPath
-        );
-
-
-    chapterRepository =
-        new ChapterRepository(
-            projectPath
-        );
-
-
-    GD.Print(
-        "EffectEditor: ruta del proyecto establecida: ",
-        projectPath
-    );
-}
-public void SetChapter(
-    int eventChapter)
-{
-    chapter =
-        eventChapter;
-
-
-    GD.Print(
-        "EffectEditor: capítulo establecido: ",
-        chapter
-    );
-}
+    }
 
 
     public void LoadEffect(
@@ -319,161 +309,163 @@ public void SetChapter(
 
 
     private void BuildCharacterAttributeFields()
-{
-    AddSectionLabel(
-        "ATRIBUTO"
-    );
-
-
-    if (
-        attributeRepository == null ||
-        chapterRepository == null)
     {
-        AddPlaceholderField(
-            "No hay un proyecto cargado."
+        AddSectionLabel(
+            "ATRIBUTO"
         );
 
 
-        AddValueField();
-
-        return;
-    }
-
-
-    ChapterDefinitionData currentChapter =
-        GetCurrentChapterData();
-
-
-    if (currentChapter == null)
-    {
-        AddPlaceholderField(
-            "No se ha encontrado el capítulo."
-        );
-
-
-        AddValueField();
-
-        return;
-    }
-
-
-    OptionButton attributeOption =
-        CreateStyledOptionButton();
-
-
-    attributeOption.AddItem(
-        "Seleccionar atributo..."
-    );
-
-
-    attributeOption.SetItemMetadata(
-        0,
-        ""
-    );
-
-
-    foreach (
-        string attributeId
-        in currentChapter.AttributeIds)
-    {
-        if (string.IsNullOrWhiteSpace(
-            attributeId))
+        if (
+            attributeRepository == null ||
+            chapterRepository == null)
         {
-            continue;
-        }
-
-
-        AttributeDefinitionData attribute =
-            attributeRepository.Load(
-                attributeId
+            AddPlaceholderField(
+                "No hay un proyecto cargado."
             );
 
 
-        if (attribute == null)
-        {
-            continue;
+            AddValueField();
+
+            return;
         }
+
+
+        ChapterDefinitionData currentChapter =
+            GetCurrentChapterData();
+
+
+        if (currentChapter == null)
+        {
+            AddPlaceholderField(
+                "No se ha encontrado el capítulo."
+            );
+
+
+            AddValueField();
+
+            return;
+        }
+
+
+        OptionButton attributeOption =
+            CreateStyledOptionButton();
 
 
         attributeOption.AddItem(
-            attribute.DisplayName
+            "Seleccionar atributo..."
         );
-
-
-        int index =
-            attributeOption.ItemCount - 1;
 
 
         attributeOption.SetItemMetadata(
-            index,
-            attribute.Id
+            0,
+            ""
         );
-    }
 
 
-    attributeOption.ItemSelected +=
-        index =>
+        foreach (
+            string attributeId
+            in currentChapter.AttributeIds)
         {
-            Variant metadata =
-                attributeOption.GetItemMetadata(
-                    (int)index
+            if (string.IsNullOrWhiteSpace(
+                attributeId))
+            {
+                continue;
+            }
+
+
+            AttributeDefinitionData attribute =
+                attributeRepository.Load(
+                    attributeId
                 );
 
 
-            effectData.AttributeId =
-                metadata.AsString();
+            if (attribute == null)
+            {
+                continue;
+            }
 
 
-            GD.Print(
-                "EffectEditor: atributo seleccionado: ",
-                effectData.AttributeId
+            attributeOption.AddItem(
+                attribute.DisplayName
             );
-        };
 
 
-    SelectAttribute(
-        attributeOption
-    );
+            int index =
+                attributeOption.ItemCount - 1;
 
 
-    fieldsContainer.AddChild(
-        attributeOption
-    );
+            attributeOption.SetItemMetadata(
+                index,
+                attribute.Id
+            );
+        }
 
 
-    AddValueField();
-}
-private ChapterDefinitionData GetCurrentChapterData()
-{
-    if (chapterRepository == null)
+        attributeOption.ItemSelected +=
+            index =>
+            {
+                Variant metadata =
+                    attributeOption.GetItemMetadata(
+                        (int)index
+                    );
+
+
+                effectData.AttributeId =
+                    metadata.AsString();
+
+
+                GD.Print(
+                    "EffectEditor: atributo seleccionado: ",
+                    effectData.AttributeId
+                );
+            };
+
+
+        SelectAttribute(
+            attributeOption
+        );
+
+
+        fieldsContainer.AddChild(
+            attributeOption
+        );
+
+
+        AddValueField();
+    }
+
+
+    private ChapterDefinitionData GetCurrentChapterData()
     {
+        if (chapterRepository == null)
+        {
+            return null;
+        }
+
+
+        List<ChapterDefinitionData> chapters =
+            chapterRepository.LoadAll();
+
+
+        foreach (
+            ChapterDefinitionData chapterData
+            in chapters)
+        {
+            if (chapterData == null)
+            {
+                continue;
+            }
+
+
+            if (chapterData.Number == chapter)
+            {
+                return chapterData;
+            }
+        }
+
+
         return null;
     }
-
-
-    List<ChapterDefinitionData> chapters =
-        chapterRepository.LoadAll();
-
-
-    foreach (
-        ChapterDefinitionData chapterData
-        in chapters)
-    {
-        if (chapterData == null)
-        {
-            continue;
-        }
-
-
-        if (chapterData.Number == chapter)
-        {
-            return chapterData;
-        }
-    }
-
-
-    return null;
-}
 
 
     private void SelectAttribute(
@@ -536,14 +528,11 @@ private ChapterDefinitionData GetCurrentChapterData()
         );
 
 
-        Button decisionButton =
-            new Button
+        LineEdit decisionEdit =
+            new LineEdit
             {
-                Text =
-                    GetCurrentDecisionDisplayName(),
-
-                Alignment =
-                    HorizontalAlignment.Left,
+                PlaceholderText =
+                    "Nombre o ID de la decisión...",
 
                 CustomMinimumSize =
                     new Vector2(
@@ -553,578 +542,27 @@ private ChapterDefinitionData GetCurrentChapterData()
             };
 
 
-        decisionButton.AddThemeColorOverride(
-            "font_color",
-            new Color("A8AFBC")
-        );
-
-        decisionButton.AddThemeColorOverride(
-            "font_hover_color",
-            new Color("E7EAF0")
-        );
-
-        decisionButton.AddThemeColorOverride(
-            "font_pressed_color",
-            new Color("E7EAF0")
-        );
-
-        decisionButton.AddThemeColorOverride(
-            "font_focus_color",
-            new Color("E7EAF0")
-        );
+        decisionEdit.Text =
+            effectData.DecisionId ?? "";
 
 
-        decisionButton.Pressed +=
-            OpenDecisionSelector;
+        decisionEdit.TextChanged +=
+            text =>
+            {
+                effectData.DecisionId =
+                    text.Trim();
+
+
+                GD.Print(
+                    "EffectEditor: decisión persistente establecida: ",
+                    effectData.DecisionId
+                );
+            };
 
 
         fieldsContainer.AddChild(
-            decisionButton
+            decisionEdit
         );
-    }
-
-
-    private string GetCurrentDecisionDisplayName()
-    {
-        if (
-            string.IsNullOrWhiteSpace(
-                effectData.DecisionId))
-        {
-            return "Seleccionar decisión...";
-        }
-
-
-        if (decisionDatabase == null)
-        {
-            return "Decisión no disponible";
-        }
-
-
-        return decisionDatabase.GetDecisionDisplayName(
-            effectData.DecisionId
-        );
-    }
-
-
-    private void OpenDecisionSelector()
-    {
-        if (decisionDatabase == null)
-        {
-            GD.PrintErr(
-                "EffectEditor: DecisionDatabase no está disponible."
-            );
-
-            return;
-        }
-
-
-        Window window =
-            new Window
-            {
-                Title =
-                    "Seleccionar decisión",
-
-                Size =
-                    new Vector2I(
-                        750,
-                        600
-                    ),
-
-                MinSize =
-                    new Vector2I(
-                        550,
-                        400
-                    ),
-
-                Exclusive =
-                    true,
-
-                Unresizable =
-                    false
-            };
-
-
-        VBoxContainer container =
-            new VBoxContainer();
-
-
-        container.SetAnchorsAndOffsetsPreset(
-            LayoutPreset.FullRect
-        );
-
-
-        container.AddThemeConstantOverride(
-            "separation",
-            8
-        );
-
-
-        MarginContainer margin =
-            new MarginContainer();
-
-
-        margin.SetAnchorsAndOffsetsPreset(
-            LayoutPreset.FullRect
-        );
-
-
-        margin.AddThemeConstantOverride(
-            "margin_left",
-            14
-        );
-
-        margin.AddThemeConstantOverride(
-            "margin_top",
-            12
-        );
-
-        margin.AddThemeConstantOverride(
-            "margin_right",
-            14
-        );
-
-        margin.AddThemeConstantOverride(
-            "margin_bottom",
-            12
-        );
-
-
-        VBoxContainer content =
-            new VBoxContainer();
-
-
-        margin.AddChild(
-            content
-        );
-
-
-        Label searchLabel =
-            new Label
-            {
-                Text =
-                    "BUSCAR DECISIÓN"
-            };
-
-
-        searchLabel.AddThemeColorOverride(
-            "font_color",
-            new Color("6F7785")
-        );
-
-        searchLabel.AddThemeFontSizeOverride(
-            "font_size",
-            11
-        );
-
-
-        content.AddChild(
-            searchLabel
-        );
-
-
-        LineEdit searchEdit =
-            new LineEdit
-            {
-                PlaceholderText =
-                    "Buscar por evento, ID o texto de decisión..."
-            };
-
-
-        searchEdit.CustomMinimumSize =
-            new Vector2(
-                0,
-                36
-            );
-
-
-        StyleBoxFlat searchNormal =
-            new StyleBoxFlat();
-
-        searchNormal.BgColor =
-            new Color("1D2128");
-
-        searchNormal.BorderColor =
-            new Color("3E444E");
-
-        searchNormal.SetBorderWidthAll(
-            1
-        );
-
-        searchNormal.SetCornerRadiusAll(
-            3
-        );
-
-
-        StyleBoxFlat searchFocus =
-            new StyleBoxFlat();
-
-        searchFocus.BgColor =
-            new Color("1D2128");
-
-        searchFocus.BorderColor =
-            new Color("4FA6A6");
-
-        searchFocus.SetBorderWidthAll(
-            1
-        );
-
-        searchFocus.SetCornerRadiusAll(
-            3
-        );
-
-
-        searchEdit.AddThemeStyleboxOverride(
-            "normal",
-            searchNormal
-        );
-
-        searchEdit.AddThemeStyleboxOverride(
-            "focus",
-            searchFocus
-        );
-
-
-        content.AddChild(
-            searchEdit
-        );
-
-
-        ItemList decisionList =
-            new ItemList();
-
-
-        decisionList.CustomMinimumSize =
-            new Vector2(
-                0,
-                400
-            );
-
-
-        decisionList.SizeFlagsVertical =
-            Control.SizeFlags.ExpandFill;
-
-
-        decisionList.AllowReselect =
-            true;
-
-
-        content.AddChild(
-            decisionList
-        );
-
-
-        HBoxContainer buttons =
-            new HBoxContainer
-            {
-                Alignment =
-                    BoxContainer.AlignmentMode.End
-            };
-
-
-        Button cancelButton =
-            CreateActionButton(
-                "Cancelar"
-            );
-
-
-        Button selectButton =
-            CreateActionButton(
-                "Seleccionar"
-            );
-
-
-        buttons.AddChild(
-            cancelButton
-        );
-
-
-        buttons.AddChild(
-            selectButton
-        );
-
-
-        content.AddChild(
-            buttons
-        );
-
-
-        window.AddChild(
-            margin
-        );
-
-
-        AddChild(
-            window
-        );
-
-
-        List<DecisionDatabase.DecisionReference> decisions =
-            decisionDatabase.GetAllDecisions();
-
-
-        PopulateDecisionList(
-            decisionList,
-            decisions,
-            ""
-        );
-
-
-        SelectCurrentDecisionInList(
-            decisionList
-        );
-
-
-        searchEdit.TextChanged +=
-            text =>
-            {
-                PopulateDecisionList(
-                    decisionList,
-                    decisions,
-                    text
-                );
-
-
-                SelectCurrentDecisionInList(
-                    decisionList
-                );
-            };
-
-
-        decisionList.ItemActivated +=
-            index =>
-            {
-                SelectDecisionFromList(
-                    decisionList,
-                    window
-                );
-            };
-
-
-        cancelButton.Pressed +=
-            () =>
-            {
-                window.QueueFree();
-            };
-
-
-        selectButton.Pressed +=
-            () =>
-            {
-                SelectDecisionFromList(
-                    decisionList,
-                    window
-                );
-            };
-
-
-        window.CloseRequested +=
-            () =>
-            {
-                window.QueueFree();
-            };
-
-
-        window.PopupCentered();
-    }
-
-
-    private void PopulateDecisionList(
-        ItemList decisionList,
-        List<DecisionDatabase.DecisionReference> decisions,
-        string searchText)
-    {
-        decisionList.Clear();
-
-
-        string search =
-            searchText?.Trim() ?? "";
-
-
-        foreach (
-            DecisionDatabase.DecisionReference decision
-            in decisions)
-        {
-            if (
-                !MatchesSearch(
-                    decision,
-                    search))
-            {
-                continue;
-            }
-
-
-            string displayName =
-                decisionDatabase.GetDecisionDisplayName(
-                    decision.Id
-                );
-
-
-            int index =
-                decisionList.AddItem(
-                    displayName
-                );
-
-
-            decisionList.SetItemMetadata(
-                index,
-                decision.Id
-            );
-        }
-    }
-
-
-    private static bool MatchesSearch(
-        DecisionDatabase.DecisionReference decision,
-        string search)
-    {
-        if (string.IsNullOrWhiteSpace(search))
-        {
-            return true;
-        }
-
-
-        return
-            ContainsIgnoreCase(
-                decision.EventTitle,
-                search
-            )
-            ||
-            ContainsIgnoreCase(
-                decision.EventId,
-                search
-            )
-            ||
-            ContainsIgnoreCase(
-                decision.Text,
-                search
-            );
-    }
-
-
-    private static bool ContainsIgnoreCase(
-        string value,
-        string search)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return false;
-        }
-
-
-        return value.IndexOf(
-            search,
-            System.StringComparison.OrdinalIgnoreCase
-        ) >= 0;
-    }
-
-
-    private void SelectCurrentDecisionInList(
-        ItemList decisionList)
-    {
-        if (
-            string.IsNullOrWhiteSpace(
-                effectData.DecisionId))
-        {
-            return;
-        }
-
-
-        for (
-            int i = 0;
-            i < decisionList.ItemCount;
-            i++)
-        {
-            Variant metadata =
-                decisionList.GetItemMetadata(
-                    i
-                );
-
-
-            if (
-                metadata.AsString() ==
-                effectData.DecisionId)
-            {
-                decisionList.Select(
-                    i
-                );
-
-
-                decisionList.EnsureCurrentIsVisible();
-
-
-                return;
-            }
-        }
-    }
-
-
-    private void SelectDecisionFromList(
-        ItemList decisionList,
-        Window window)
-    {
-        int[] selectedItems =
-            decisionList.GetSelectedItems();
-
-
-        if (
-            selectedItems.Length == 0)
-        {
-            return;
-        }
-
-
-        int selected =
-            selectedItems[0];
-
-
-        Variant metadata =
-            decisionList.GetItemMetadata(
-                selected
-            );
-
-
-        string decisionId =
-            metadata.AsString();
-
-
-        if (string.IsNullOrWhiteSpace(decisionId))
-        {
-            return;
-        }
-
-
-        effectData.DecisionId =
-            decisionId;
-
-
-        GD.Print(
-            "EffectEditor: decisión seleccionada: ",
-            effectData.DecisionId
-        );
-
-
-        window.QueueFree();
-
-
-        RefreshCurrentFields();
-    }
-
-
-    private void RefreshCurrentFields()
-    {
-        string currentType =
-            effectData.TypeId;
-
-
-        UpdateEffectType();
-
-
-        if (currentType == "decision")
-        {
-            GD.Print(
-                "EffectEditor: selector de decisión actualizado."
-            );
-        }
     }
 
 
@@ -1306,6 +744,7 @@ private ChapterDefinitionData GetCurrentChapterData()
             AddPlaceholderField(
                 "No hay un proyecto cargado."
             );
+
 
             AddValueField();
 
@@ -1660,6 +1099,7 @@ private ChapterDefinitionData GetCurrentChapterData()
                 0
             );
 
+
             return;
         }
 
@@ -1682,6 +1122,7 @@ private ChapterDefinitionData GetCurrentChapterData()
                 characterOption.Select(
                     i
                 );
+
 
                 return;
             }
@@ -1718,6 +1159,7 @@ private ChapterDefinitionData GetCurrentChapterData()
             titleOption.Select(
                 0
             );
+
 
             return;
         }
@@ -1772,6 +1214,7 @@ private ChapterDefinitionData GetCurrentChapterData()
                 0
             );
 
+
             return;
         }
 
@@ -1794,6 +1237,7 @@ private ChapterDefinitionData GetCurrentChapterData()
                 titleOption.Select(
                     i
                 );
+
 
                 return;
             }
@@ -1903,15 +1347,19 @@ private ChapterDefinitionData GetCurrentChapterData()
         StyleBoxFlat normal =
             new StyleBoxFlat();
 
+
         normal.BgColor =
             new Color("1D2128");
+
 
         normal.BorderColor =
             new Color("313743");
 
+
         normal.SetBorderWidthAll(
             1
         );
+
 
         normal.SetCornerRadiusAll(
             3

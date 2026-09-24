@@ -13,5 +13,7 @@ public class EditorEventData
 
     public int WorldYear { get; set; } = 1134;
 
+    public List<EditorConditionData> Conditions { get; set; } = new();
+
     public List<EditorPageData> Pages { get; set; } = new();
 }

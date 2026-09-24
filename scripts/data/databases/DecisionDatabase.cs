@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+
 public class DecisionDatabase
 {
     public sealed class DecisionReference
@@ -47,7 +48,8 @@ public class DecisionDatabase
 
         if (eventRepository == null)
         {
-            cacheBuilt = true;
+            cacheBuilt =
+                true;
 
             return cachedDecisions;
         }
@@ -59,10 +61,17 @@ public class DecisionDatabase
 
         if (events == null)
         {
-            cacheBuilt = true;
+            cacheBuilt =
+                true;
 
             return cachedDecisions;
         }
+
+
+        HashSet<string> registeredIds =
+            new HashSet<string>(
+                System.StringComparer.OrdinalIgnoreCase
+            );
 
 
         foreach (
@@ -81,71 +90,145 @@ public class DecisionDatabase
             }
 
 
-            for (
-                int pageIndex = 0;
-                pageIndex < eventData.Pages.Count;
-                pageIndex++)
+            CollectDecisionEffects(
+                eventData,
+                eventData.Pages,
+                registeredIds
+            );
+        }
+
+
+        cacheBuilt =
+            true;
+
+
+        return cachedDecisions;
+    }
+
+
+    private void CollectDecisionEffects(
+        EditorEventData eventData,
+        List<EditorPageData> pages,
+        HashSet<string> registeredIds)
+    {
+        if (
+            eventData == null ||
+            pages == null)
+        {
+            return;
+        }
+
+
+        for (
+            int pageIndex = 0;
+            pageIndex < pages.Count;
+            pageIndex++)
+        {
+            EditorPageData page =
+                pages[pageIndex];
+
+
+            if (page == null)
             {
-                EditorPageData page =
-                    eventData.Pages[pageIndex];
+                continue;
+            }
 
 
-                if (
-                    page == null ||
-                    page.Decisions == null)
+            if (page.Decisions == null)
+            {
+                continue;
+            }
+
+
+            foreach (
+                EditorDecisionData decision
+                in page.Decisions)
+            {
+                if (decision == null)
                 {
                     continue;
                 }
 
 
-                foreach (
-                    EditorDecisionData decision
-                    in page.Decisions)
+                if (decision.Effects != null)
                 {
-                    if (decision == null)
+                    foreach (
+                        EditorEffectData effect
+                        in decision.Effects)
                     {
-                        continue;
-                    }
-
-
-                    if (
-                        string.IsNullOrWhiteSpace(
-                            decision.Id))
-                    {
-                        continue;
-                    }
-
-
-                    cachedDecisions.Add(
-                        new DecisionReference
+                        if (effect == null)
                         {
-                            Id =
-                                decision.Id,
-
-                            Text =
-                                decision.Text,
-
-                            EventId =
-                                eventData.Id,
-
-                            EventTitle =
-                                eventData.Title,
-
-                            PageId =
-                                page.Id,
-
-                            PageNumber =
-                                pageIndex + 1
+                            continue;
                         }
-                    );
+
+
+                        if (
+                            !string.Equals(
+                                effect.TypeId,
+                                "decision",
+                                System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+
+                        string decisionId =
+                            effect.DecisionId?.Trim() ?? "";
+
+
+                        if (string.IsNullOrWhiteSpace(
+                            decisionId))
+                        {
+                            continue;
+                        }
+
+
+                        if (!registeredIds.Add(
+                            decisionId))
+                        {
+                            continue;
+                        }
+
+
+                        cachedDecisions.Add(
+                            new DecisionReference
+                            {
+                                Id =
+                                    decisionId,
+
+                                Text =
+                                    decisionId,
+
+                                EventId =
+                                    eventData.Id,
+
+                                EventTitle =
+                                    eventData.Title,
+
+                                PageId =
+                                    page.Id,
+
+                                PageNumber =
+                                    pageIndex + 1
+                            }
+                        );
+                    }
                 }
+
+
+                if (decision.Pages == null)
+                {
+                    continue;
+                }
+
+
+                CollectDecisionEffects(
+                    eventData,
+                    decision.Pages,
+                    registeredIds
+                );
             }
         }
-
-
-        cacheBuilt = true;
-
-        return cachedDecisions;
     }
 
 
@@ -169,8 +252,10 @@ public class DecisionDatabase
             in decisions)
         {
             if (
-                decision.Id ==
-                decisionId)
+                string.Equals(
+                    decision.Id,
+                    decisionId,
+                    System.StringComparison.OrdinalIgnoreCase))
             {
                 return decision;
             }
@@ -185,7 +270,9 @@ public class DecisionDatabase
         string decisionId)
     {
         DecisionReference decision =
-            GetDecision(decisionId);
+            GetDecision(
+                decisionId
+            );
 
 
         if (decision == null)
@@ -204,23 +291,18 @@ public class DecisionDatabase
                 : decision.EventTitle;
 
 
-        string decisionText =
-            string.IsNullOrWhiteSpace(
-                decision.Text)
-                ? "Decisión sin texto"
-                : decision.Text;
-
-
         return
-            $"{eventName} → Página {decision.PageNumber} → {decisionText}";
+            $"{eventName} → Decisión → {decision.Id}";
     }
 
 
     public void InvalidateCache()
     {
-        cachedDecisions = null;
+        cachedDecisions =
+            null;
 
-        cacheBuilt = false;
+        cacheBuilt =
+            false;
     }
 
 

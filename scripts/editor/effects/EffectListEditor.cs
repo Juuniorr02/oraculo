@@ -27,7 +27,6 @@ public partial class EffectListEditor : VBoxContainer
 
 
     private EventRepository eventRepository;
-    private DecisionDatabase decisionDatabase;
     private AttributeRepository attributeRepository;
 
 
@@ -54,34 +53,18 @@ public partial class EffectListEditor : VBoxContainer
 
 
     public void SetRepository(
-        EventRepository repository)
+    EventRepository repository)
+{
+    eventRepository =
+        repository;
+
+    UpdateAllSummaries();
+
+    if (IsInsideTree())
     {
-        eventRepository =
-            repository;
-
-
-        if (eventRepository != null)
-        {
-            decisionDatabase =
-                new DecisionDatabase(
-                    eventRepository
-                );
-        }
-        else
-        {
-            decisionDatabase =
-                null;
-        }
-
-
-        UpdateAllSummaries();
-
-
-        if (IsInsideTree())
-        {
-            Refresh();
-        }
+        Refresh();
     }
+}
 
 
     public void SetProjectPath(
@@ -1029,50 +1012,18 @@ public partial class EffectListEditor : VBoxContainer
 
 
     private string BuildDecisionSummary(
-        string decisionId)
+    string decisionId)
+{
+    if (string.IsNullOrWhiteSpace(
+        decisionId))
     {
-        if (string.IsNullOrWhiteSpace(
-            decisionId))
-        {
-            return "Decisión: seleccionar decisión";
-        }
-
-
-        if (decisionDatabase == null)
-        {
-            return "Decisión no disponible";
-        }
-
-
-        DecisionDatabase.DecisionReference decision =
-            decisionDatabase.GetDecision(
-                decisionId
-            );
-
-
-        if (decision == null)
-        {
-            return "Decisión no encontrada";
-        }
-
-
-        string eventName =
-            string.IsNullOrWhiteSpace(
-                decision.EventTitle)
-                ? "Evento sin título"
-                : decision.EventTitle;
-
-
-        string decisionText =
-            string.IsNullOrWhiteSpace(
-                decision.Text)
-                ? "Decisión sin texto"
-                : decision.Text;
-
-
-        return
-            $"Decisión: {eventName} → Página {decision.PageNumber} → {decisionText}";
+        return "Decisión: escribir nombre o ID";
     }
+
+
+    return
+        $"Decisión: {decisionId.Trim()}";
+}
 
 
     private static string FormatSignedValue(

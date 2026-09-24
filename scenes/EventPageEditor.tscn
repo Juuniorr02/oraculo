@@ -1,345 +1,207 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://djtq6kchpsxog"]
 
 [ext_resource type="Script" uid="uid://bymh4be3eo76a" path="res://scripts/editor/events/EventPageEditor.cs" id="1_event_page_editor"]
 
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pages_panel"]
-
-bg_color = Color(0.113725, 0.129412, 0.149020, 1)
-
+bg_color = Color(0.113725, 0.129412, 0.14902, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-
 border_color = Color(0.192157, 0.211765, 0.243137, 1)
-
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
-
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_editor_panel"]
-
-bg_color = Color(0.133333, 0.149020, 0.168627, 1)
-
+bg_color = Color(0.133333, 0.14902, 0.168627, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-
 border_color = Color(0.192157, 0.211765, 0.243137, 1)
-
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
-
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preview"]
-
 bg_color = Color(0.062745, 0.070588, 0.086275, 1)
-
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-
 border_color = Color(0.192157, 0.211765, 0.243137, 1)
-
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
-
 [node name="EventPageEditor" type="Control" unique_id=352659909]
-
 layout_mode = 3
-
 anchors_preset = 15
-
 anchor_right = 1.0
 anchor_bottom = 1.0
-
 grow_horizontal = 2
 grow_vertical = 2
-
 script = ExtResource("1_event_page_editor")
 
-
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1463100064]
-
 layout_mode = 1
-
 anchors_preset = 15
-
 anchor_right = 1.0
 anchor_bottom = 1.0
-
 grow_horizontal = 2
 grow_vertical = 2
-
 theme_override_constants/separation = 10
 
-
 [node name="PagesPanel" type="PanelContainer" parent="HBoxContainer" unique_id=1124638063]
-
 custom_minimum_size = Vector2(220, 0)
-
 layout_mode = 2
-
 theme_override_styles/panel = SubResource("StyleBoxFlat_pages_panel")
 
-
 [node name="MarginContainer" type="MarginContainer" parent="HBoxContainer/PagesPanel" unique_id=371926284]
-
 layout_mode = 2
-
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/PagesPanel/MarginContainer" unique_id=1848256034]
-
 layout_mode = 2
-
 theme_override_constants/separation = 8
 
-
 [node name="PagesTitle" type="Label" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer" unique_id=900879971]
-
 layout_mode = 2
-
 theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
-
 theme_override_font_sizes/font_size = 13
-
 text = "PÁGINAS"
 
-
 [node name="Separator" type="HSeparator" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer" unique_id=787468594]
-
 layout_mode = 2
-
 
 [node name="DragHint" type="Label" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer" unique_id=570843587]
-
 modulate = Color(1, 1, 1, 0.55)
-
 layout_mode = 2
-
 theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
-
 theme_override_font_sizes/font_size = 12
-
 text = "Arrastra para ordenar"
 
-
 [node name="PageList" type="VBoxContainer" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer" unique_id=1885938926]
-
 layout_mode = 2
-
 size_flags_vertical = 3
-
 theme_override_constants/separation = 4
 
-
 [node name="AddPageButton" type="Button" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer" unique_id=1919407032]
-
 custom_minimum_size = Vector2(0, 38)
-
 layout_mode = 2
-
 text = "+ Página"
 
-
 [node name="DeletePageButton" type="Button" parent="HBoxContainer/PagesPanel/MarginContainer/VBoxContainer" unique_id=1034683015]
-
 custom_minimum_size = Vector2(0, 38)
-
 layout_mode = 2
-
 text = "Eliminar página"
 
-
 [node name="EditorPanel" type="PanelContainer" parent="HBoxContainer" unique_id=1967883289]
-
 layout_mode = 2
-
 size_flags_horizontal = 3
 size_flags_vertical = 3
-
 theme_override_styles/panel = SubResource("StyleBoxFlat_editor_panel")
 
-
 [node name="MarginContainer" type="MarginContainer" parent="HBoxContainer/EditorPanel" unique_id=2016353666]
-
 layout_mode = 2
-
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 18
 
-
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/EditorPanel/MarginContainer" unique_id=53186766]
-
 layout_mode = 2
-
 theme_override_constants/separation = 10
 
-
-[node name="PageTitle" type="Label" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer" unique_id=1915463769]
-
+[node name="PageTitle" type="LineEdit" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer" unique_id=1915463769]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-
 theme_override_colors/font_color = Color(0.905882, 0.917647, 0.941176, 1)
-
 theme_override_font_sizes/font_size = 18
-
 text = "Página 1"
-
+placeholder_text = "Nombre de la página"
 
 [node name="PageTypeLabel" type="Label" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer" unique_id=2074319821]
-
 layout_mode = 2
-
 theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
-
 theme_override_font_sizes/font_size = 12
-
 text = "TIPO DE PÁGINA"
 
-
 [node name="PageTypeOption" type="OptionButton" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer" unique_id=2074319822]
-
 custom_minimum_size = Vector2(0, 38)
-
 layout_mode = 2
-
-item_count = 2
-
 selected = 0
-
+item_count = 2
 popup/item_0/text = "Normal"
 popup/item_0/id = 0
-
 popup/item_1/text = "Decisión"
 popup/item_1/id = 1
 
-
 [node name="TextLabel" type="Label" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer" unique_id=1919296704]
-
 layout_mode = 2
-
 theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
-
 theme_override_font_sizes/font_size = 12
-
 text = "TEXTO"
 
-
 [node name="TextEdit" type="TextEdit" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer" unique_id=1845148968]
-
-custom_minimum_size = Vector2(0, 180)
-
+custom_minimum_size = Vector2(0, 550)
 layout_mode = 2
-
 size_flags_vertical = 3
-
 theme_override_styles/normal = SubResource("StyleBoxFlat_preview")
-
 theme_override_styles/focus = SubResource("StyleBoxFlat_preview")
-
 placeholder_text = "Escribe aquí el texto de la página..."
-
 wrap_mode = 1
 
-
 [node name="AddIllustrationButton" type="Button" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer" unique_id=1650040463]
-
 custom_minimum_size = Vector2(0, 38)
-
 layout_mode = 2
-
 text = "+ Añadir ilustración"
 
-
 [node name="IllustrationSection" type="VBoxContainer" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer" unique_id=1884102755]
-
 visible = false
-
 layout_mode = 2
-
 theme_override_constants/separation = 8
-
 
 [node name="IllustrationLabel" type="Label" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection" unique_id=1785912338]
-
 layout_mode = 2
-
 theme_override_colors/font_color = Color(0.435294, 0.466667, 0.521569, 1)
-
 theme_override_font_sizes/font_size = 12
-
 text = "ILUSTRACIÓN"
 
-
 [node name="PreviewPanel" type="PanelContainer" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection" unique_id=1872146382]
-
 custom_minimum_size = Vector2(0, 180)
-
 layout_mode = 2
-
 size_flags_vertical = 3
-
 theme_override_styles/panel = SubResource("StyleBoxFlat_preview")
 
-
 [node name="Preview" type="TextureRect" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection/PreviewPanel" unique_id=1984326881]
-
 layout_mode = 2
-
 expand_mode = 1
-
 stretch_mode = 5
 
-
 [node name="IllustrationButtons" type="HBoxContainer" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection" unique_id=1907151234]
-
 layout_mode = 2
-
 theme_override_constants/separation = 8
 
-
 [node name="ChangeIllustrationButton" type="Button" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection/IllustrationButtons" unique_id=1827534025]
-
 custom_minimum_size = Vector2(110, 38)
-
 layout_mode = 2
-
 text = "Cambiar"
 
-
 [node name="RemoveIllustrationButton" type="Button" parent="HBoxContainer/EditorPanel/MarginContainer/VBoxContainer/IllustrationSection/IllustrationButtons" unique_id=1948162117]
-
 custom_minimum_size = Vector2(160, 38)
-
 layout_mode = 2
-
 text = "Eliminar ilustración"
 
-
 [node name="IllustrationFileDialog" type="FileDialog" parent="." unique_id=1793276404]
-
-file_mode = 0
-
-access = 2
-
 title = "Seleccionar ilustración"
-
 size = Vector2i(900, 600)
+file_mode = 0
+access = 2

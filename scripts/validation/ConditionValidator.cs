@@ -2,6 +2,24 @@ using System.Collections.Generic;
 
 public class ConditionValidator
 {
+    private readonly DecisionDatabase decisionDatabase;
+
+
+    public ConditionValidator()
+    {
+        decisionDatabase =
+            null;
+    }
+
+
+    public ConditionValidator(
+        DecisionDatabase decisionDatabase)
+    {
+        this.decisionDatabase =
+            decisionDatabase;
+    }
+
+
     public void Validate(
         List<EditorConditionData> conditions,
         string location,
@@ -112,9 +130,8 @@ public class ConditionValidator
 
                 case "decision":
 
-                    ValidateRequiredField(
+                    ValidateDecisionReference(
                         condition.DecisionId,
-                        "DecisionId",
                         conditionLocation,
                         resourceType,
                         resourceId,
@@ -216,6 +233,64 @@ public class ConditionValidator
 
                     break;
             }
+        }
+    }
+
+
+    private void ValidateDecisionReference(
+        string value,
+        string location,
+        ValidationResourceType resourceType,
+        string resourceId,
+        int pageIndex,
+        string pageId,
+        int decisionIndex,
+        string decisionId,
+        int conditionIndex,
+        ValidationResult result)
+    {
+        ValidateRequiredField(
+            value,
+            "DecisionId",
+            location,
+            resourceType,
+            resourceId,
+            pageIndex,
+            pageId,
+            decisionIndex,
+            decisionId,
+            conditionIndex,
+            result
+        );
+
+
+        if (string.IsNullOrWhiteSpace(
+            value))
+        {
+            return;
+        }
+
+
+        if (decisionDatabase == null)
+        {
+            return;
+        }
+
+
+        if (decisionDatabase.GetDecision(
+            value.Trim()) == null)
+        {
+            result.AddError(
+                $"{location}: la decisión persistente '{value.Trim()}' no existe.",
+                resourceType,
+                resourceId,
+                pageIndex,
+                pageId,
+                decisionIndex,
+                decisionId,
+                conditionIndex,
+                -1
+            );
         }
     }
 

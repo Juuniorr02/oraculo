@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 
+
 public partial class ConditionEditor : PanelContainer
 {
     private OptionButton typeOption;
@@ -30,6 +31,7 @@ public partial class ConditionEditor : PanelContainer
             GetNode<OptionButton>(
                 "MarginContainer/VBoxContainer/Header/TypeOption"
             );
+
 
         fieldsContainer =
             GetNode<VBoxContainer>(
@@ -98,6 +100,7 @@ public partial class ConditionEditor : PanelContainer
             GD.PrintErr(
                 "ConditionEditor: la ruta del proyecto está vacía."
             );
+
 
             return;
         }
@@ -561,6 +564,7 @@ public partial class ConditionEditor : PanelContainer
             GD.PrintErr(
                 "ConditionEditor: DecisionDatabase no está disponible."
             );
+
 
             return;
         }
