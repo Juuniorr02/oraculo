@@ -426,32 +426,23 @@ public partial class ChapterEditor : Control
 
 
     private static ChapterPageDefinitionData ClonePage(
-        ChapterPageDefinitionData page)
+    ChapterPageDefinitionData page)
+{
+    if (page == null)
     {
-        if (page == null)
-        {
-            return null;
-        }
-
-
-        return new ChapterPageDefinitionData
-        {
-            Type =
-                page.Type,
-
-            Title =
-                page.Title,
-
-            Text =
-                page.Text,
-
-            ImagePath =
-                page.ImagePath,
-
-            ButtonText =
-                page.ButtonText
-        };
+        return null;
     }
+
+    return new ChapterPageDefinitionData
+    {
+        Id = page.Id,
+        Type = page.Type,
+        Title = page.Title,
+        Text = page.Text,
+        ImagePath = page.ImagePath,
+        ButtonText = page.ButtonText
+    };
+}
 
 
     public void LoadChapter(

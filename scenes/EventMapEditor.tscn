@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://vrli30nbo084"]
 
-[ext_resource type="Script" path="res://scripts/editor/events/EventMapEditor.cs" id="1_map"]
+[ext_resource type="Script" uid="uid://ci7w4gyp5m6pe" path="res://scripts/editor/map/EventMapEditor.cs" id="1_map"]
 
-[node name="EventMapEditor" type="Control"]
+[node name="EventMapEditor" type="Control" unique_id=1959718654]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

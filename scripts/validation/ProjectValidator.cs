@@ -40,19 +40,20 @@ public class ProjectValidator
         }
 
 
-eventValidator =
-    new EventValidator(
-        eventRepository,
-        chapterRepository,
-        attributeRepository
-    );
+        eventValidator =
+            new EventValidator(
+                eventRepository,
+                interludeRepository,
+                chapterRepository,
+                attributeRepository
+            );
 
 
-interludeValidator =
-    new InterludeValidator(
-        chapterRepository,
-        attributeRepository
-    );
+        interludeValidator =
+            new InterludeValidator(
+                chapterRepository,
+                attributeRepository
+            );
     }
 
 

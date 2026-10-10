@@ -11,10 +11,13 @@ public partial class MainEditor : Control
     private Button attributesButton;
     private Button charactersButton;
     private Button relationshipsButton;
+    private Button mapButton;
     private Button settingsButton;
     private Button exitButton;
     private Button validateButton;
     private Button saveButton;
+    private Button localizationButton;
+    private LocalizationPanel localizationPanel;
 
 
     private Control workspaceContent;
@@ -35,6 +38,7 @@ public partial class MainEditor : Control
     private PackedScene characterEditorScene;
     private PackedScene relationshipListViewScene;
     private PackedScene relationshipEditorScene;
+    private PackedScene eventMapEditorScene;
     private PackedScene validationPanelScene;
 
 
@@ -142,6 +146,10 @@ public partial class MainEditor : Control
             GetNode<Button>(
                 "MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation/RelationshipsButton"
             );
+            mapButton =
+    GetNode<Button>(
+        "MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation/MapButton"
+    );
 
 
         settingsButton =
@@ -274,6 +282,10 @@ public partial class MainEditor : Control
             GD.Load<PackedScene>(
                 "res://scenes/RelationshipEditor.tscn"
             );
+            eventMapEditorScene =
+    GD.Load<PackedScene>(
+        "res://scenes/EventMapEditor.tscn"
+    );
 
 
         validationPanelScene =
@@ -304,6 +316,13 @@ public partial class MainEditor : Control
 
         relationshipsButton.Pressed +=
             OnRelationshipsPressed;
+            mapButton.Pressed +=
+    OnMapPressed;
+localizationButton = GetNode<Button>(
+    "MainLayout/MainArea/SideBar/MarginContainer/VBoxContainer/Navigation/LocalizationButton"
+);
+
+localizationButton.Pressed += OnLocalizationPressed;
 
 
         settingsButton.Pressed +=
@@ -2157,6 +2176,101 @@ public partial class MainEditor : Control
             }
         );
     }
+    private void OnMapPressed()
+{
+    RequestNavigation(
+        () =>
+        {
+            returnToChapterEditor =
+                false;
+
+
+            chapterEditorId =
+                "";
+
+
+            ShowEventMap();
+        }
+    );
+}
+
+
+private void ShowEventMap()
+{
+    if (eventMapEditorScene == null)
+    {
+        GD.PrintErr(
+            "MainEditor: EventMapEditor.tscn no está disponible."
+        );
+
+
+        return;
+    }
+
+
+    if (
+        projectManager == null ||
+        !projectManager.HasProject())
+    {
+        GD.PrintErr(
+            "MainEditor: no hay ningún proyecto cargado."
+        );
+
+
+        return;
+    }
+
+
+    EventMapEditor map =
+        eventMapEditorScene.Instantiate<EventMapEditor>();
+
+
+    map.EventSelected +=
+        OnEventSelected;
+
+
+    map.InterludeSelected +=
+        OnInterludeSelected;
+
+
+    ShowView(
+        map
+    );
+
+
+    map.SetProjectPath(
+        projectManager.GetProjectPath()
+    );
+}
+private void OnLocalizationPressed()
+{
+    RequestNavigation(() =>
+    {
+        returnToChapterEditor = false;
+        chapterEditorId = "";
+
+        ShowLocalizationPanel();
+    });
+}
+
+private void ShowLocalizationPanel()
+{
+    if (projectManager == null || !projectManager.HasProject())
+    {
+        GD.PrintErr(
+            "MainEditor: no hay ningún proyecto cargado."
+        );
+        return;
+    }
+
+    localizationPanel = new LocalizationPanel();
+
+    ShowView(localizationPanel);
+
+    localizationPanel.SetProjectPath(
+        projectManager.GetProjectPath()
+    );
+}
 
 
     private void ShowRelationshipList()

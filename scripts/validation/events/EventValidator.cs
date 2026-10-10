@@ -7,6 +7,7 @@ public class EventValidator
     private readonly EffectValidator effectValidator;
 
     private readonly EventRepository eventRepository;
+    private readonly InterludeRepository interludeRepository;
     private readonly ChapterRepository chapterRepository;
     private readonly AttributeRepository attributeRepository;
 
@@ -14,6 +15,9 @@ public class EventValidator
     public EventValidator()
     {
         eventRepository =
+            null;
+
+        interludeRepository =
             null;
 
         chapterRepository =
@@ -38,6 +42,9 @@ public class EventValidator
         eventRepository =
             null;
 
+        interludeRepository =
+            null;
+
         this.chapterRepository =
             chapterRepository;
 
@@ -55,11 +62,15 @@ public class EventValidator
 
     public EventValidator(
         EventRepository eventRepository,
+        InterludeRepository interludeRepository,
         ChapterRepository chapterRepository,
         AttributeRepository attributeRepository)
     {
         this.eventRepository =
             eventRepository;
+
+        this.interludeRepository =
+            interludeRepository;
 
         this.chapterRepository =
             chapterRepository;
@@ -107,6 +118,12 @@ public class EventValidator
         );
 
 
+        ValidateNextDestination(
+            eventData,
+            result
+        );
+
+
         ValidateEventConditions(
             eventData,
             result
@@ -126,6 +143,87 @@ public class EventValidator
 
 
         return result;
+    }
+
+
+    private void ValidateNextDestination(
+        EditorEventData eventData,
+        ValidationResult result)
+    {
+        string eventId =
+            eventData.Id ?? "";
+
+
+        string nextEventId =
+            eventData.NextEventId ?? "";
+
+
+        string nextInterludeId =
+            eventData.NextInterludeId ?? "";
+
+
+        bool hasNextEvent =
+            !string.IsNullOrWhiteSpace(
+                nextEventId
+            );
+
+
+        bool hasNextInterlude =
+            !string.IsNullOrWhiteSpace(
+                nextInterludeId
+            );
+
+
+        if (hasNextEvent && hasNextInterlude)
+        {
+            result.AddError(
+                "El evento tiene definidos dos destinos: un evento y un interludio. Solo puede tener uno.",
+                eventId
+            );
+
+            return;
+        }
+
+
+        if (hasNextEvent)
+        {
+            if (eventRepository == null)
+            {
+                return;
+            }
+
+
+            if (!eventRepository.Exists(
+                nextEventId))
+            {
+                result.AddError(
+                    $"El evento referencia el evento siguiente '{nextEventId}', pero ese evento no existe.",
+                    eventId
+                );
+            }
+
+
+            return;
+        }
+
+
+        if (hasNextInterlude)
+        {
+            if (interludeRepository == null)
+            {
+                return;
+            }
+
+
+            if (!interludeRepository.Exists(
+                nextInterludeId))
+            {
+                result.AddError(
+                    $"El evento referencia el interludio siguiente '{nextInterludeId}', pero ese interludio no existe.",
+                    eventId
+                );
+            }
+        }
     }
 
 
@@ -285,54 +383,121 @@ public class EventValidator
                 eventData.Pages[pageIndex];
 
 
-            string pageLocation =
-                $"Página {pageIndex + 1}";
-
-
-            if (page == null)
-            {
-                result.AddError(
-                    $"{pageLocation}: la página es nula.",
-                    eventId,
-                    pageIndex
-                );
-
-                continue;
-            }
-
-
-            ValidatePageId(
+            ValidatePageRecursive(
                 page,
+                $"Página {pageIndex + 1}",
                 pageIndex,
                 eventId,
                 pageIds,
                 result
             );
-
-
-            ValidatePageText(
-                page,
-                pageIndex,
-                eventId,
-                result
-            );
-
-
-            ValidatePageType(
-                page,
-                pageIndex,
-                eventId,
-                result
-            );
         }
 
 
-        ValidateDecisionTargets(
+        ValidateDecisionTargetsRecursive(
             eventData.Pages,
             eventId,
             pageIds,
             result
         );
+    }
+
+
+    private void ValidatePageRecursive(
+        EditorPageData page,
+        string location,
+        int pageIndex,
+        string eventId,
+        HashSet<string> pageIds,
+        ValidationResult result)
+    {
+        if (page == null)
+        {
+            result.AddError(
+                $"{location}: la página es nula.",
+                eventId,
+                pageIndex
+            );
+
+            return;
+        }
+
+
+        ValidatePageId(
+            page,
+            pageIndex,
+            eventId,
+            pageIds,
+            result
+        );
+
+
+        ValidatePageText(
+            page,
+            pageIndex,
+            eventId,
+            result
+        );
+
+
+        ValidatePageType(
+            page,
+            pageIndex,
+            eventId,
+            result
+        );
+
+
+        if (page.Decisions == null)
+        {
+            return;
+        }
+
+
+        for (
+            int decisionIndex = 0;
+            decisionIndex < page.Decisions.Count;
+            decisionIndex++)
+        {
+            EditorDecisionData decision =
+                page.Decisions[decisionIndex];
+
+
+            if (decision == null)
+            {
+                continue;
+            }
+
+
+            if (decision.Pages == null)
+            {
+                continue;
+            }
+
+
+            for (
+                int branchIndex = 0;
+                branchIndex < decision.Pages.Count;
+                branchIndex++)
+            {
+                EditorPageData branchPage =
+                    decision.Pages[branchIndex];
+
+
+                string branchLocation =
+                    $"{location}, opción {decisionIndex + 1}, página {branchIndex + 1}";
+
+
+                ValidatePageRecursive(
+                    branchPage,
+                    branchLocation,
+                    branchIndex,
+                    eventId,
+                    pageIds,
+                    result
+                );
+            }
+        }
     }
 
 
@@ -560,7 +725,7 @@ public class EventValidator
     }
 
 
-    private void ValidateDecisionTargets(
+    private void ValidateDecisionTargetsRecursive(
         List<EditorPageData> pages,
         string eventId,
         HashSet<string> pageIds,
@@ -598,28 +763,42 @@ public class EventValidator
                     page.Decisions[decisionIndex];
 
 
-                if (
-                    decision == null ||
-                    string.IsNullOrWhiteSpace(
-                        decision.NextPageId))
+                if (decision == null)
                 {
                     continue;
                 }
 
 
-                if (
-                    !pageIds.Contains(
-                        decision.NextPageId))
+                if (!string.IsNullOrWhiteSpace(
+                    decision.NextPageId))
                 {
-                    result.AddError(
-                        $"Página {pageIndex + 1}, opción {decisionIndex + 1}: la próxima página '{decision.NextPageId}' no existe.",
-                        eventId,
-                        pageIndex,
-                        page.Id ?? "",
-                        decisionIndex,
-                        decision.Id ?? ""
-                    );
+                    if (!pageIds.Contains(
+                        decision.NextPageId))
+                    {
+                        result.AddError(
+                            $"Página {pageIndex + 1}, opción {decisionIndex + 1}: la próxima página '{decision.NextPageId}' no existe.",
+                            eventId,
+                            pageIndex,
+                            page.Id ?? "",
+                            decisionIndex,
+                            decision.Id ?? ""
+                        );
+                    }
                 }
+
+
+                if (decision.Pages == null)
+                {
+                    continue;
+                }
+
+
+                ValidateDecisionTargetsRecursive(
+                    decision.Pages,
+                    eventId,
+                    pageIds,
+                    result
+                );
             }
         }
     }

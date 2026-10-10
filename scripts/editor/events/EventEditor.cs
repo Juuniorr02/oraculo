@@ -30,6 +30,11 @@ public partial class EventEditor : Control
     private TabBar tabBar;
 
     private EventPageEditor pageEditor;
+
+    private OptionButton nextDestinationTypeOption;
+    private EventSelector nextEventSelector;
+    private InterludeSelector nextInterludeSelector;
+
     private OptionsEditor optionsEditor;
 
     private Button eventConditionsButton;
@@ -48,6 +53,7 @@ public partial class EventEditor : Control
     private EditorEventData eventData;
 
     private EventRepository eventRepository;
+    private InterludeRepository interludeRepository;
     private ChapterRepository chapterRepository;
     private AttributeRepository attributeRepository;
 
@@ -82,7 +88,7 @@ public partial class EventEditor : Control
 
         idEdit =
             GetNode<LineEdit>(
-                "VBoxContainer/EventInfo/IdContainer/IdEdit"
+                "VBoxContainer/EventInfo/IdContainer/IdField/IdEdit"
             );
 
         titleEdit =
@@ -103,6 +109,21 @@ public partial class EventEditor : Control
         worldYearSpinBox =
             GetNode<SpinBox>(
                 "VBoxContainer/EventInfo/BasicInfo/WorldYearContainer/WorldYearSpinBox"
+            );
+
+        nextDestinationTypeOption =
+            GetNode<OptionButton>(
+                "VBoxContainer/EventInfo/IdContainer/NextDestinationField/NextDestinationRow/NextDestinationTypeOption"
+            );
+
+        nextEventSelector =
+            GetNode<EventSelector>(
+                "VBoxContainer/EventInfo/IdContainer/NextDestinationField/NextDestinationRow/NextEventSelector"
+            );
+
+        nextInterludeSelector =
+            GetNode<InterludeSelector>(
+                "VBoxContainer/EventInfo/IdContainer/NextDestinationField/NextDestinationRow/NextInterludeSelector"
             );
 
         tabBar =
@@ -183,6 +204,9 @@ public partial class EventEditor : Control
         tabBar.TabChanged +=
             OnTabChanged;
 
+        nextDestinationTypeOption.ItemSelected +=
+            OnNextDestinationTypeSelected;
+
 
         idEdit.Editable =
             false;
@@ -222,6 +246,7 @@ public partial class EventEditor : Control
 
 
         InitializeYears();
+        InitializeNextDestinationOptions();
 
 
         OnTabChanged(
@@ -235,56 +260,191 @@ public partial class EventEditor : Control
     }
 
 
+    private enum NextDestinationType
+    {
+        None,
+        Event,
+        Interlude
+    }
+
+
+    private void InitializeNextDestinationOptions()
+    {
+        nextDestinationTypeOption.Clear();
+
+        nextDestinationTypeOption.AddItem(
+            "Ninguno",
+            (int)NextDestinationType.None
+        );
+
+        nextDestinationTypeOption.AddItem(
+            "Evento",
+            (int)NextDestinationType.Event
+        );
+
+        nextDestinationTypeOption.AddItem(
+            "Interludio",
+            (int)NextDestinationType.Interlude
+        );
+
+        nextDestinationTypeOption.Select(
+            (int)NextDestinationType.None
+        );
+
+        UpdateNextDestinationSelectorVisibility();
+    }
+
+
+    private void OnNextDestinationTypeSelected(
+        long index)
+    {
+        UpdateNextDestinationSelectorVisibility();
+    }
+
+
+    private void UpdateNextDestinationSelectorVisibility()
+    {
+        if (
+            nextDestinationTypeOption == null ||
+            nextEventSelector == null ||
+            nextInterludeSelector == null)
+        {
+            return;
+        }
+
+
+        NextDestinationType type =
+            (NextDestinationType)
+            nextDestinationTypeOption.GetSelectedId();
+
+
+        nextEventSelector.Visible =
+            type == NextDestinationType.Event;
+
+        nextInterludeSelector.Visible =
+            type == NextDestinationType.Interlude;
+
+
+        if (type == NextDestinationType.None)
+        {
+            nextEventSelector.ClearSelection();
+            nextInterludeSelector.ClearSelection();
+        }
+        else if (type == NextDestinationType.Event)
+        {
+            nextInterludeSelector.ClearSelection();
+        }
+        else if (type == NextDestinationType.Interlude)
+        {
+            nextEventSelector.ClearSelection();
+        }
+    }
+
+
+    private void LoadNextDestinationIntoEditor()
+    {
+        if (eventData == null)
+        {
+            return;
+        }
+
+
+        nextEventSelector.ClearSelection();
+        nextInterludeSelector.ClearSelection();
+
+
+        if (!string.IsNullOrWhiteSpace(
+            eventData.NextEventId))
+        {
+            nextDestinationTypeOption.Select(
+                (int)NextDestinationType.Event
+            );
+
+            UpdateNextDestinationSelectorVisibility();
+
+            nextEventSelector.SetSelectedEventId(
+                eventData.NextEventId
+            );
+
+            return;
+        }
+
+
+        if (!string.IsNullOrWhiteSpace(
+            eventData.NextInterludeId))
+        {
+            nextDestinationTypeOption.Select(
+                (int)NextDestinationType.Interlude
+            );
+
+            UpdateNextDestinationSelectorVisibility();
+
+            nextInterludeSelector.SetSelectedInterludeId(
+                eventData.NextInterludeId
+            );
+
+            return;
+        }
+
+
+        nextDestinationTypeOption.Select(
+            (int)NextDestinationType.None
+        );
+
+        UpdateNextDestinationSelectorVisibility();
+    }
+
+
     // ============================================================
     // WORKSPACE MODE
     // ============================================================
 
     private void ApplyNarrativeWorkspaceMode(
-    bool narrative)
-{
-    if (eventInfoContainer != null)
+        bool narrative)
     {
-        eventInfoContainer.Visible =
-            !narrative;
+        if (eventInfoContainer != null)
+        {
+            eventInfoContainer.Visible =
+                !narrative;
+        }
+
+
+        if (buttonsContainer != null)
+        {
+            buttonsContainer.Visible =
+                !narrative;
+        }
+
+
+        if (contentContainer != null)
+        {
+            contentContainer.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
+
+            contentContainer.SizeFlagsVertical =
+                Control.SizeFlags.ExpandFill;
+        }
+
+
+        if (pageEditor != null)
+        {
+            pageEditor.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
+
+            pageEditor.SizeFlagsVertical =
+                Control.SizeFlags.ExpandFill;
+        }
+
+
+        if (optionsEditor != null)
+        {
+            optionsEditor.SizeFlagsHorizontal =
+                Control.SizeFlags.ExpandFill;
+
+            optionsEditor.SizeFlagsVertical =
+                Control.SizeFlags.ExpandFill;
+        }
     }
-
-
-    if (buttonsContainer != null)
-    {
-        buttonsContainer.Visible =
-            !narrative;
-    }
-
-
-    if (contentContainer != null)
-    {
-        contentContainer.SizeFlagsHorizontal =
-            Control.SizeFlags.ExpandFill;
-
-        contentContainer.SizeFlagsVertical =
-            Control.SizeFlags.ExpandFill;
-    }
-
-
-    if (pageEditor != null)
-    {
-        pageEditor.SizeFlagsHorizontal =
-            Control.SizeFlags.ExpandFill;
-
-        pageEditor.SizeFlagsVertical =
-            Control.SizeFlags.ExpandFill;
-    }
-
-
-    if (optionsEditor != null)
-    {
-        optionsEditor.SizeFlagsHorizontal =
-            Control.SizeFlags.ExpandFill;
-
-        optionsEditor.SizeFlagsVertical =
-            Control.SizeFlags.ExpandFill;
-    }
-}
 
 
     // ============================================================
@@ -296,6 +456,14 @@ public partial class EventEditor : Control
     {
         eventRepository =
             repository;
+
+
+        if (nextEventSelector != null)
+        {
+            nextEventSelector.SetRepository(
+                eventRepository
+            );
+        }
 
 
         optionsEditor.SetRepository(
@@ -325,6 +493,9 @@ public partial class EventEditor : Control
             attributeRepository =
                 null;
 
+            interludeRepository =
+                null;
+
             chapterOption.Clear();
 
 
@@ -341,6 +512,19 @@ public partial class EventEditor : Control
             new AttributeRepository(
                 projectPath
             );
+
+        interludeRepository =
+            new InterludeRepository(
+                projectPath
+            );
+
+
+        if (nextInterludeSelector != null)
+        {
+            nextInterludeSelector.SetRepository(
+                interludeRepository
+            );
+        }
 
 
         PopulateChapterOptions();
@@ -387,7 +571,9 @@ public partial class EventEditor : Control
                 Conditions =
                     new List<EditorConditionData>(),
                 Pages =
-                    new List<EditorPageData>()
+                    new List<EditorPageData>(),
+                NextEventId = "",
+                NextInterludeId = ""
             };
 
 
@@ -448,7 +634,9 @@ public partial class EventEditor : Control
                     Conditions =
                         new List<EditorConditionData>(),
                     Pages =
-                        new List<EditorPageData>()
+                        new List<EditorPageData>(),
+                    NextEventId = "",
+                    NextInterludeId = ""
                 };
         }
         else
@@ -468,6 +656,20 @@ public partial class EventEditor : Control
             {
                 eventData.Pages =
                     new List<EditorPageData>();
+            }
+
+
+            if (eventData.NextEventId == null)
+            {
+                eventData.NextEventId =
+                    "";
+            }
+
+
+            if (eventData.NextInterludeId == null)
+            {
+                eventData.NextInterludeId =
+                    "";
             }
         }
 
@@ -511,6 +713,20 @@ public partial class EventEditor : Control
         }
 
 
+        if (eventData.NextEventId == null)
+        {
+            eventData.NextEventId =
+                "";
+        }
+
+
+        if (eventData.NextInterludeId == null)
+        {
+            eventData.NextInterludeId =
+                "";
+        }
+
+
         idEdit.Text =
             eventData.Id;
 
@@ -544,6 +760,9 @@ public partial class EventEditor : Control
 
         updatingYears =
             false;
+
+
+        LoadNextDestinationIntoEditor();
 
 
         pageEditor.SetPages(
@@ -581,17 +800,43 @@ public partial class EventEditor : Control
     // ============================================================
 
     private void OnTabChanged(
-    long tab)
-{
-    bool showingNarrative =
-        tab == 0;
-
-
-    // Durante _Ready todavía no existe eventData.
-    // En ese momento solo cambiamos la visibilidad,
-    // sin intentar sincronizar ni recargar páginas.
-    if (eventData == null)
+        long tab)
     {
+        bool showingNarrative =
+            tab == 0;
+
+
+        // Durante _Ready todavía no existe eventData.
+        // En ese momento solo cambiamos la visibilidad,
+        // sin intentar sincronizar ni recargar páginas.
+        if (eventData == null)
+        {
+            ApplyNarrativeWorkspaceMode(
+                showingNarrative
+            );
+
+
+            if (pageEditor != null)
+            {
+                pageEditor.Visible =
+                    showingNarrative;
+            }
+
+
+            if (optionsEditor != null)
+            {
+                optionsEditor.Visible =
+                    !showingNarrative;
+            }
+
+
+            return;
+        }
+
+
+        SynchronizeNarrativeAndOptions();
+
+
         ApplyNarrativeWorkspaceMode(
             showingNarrative
         );
@@ -611,66 +856,40 @@ public partial class EventEditor : Control
         }
 
 
-        return;
+        if (showingNarrative)
+        {
+            pageEditor.SetPages(
+                new List<EditorPageData>(
+                    eventData.Pages ??
+                    new List<EditorPageData>()
+                )
+            );
+        }
+        else
+        {
+            optionsEditor.SetRepository(
+                eventRepository
+            );
+
+
+            optionsEditor.SetProjectPath(
+                projectPath
+            );
+
+
+            optionsEditor.SetChapter(
+                eventData.Chapter
+            );
+
+
+            optionsEditor.SetPages(
+                new List<EditorPageData>(
+                    eventData.Pages ??
+                    new List<EditorPageData>()
+                )
+            );
+        }
     }
-
-
-    SynchronizeNarrativeAndOptions();
-
-
-    ApplyNarrativeWorkspaceMode(
-        showingNarrative
-    );
-
-
-    if (pageEditor != null)
-    {
-        pageEditor.Visible =
-            showingNarrative;
-    }
-
-
-    if (optionsEditor != null)
-    {
-        optionsEditor.Visible =
-            !showingNarrative;
-    }
-
-
-    if (showingNarrative)
-    {
-        pageEditor.SetPages(
-            new List<EditorPageData>(
-                eventData.Pages ??
-                new List<EditorPageData>()
-            )
-        );
-    }
-    else
-    {
-        optionsEditor.SetRepository(
-            eventRepository
-        );
-
-
-        optionsEditor.SetProjectPath(
-            projectPath
-        );
-
-
-        optionsEditor.SetChapter(
-            eventData.Chapter
-        );
-
-
-        optionsEditor.SetPages(
-            new List<EditorPageData>(
-                eventData.Pages ??
-                new List<EditorPageData>()
-            )
-        );
-    }
-}
 
 
     private void SynchronizeNarrativeAndOptions()
@@ -769,7 +988,48 @@ public partial class EventEditor : Control
             );
 
 
+        UpdateNextDestinationFromEditor();
+
+
         SynchronizeNarrativeAndOptions();
+    }
+
+
+    private void UpdateNextDestinationFromEditor()
+    {
+        if (eventData == null)
+        {
+            return;
+        }
+
+
+        // Solo puede existir un destino.
+        eventData.NextEventId =
+            "";
+
+        eventData.NextInterludeId =
+            "";
+
+
+        NextDestinationType type =
+            (NextDestinationType)
+            nextDestinationTypeOption.GetSelectedId();
+
+
+        if (type == NextDestinationType.Event)
+        {
+            eventData.NextEventId =
+                nextEventSelector.GetSelectedEventId();
+
+            return;
+        }
+
+
+        if (type == NextDestinationType.Interlude)
+        {
+            eventData.NextInterludeId =
+                nextInterludeSelector.GetSelectedInterludeId();
+        }
     }
 
 
@@ -1099,96 +1359,96 @@ public partial class EventEditor : Control
     // ============================================================
 
     private void SelectValidationTarget()
-{
-    if (string.IsNullOrWhiteSpace(
-        pendingPageId))
     {
-        return;
-    }
-
-
-    bool selectingDecision =
-        pendingDecisionIndex >= 0;
-
-
-    if (selectingDecision)
-    {
-        // Primero cambiamos de pestaña.
-        // OnTabChanged puede reconstruir OptionsEditor,
-        // así que la selección concreta debe hacerse DESPUÉS.
-        tabBar.CurrentTab =
-            1;
-
-
-        bool pageSelected =
-            optionsEditor.SelectPageById(
-                pendingPageId
-            );
-
-
-        if (!pageSelected)
+        if (string.IsNullOrWhiteSpace(
+            pendingPageId))
         {
-            GD.PrintErr(
-                "EventEditor: no se encontró la página de decisión: ",
-                pendingPageId
-            );
-
-
-            pendingPageId =
-                "";
-
-            pendingDecisionIndex =
-                -1;
-
-
             return;
         }
 
 
-        bool decisionSelected =
-            optionsEditor.SelectDecisionByIndex(
-                pendingDecisionIndex
-            );
+        bool selectingDecision =
+            pendingDecisionIndex >= 0;
 
 
-        if (!decisionSelected)
+        if (selectingDecision)
         {
-            GD.PrintErr(
-                "EventEditor: no se encontró la opción de decisión: ",
-                pendingDecisionIndex + 1
-            );
+            // Primero cambiamos de pestaña.
+            // OnTabChanged puede reconstruir OptionsEditor,
+            // así que la selección concreta debe hacerse DESPUÉS.
+            tabBar.CurrentTab =
+                1;
+
+
+            bool pageSelected =
+                optionsEditor.SelectPageById(
+                    pendingPageId
+                );
+
+
+            if (!pageSelected)
+            {
+                GD.PrintErr(
+                    "EventEditor: no se encontró la página de decisión: ",
+                    pendingPageId
+                );
+
+
+                pendingPageId =
+                    "";
+
+                pendingDecisionIndex =
+                    -1;
+
+
+                return;
+            }
+
+
+            bool decisionSelected =
+                optionsEditor.SelectDecisionByIndex(
+                    pendingDecisionIndex
+                );
+
+
+            if (!decisionSelected)
+            {
+                GD.PrintErr(
+                    "EventEditor: no se encontró la opción de decisión: ",
+                    pendingDecisionIndex + 1
+                );
+            }
         }
-    }
-    else
-    {
-        // Para páginas normales hacemos lo mismo:
-        // primero cambiamos de pestaña y luego seleccionamos.
-        tabBar.CurrentTab =
-            0;
-
-
-        bool pageSelected =
-            pageEditor.SelectPageById(
-                pendingPageId
-            );
-
-
-        if (!pageSelected)
+        else
         {
-            GD.PrintErr(
-                "EventEditor: no se encontró la página: ",
-                pendingPageId
-            );
+            // Para páginas normales hacemos lo mismo:
+            // primero cambiamos de pestaña y luego seleccionamos.
+            tabBar.CurrentTab =
+                0;
+
+
+            bool pageSelected =
+                pageEditor.SelectPageById(
+                    pendingPageId
+                );
+
+
+            if (!pageSelected)
+            {
+                GD.PrintErr(
+                    "EventEditor: no se encontró la página: ",
+                    pendingPageId
+                );
+            }
         }
+
+
+        pendingPageId =
+            "";
+
+        pendingDecisionIndex =
+            -1;
     }
-
-
-    pendingPageId =
-        "";
-
-    pendingDecisionIndex =
-        -1;
-}
 
 
     // ============================================================
@@ -1217,6 +1477,8 @@ public partial class EventEditor : Control
 
         EventValidator validator =
             new EventValidator(
+                eventRepository,
+                interludeRepository,
                 chapterRepository,
                 attributeRepository
             );

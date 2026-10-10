@@ -16,4 +16,8 @@ public class EditorEventData
     public List<EditorConditionData> Conditions { get; set; } = new();
 
     public List<EditorPageData> Pages { get; set; } = new();
+
+    public string NextEventId { get; set; } = "";
+
+    public string NextInterludeId { get; set; } = "";
 }
